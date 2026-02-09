@@ -50,6 +50,92 @@
 
     <main>
 
+        <section class="quickStatsElement">
+
+            <section class="quickElement">
+                <h3>
+                    Quick Stats
+                </h3>
+
+                <button class="btnReport">
+                    Reports
+                </button>
+
+            </section>
+            <hr class="divider">
+
+            <div class="myCam">
+                <h3>
+                    April Coca-Cola Promo
+                </h3>
+            </div>
+
+            <div class="campaigns">
+
+                <div class="planned">
+                    <h3>20</h3>
+                    <p>Planned</p>
+                </div>
+
+                <div class="clockIn">
+                    <h3>18</h3>
+                    <p>Clock-In</p>
+                </div>
+
+                <div class="Atten">
+                    <h3>90%</h3>
+                    <p>Attendance</p>
+                </div>
+
+                <div class="hours">
+                    <h3>4.7 hrs</h3>
+                    <p>Avg Hours</p>
+                </div>
+            </div>
+
+
+        </section>
+
+        <section class="card attendance-card">
+            <div class="card-header">
+                <h3 style="margin-bottom: 2rem;">Staff Attendance</h3>
+                <div class="filter-group">
+                    <select>
+                        <option>All Campaigns</option>
+                    </select>
+                    <div class="search-box"><i class="fa-solid fa-magnifying-glass"></i></div>
+                </div>
+            </div>
+
+            <table style="margin-top: 2rem;" class="attendance-table">
+                <thead>
+                    <tr>
+                        <th>Ambassador</th>
+                        <th>Check-In</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Jack Martin</strong></td>
+                        <td>10:00 AM</td>
+                        <td><span class="status-in">In</span></td>
+                        <td><button class="btn-primary" onclick="viewDetail('Jack')">View</button></td>
+                    </tr>
+                    <tr class="alert-row">
+                        <td><strong>Emily Clark</strong><br><small>Central Mall</small></td>
+                        <td>10:00 AM</td>
+                        <td><i class="fa-solid fa-location-dot"></i></td>
+                        <td><button class="btn-action">Clock In</button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+
+
+
     </main>
 </body>
 

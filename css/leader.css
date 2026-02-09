@@ -15,6 +15,12 @@
   --shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
   --radius: 14px;
   --font: "Inter", sans-serif;
+  --primary: #4318ff;
+  --navy: #2b3674;
+  --gray: #a3aed0;
+  --bg: #f4f7fe;
+  --white: #ffffff;
+  --shadow: 14px 17px 40px 4px rgba(112, 144, 176, 0.08);
 }
 
 body {
@@ -123,4 +129,137 @@ body {
   background: var(--primary);
   color: #fff;
   box-shadow: 0 6px 16px rgba(66, 42, 251, 0.35);
+}
+
+.quickStatsElement,
+.card {
+  background: var(--nav-bg);
+  height: 50vh;
+  margin-top: 2rem;
+  margin-left: 2rem;
+  margin-right: 2rem;
+}
+
+.quickElement {
+  display: flex;
+  justify-content: space-between;
+  padding: 2%;
+}
+
+.quickElement h3 {
+  font-family: var(--font);
+  font-size: 1.6rem;
+  font-weight: bold;
+}
+
+.btnReport {
+  width: 7%;
+  padding: 10px;
+  cursor: pointer;
+}
+
+.divider {
+  border: 0;
+  height: 1px;
+  background-color: rgb(123, 122, 122);
+  opacity: 0.6;
+}
+
+.myCam,
+.campaigns,
+.card {
+  padding-left: 2%;
+  padding-top: 2rem;
+}
+
+.campaigns {
+  display: flex;
+  gap: 10rem;
+}
+
+.myCam h3,
+.planned h3,
+.clockIn h3,
+.Atten h3,
+.hours h3 {
+  font-family: var(--font);
+  font-size: 1.6rem;
+  font-weight: bold;
+}
+
+/* Activity Chart Styles */
+
+.chart-section {
+  margin-top: 20px;
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.bar-container {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  height: 100px;
+  padding-top: 20px;
+  border-bottom: 1px solid blue;
+}
+
+.bar {
+  width: 12px;
+  background: blue;
+  border-radius: 4px 4px 0 0;
+  transition: 0.3s;
+}
+
+.bar:hover {
+  opacity: 0.8;
+}
+
+/* Table styles */
+.attendance-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.attendance-table th {
+  text-align: left;
+  font-size: 11px;
+  color: var(--gray);
+  text-transform: uppercase;
+  padding-bottom: 15px;
+}
+.attendance-table td {
+  padding: 15px 0;
+  border-bottom: 1px solid #f1f1f1;
+  font-size: 14px;
+}
+.status-in {
+  color: #05cd99;
+  font-weight: 800;
+}
+.btn-primary {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.btn-action {
+  background: #05cd99;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-weight: 700;
+}
+
+.filter-group {
+  display: flex;
+  justify-content: space-between;
+  margin-right: 4rem;
 }

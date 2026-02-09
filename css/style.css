@@ -1,0 +1,52 @@
+:root{
+    --btn: #f4f2f2;
+    --btn-hover: #d8dadd;
+    --success: #28a745;
+    --success-hover: #1e7e34;
+    --danger: #dc3545;
+    --danger-hover: #bd2130;
+    --comfirm: #0ac7e4;
+    --comfirm-hover: #0a9eb8;
+    --header: #0080ff;
+}
+
+body{
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: #f0f0f0;
+    margin: 0;
+    padding: 0;
+}
+
+header{
+    background-color: var(--header);
+    color: white;
+    padding: 20px;
+}
+
+.btn{
+    background-color: var(--btn);
+    border: none;
+    color: black;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 20px;
+}
+
+.btn:hover{
+    background-color: var(--btn-hover);
+}
+
+input{
+    padding: 12px 20px;
+    margin: 8px 0;
+    display: inline-block;
+    border: 1px solid #ffffff;
+    box-sizing: border-box;
+    border-radius: 20px;
+    width: 30%;
+}
