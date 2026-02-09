@@ -1,0 +1,126 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --primary: #422afb;
+  --primary-dark: #2b3674;
+  --bg-header: linear-gradient(135deg, #4a6cf7, #422afb);
+  --text-light: #ffffff;
+  --text-muted: rgba(255, 255, 255, 0.75);
+  --nav-bg: #ffffff;
+  --nav-text: #a3aed0;
+  --shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+  --radius: 14px;
+  --font: "Inter", sans-serif;
+}
+
+body {
+  font-family: var(--font);
+  background: #f4f7fe;
+}
+
+/* ===== HEADER TOP ===== */
+.headerBg {
+  background: var(--bg-header);
+  height: 72px;
+  padding: 0 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Left */
+.lederElement {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.image img {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.leaderInfo h2 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-light);
+}
+
+.leaderInfo p {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* Right Icons */
+.iconElement {
+  display: flex;
+  gap: 22px;
+}
+
+.iconElement div {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: 0.25s ease;
+}
+
+.iconElement div:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.iconElement i {
+  color: #fff;
+  font-size: 18px;
+}
+
+/* ===== NAVIGATION ===== */
+.navBar {
+  background: var(--nav-bg);
+  margin: -20px auto 0;
+  width: calc(100% - 40px);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  padding: 6px;
+  margin-top: 2rem;
+}
+
+.navBar ul {
+  display: flex;
+  list-style: none;
+}
+
+.navBar li {
+  flex: 1;
+  text-align: center;
+  padding: 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--nav-text);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.navBar li:hover {
+  background: #f4f7fe;
+  color: var(--primary-dark);
+}
+
+.navBar li.active {
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(66, 42, 251, 0.35);
+}
