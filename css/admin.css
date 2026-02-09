@@ -185,6 +185,171 @@ main {
     font-weight: 600;
 }
 
+/* Performance Grid and Cards */
+.performance-section {
+    margin-top: 50px;
+    padding-top: 30px;
+    border-top: 1px solid var(--border);
+}
+
+.performance-section h3 {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: var(--text-dark);
+}
+
+.performance-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 15px;
+    margin-bottom: 40px;
+}
+
+.performance-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: var(--shadow);
+    transition: all 0.3s ease;
+    color: var(--white);
+}
+
+.performance-card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-4px);
+}
+
+.perf-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+}
+
+.perf-header h4 {
+    margin: 0;
+    font-size: 16px;
+    color: var(--white);
+}
+
+.perf-role {
+    font-size: 12px;
+    background: rgba(255,255,255,0.3);
+    padding: 3px 8px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.perf-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.perf-stat {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+}
+
+.stat-label {
+    color: rgba(255,255,255,0.8);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.stat-value {
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--white);
+}
+
+/* Leaders Section */
+.leaders-section {
+    margin-top: 50px;
+    padding-top: 30px;
+    border-top: 1px solid var(--border);
+}
+
+.leaders-section h3 {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: var(--text-dark);
+}
+
+.leaders-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 15px;
+    margin-bottom: 40px;
+}
+
+.leader-card {
+    background: var(--white);
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: var(--shadow);
+    transition: all 0.3s ease;
+    border-left: 4px solid var(--success);
+}
+
+.leader-card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+}
+
+.leader-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.leader-card-header h4 {
+    margin: 0;
+    font-size: 16px;
+    color: var(--text-dark);
+}
+
+.leader-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
+    font-size: 13px;
+}
+
+.leader-info-item {
+    display: flex;
+    gap: 8px;
+    color: var(--text-muted);
+}
+
+.leader-info-item strong {
+    color: var(--text-dark);
+}
+
+.leader-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+}
+
+.leader-actions .btn {
+    flex: 1;
+    min-width: 100px;
+    font-size: 12px;
+    padding: 8px 12px;
+}
+
 /* Users Section */
 .users-section {
     margin-top: 50px;
@@ -263,6 +428,7 @@ main {
     width: 90%;
     max-width: 500px;
     box-shadow: var(--shadow-lg);
+    padding: 20px;
     overflow: hidden;
 }
 
@@ -505,6 +671,7 @@ main {
     .modal-content {
         width: 95%;
         margin: 20px;
+        padding: 20px;
     }
 
     .users-grid {
@@ -517,6 +684,14 @@ main {
 
     .campaign-card-header h4 {
         width: 100%;
+    }
+
+    .performance-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .leaders-grid {
+        grid-template-columns: 1fr;
     }
 }
 

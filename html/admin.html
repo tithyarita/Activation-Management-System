@@ -18,6 +18,7 @@
         <p>Dashboard</p>
         <p>Campaigns</p>
         <p>Users</p>
+        <p>Leaders</p>
         <p>Reports</p>
         <p>Logout</p>     
     </div>
@@ -39,6 +40,22 @@
     <section>
         <div id="campaignsList" class="campaigns-grid">
             <p class="loading-text">Loading campaigns...</p>
+        </div>
+    </section>
+
+    <!-- Leaders Section -->
+    <section class="leaders-section">
+        <h3>Campaign Leaders Management</h3>
+        <div id="leadersList" class="leaders-grid">
+            <p class="loading-text">Loading leaders...</p>
+        </div>
+    </section>
+
+    <!-- Leader Performance Section -->
+    <section class="performance-section">
+        <h3>Leader Performance Analytics</h3>
+        <div id="leaderPerformance" class="performance-grid">
+            <p class="loading-text">Loading performance data...</p>
         </div>
     </section>
         <section class="top-row">
@@ -118,6 +135,28 @@
 </div>
 </main>
 
+<!-- Leader Assignment Modal -->
+<div id="leaderAssignModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Assign Leader to Campaign</h2>
+            <button class="close-btn" onclick="closeLeaderAssignModal()">&times;</button>
+        </div>
+        <div style="padding:20px;">
+            <div class="form-group">
+                <label>Select Leader *</label>
+                <select id="leaderSelect">
+                    <option value="">-- Select a leader --</option>
+                </select>
+            </div>
+            <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:15px;">
+                <button class="btn btn-success" onclick="confirmLeaderAssign()">Assign</button>
+                <button class="btn btn-secondary" onclick="closeLeaderAssignModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Add Campaign Modal -->
 <div id="campaignModal" class="modal">
     <div class="modal-content">
@@ -184,9 +223,9 @@
             <div class="form-group">
                 <label>Role *</label>
                 <select id="userRole">
-                    <option value="BA">Brand Ambassador</option>
-                    <option value="Leader">Leader</option>
-                    <option value="Admin">Admin</option>
+                    <option value="staff">Brand Ambassador</option>
+                    <option value="leader">Leader</option>
+                    <option value="admin">Admin</option>
                 </select>
             </div>
 
