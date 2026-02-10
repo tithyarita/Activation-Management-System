@@ -13,6 +13,7 @@
 
     <div id="header-placeholder"></div>
 
+<<<<<<< HEAD
     <main>
         <div class="admin-container">
             <div class="content">
@@ -26,6 +27,165 @@
             <div class="welcome">
                 <h1>Welcome, Admin!</h1>
                 <p>Manage your campaigns and users from this dashboard.</p>
+=======
+<main>
+<div class="admin-container">
+    <div class="content">
+        <p>Dashboard</p>
+        <p>Campaigns</p>
+        <p>Users</p>
+        <p>Leaders</p>
+        <p>Reports</p>
+        <p>Logout</p>     
+    </div>
+    <!-- Welcome Message -->
+    <div class="welcome">
+        <h1>Welcome, Admin!</h1>
+        <p>Manage your campaigns and users from this dashboard.</p>
+    </div>
+
+    <!-- Top Navigation -->
+    <section class="top-row">
+        <div class="page-title">Campaign Management</div>
+        <button class="btn btn-primary" onclick="openModal()">
+            <i class="fa-solid fa-plus"></i> Add Campaign
+        </button>
+    </section>
+
+    <!-- Campaigns Grid -->
+    <section>
+        <div id="campaignsList" class="campaigns-grid">
+            <p class="loading-text">Loading campaigns...</p>
+        </div>
+    </section>
+
+    <!-- Leaders Section -->
+    <section class="leaders-section">
+        <h3>Campaign Leaders Management</h3>
+        <div id="leadersList" class="leaders-grid">
+            <p class="loading-text">Loading leaders...</p>
+        </div>
+    </section>
+
+    <!-- Leader Performance Section -->
+    <section class="performance-section">
+        <h3>Leader Performance Analytics</h3>
+        <div id="leaderPerformance" class="performance-grid">
+            <p class="loading-text">Loading performance data...</p>
+        </div>
+    </section>
+        <section class="top-row">
+        <div class="page-title">Users Management</div>
+        <button class="btn btn-primary" onclick="openUserModal()">
+            <i class="fa-solid fa-plus"></i> Add User
+        </button>
+    </section>
+
+    <!-- Users Section -->
+    <section class="users-section">
+        <h3>A Sign role for all Users</h3>
+        <div id="usersList" class="users-grid">
+            <p class="loading-text">Loading users...</p>
+        </div>
+    </section>
+    
+    <!-- Reports Section -->
+   <section class="reports-section">
+
+    <div class="top-row">
+        <h3>Attendance Reports</h3>
+        <button class="btn btn-primary" onclick="loadReports()">
+            Refresh
+        </button>
+    </div>
+
+    <!-- Analytics -->
+    <div class="reports-analytics">
+
+        <div class="report-card">
+            <h4>Total Records</h4>
+            <span id="totalRecords">0</span>
+        </div>
+
+        <div class="report-card">
+            <h4>Clocked In</h4>
+            <span id="totalIn">0</span>
+        </div>
+
+        <div class="report-card">
+            <h4>Clocked Out</h4>
+            <span id="totalOut">0</span>
+        </div>
+
+        <div class="report-card">
+            <h4>Attendance Rate</h4>
+            <span id="attendanceRate">0%</span>
+        </div>
+
+    </div>
+
+    <!-- Table -->
+    <table class="reports-table">
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Campaign</th>
+                <th>Clock In</th>
+                <th>Clock Out</th>
+                <th>Location</th>
+                <th>Photo</th>
+            </tr>
+        </thead>
+
+        <tbody id="reportsList">
+            <tr>
+                <td colspan="6">Loading reports...</td>
+            </tr>
+        </tbody>
+    </table>
+
+</section>
+
+
+
+</div>
+</main>
+
+<!-- Leader Assignment Modal -->
+<div id="leaderAssignModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Assign Leader to Campaign</h2>
+            <button class="close-btn" onclick="closeLeaderAssignModal()">&times;</button>
+        </div>
+        <div style="padding:20px;">
+            <div class="form-group">
+                <label>Select Leader *</label>
+                <select id="leaderSelect">
+                    <option value="">-- Select a leader --</option>
+                </select>
+            </div>
+            <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:15px;">
+                <button class="btn btn-success" onclick="confirmLeaderAssign()">Assign</button>
+                <button class="btn btn-secondary" onclick="closeLeaderAssignModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Campaign Modal -->
+<div id="campaignModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Add New Campaign</h2>
+            <button class="close-btn" onclick="closeModal()">&times;</button>
+        </div>
+        
+        <form id="campaignForm">
+            <div class="form-group">
+                <label for="campaignName">Campaign Name *</label>
+                <input type="text" id="campaignName" placeholder="e.g., Coca-Cola Promo" required>
+>>>>>>> 9715b22e4582150bce2811dc4df54d58aaf9aa64
             </div>
 
             <!-- Top Navigation -->
@@ -198,6 +358,37 @@
 
             </form>
         </div>
+<<<<<<< HEAD
+=======
+
+        <form id="userForm">
+
+            <div class="form-group">
+                <label>User Name *</label>
+                <input type="text" id="userName" required>
+            </div>
+
+            <div class="form-group">
+                <label>Email *</label>
+                <input type="email" id="userEmail" required>
+            </div>
+
+            <div class="form-group">
+                <label>Role *</label>
+                <select id="userRole">
+                    <option value="staff">Brand Ambassador</option>
+                    <option value="leader">Leader</option>
+                    <option value="admin">Admin</option>
+                </select>
+            </div>
+
+            <div class="modal-actions">
+                <button type="submit" class="btn btn-success">Save User</button>
+                <button type="button" class="btn btn-secondary" onclick="closeUserModal()">Cancel</button>
+            </div>
+
+        </form>
+>>>>>>> 9715b22e4582150bce2811dc4df54d58aaf9aa64
     </div>
 
 

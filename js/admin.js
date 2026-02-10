@@ -137,6 +137,7 @@ async function loadCampaigns() {
 
 		querySnapshot.forEach((docSnap) => {
 			const campaign = docSnap.data();
+			const leaderName = campaign.leaderName || 'Unassigned';
 			const campaignEl = document.createElement('div');
 			campaignEl.className = 'campaign-card';
 			campaignEl.innerHTML = `
@@ -147,6 +148,11 @@ async function loadCampaigns() {
 					</button>
 				</div>
 				<div class="campaign-card-body">
+					<div class="campaign-detail">
+						<span class="detail-label"><i class="fa-solid fa-user"></i> Leader:</span>
+						<span class="detail-value">${leaderName}</span>
+						<button class="btn" style="padding:4px 10px;font-size:12px;margin-left:10px;" onclick="openLeaderAssignModal('${docSnap.id}')">Change</button>
+					</div>
 					<div class="campaign-detail">
 						<span class="detail-label"><i class="fa-solid fa-calendar"></i> Date:</span>
 						<span class="detail-value">${campaign.date || 'N/A'}</span>
@@ -167,6 +173,9 @@ async function loadCampaigns() {
 			`;
 			campaignsList.appendChild(campaignEl);
 		});
+		
+		// Load leader performance after campaigns
+		loadLeaderPerformance();
 	} catch (err) {
 		console.error('Error loading campaigns:', err);
 		document.getElementById('campaignsList').innerHTML = '<p class="loading-text" style="color:red">Error: ' + err.message + '</p>';
@@ -378,6 +387,131 @@ window.assignLeader = async function(campaignId, leaderId){
 	}catch(err){
 		console.error('Error assigning leader', err);
 		alert('Error assigning leader: '+err.message);
+	}
+}
+
+window.selectedCampaignForAssignment = null;
+
+// Open leader assignment modal for a campaign
+window.openLeaderAssignModal = function(campaignId){
+	window.selectedCampaignForAssignment = campaignId;
+	const modal = document.getElementById('leaderAssignModal');
+	const dropdown = document.getElementById('leaderSelect');
+	
+	// Populate dropdown with leaders
+	dropdown.innerHTML = '<option value="">Select a leader...</option>';
+	if (window.leaders && window.leaders.length) {
+		window.leaders.forEach(leader => {
+			const opt = document.createElement('option');
+			opt.value = leader.id;
+			opt.textContent = leader.name + ' (' + leader.email + ')';
+			dropdown.appendChild(opt);
+		});
+	}
+	
+	modal.style.display = 'flex';
+}
+
+// Close leader assignment modal
+window.closeLeaderAssignModal = function(){
+	document.getElementById('leaderAssignModal').style.display = 'none';
+	window.selectedCampaignForAssignment = null;
+}
+
+// Confirm leader assignment
+window.confirmLeaderAssign = async function(){
+	if (!window.selectedCampaignForAssignment) {
+		alert('No campaign selected');
+		return;
+	}
+	
+	const leaderId = document.getElementById('leaderSelect').value;
+	if (!leaderId) {
+		alert('Please select a leader');
+		return;
+	}
+	
+	await window.assignLeader(window.selectedCampaignForAssignment, leaderId);
+	window.closeLeaderAssignModal();
+}
+
+// Load and display leader performance
+window.loadLeaderPerformance = async function(){
+	try {
+		const perfContainer = document.getElementById('leaderPerformance');
+		if (!perfContainer) return;
+		
+		perfContainer.innerHTML = '';
+		
+		if (!window.leaders || !window.leaders.length) {
+			perfContainer.innerHTML = '<p class="loading-text">No leaders available</p>';
+			return;
+		}
+		
+		// Get all attendance records from Firestore
+		const attendanceSnapshot = await getDocs(collection(db, 'attendance'));
+		const attendanceRecords = [];
+		attendanceSnapshot.forEach(doc => {
+			attendanceRecords.push(doc.data());
+		});
+		
+		// Get all campaigns to match by leader
+		const campaignSnapshot = await getDocs(collection(db, 'campaigns'));
+		const campaigns = {};
+		campaignSnapshot.forEach(doc => {
+			campaigns[doc.id] = doc.data();
+		});
+		
+		// Calculate performance for each leader
+		for (const leader of window.leaders) {
+			// Find campaigns assigned to this leader
+			const leaderCampaigns = Object.values(campaigns).filter(c => c.leaderId === leader.id);
+			const campaignIds = leaderCampaigns.map(c => Object.keys(campaigns).find(id => campaigns[id] === c));
+			
+			// Count attendances for campaigns led by this leader
+			const leaderAttendance = attendanceRecords.filter(r => campaignIds.includes(r.campaignId));
+			
+			// Get unique staff count
+			const uniqueStaff = new Set(leaderAttendance.map(a => a.userId)).size;
+			
+			// Calculate attendance rate
+			const totalAttendances = leaderAttendance.length;
+			const attendanceRate = totalAttendances > 0 ? Math.round((uniqueStaff / (uniqueStaff || 1)) * 100) : 0;
+			
+			// Create performance card
+			const card = document.createElement('div');
+			card.className = 'performance-card';
+			card.innerHTML = `
+				<div class="perf-header">
+					<h4><i class="fa-solid fa-star"></i> ${leader.name}</h4>
+					<span class="perf-role">${leader.role}</span>
+				</div>
+				<div class="perf-body">
+					<div class="perf-stat">
+						<span class="stat-label"><i class="fa-solid fa-tasks"></i> Campaigns:</span>
+						<span class="stat-value">${leaderCampaigns.length}</span>
+					</div>
+					<div class="perf-stat">
+						<span class="stat-label"><i class="fa-solid fa-users"></i> Staff Managed:</span>
+						<span class="stat-value">${uniqueStaff}</span>
+					</div>
+					<div class="perf-stat">
+						<span class="stat-label"><i class="fa-solid fa-percent"></i> Attendance Rate:</span>
+						<span class="stat-value">${attendanceRate}%</span>
+					</div>
+					<div class="perf-stat">
+						<span class="stat-label"><i class="fa-solid fa-check"></i> Total Check-ins:</span>
+						<span class="stat-value">${totalAttendances}</span>
+					</div>
+				</div>
+			`;
+			perfContainer.appendChild(card);
+		}
+	} catch (err) {
+		console.error('Error loading leader performance:', err);
+		if (document.getElementById('leaderPerformance')) {
+			document.getElementById('leaderPerformance').innerHTML = '<p style="color:red">Error loading performance: ' + err.message + '</p>';
+		}
 	}
 }
 

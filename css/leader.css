@@ -249,7 +249,7 @@ body {
 /* bar itself */
 .bar-fill {
   display: block; /* span must be block */
-  width: 18px;
+  width: 30px;
   background: #2f80ed;
   border-radius: 4px 4px 0 0;
 }
