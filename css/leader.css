@@ -135,7 +135,7 @@ body {
 .quickStatsElement {
   background: var(--nav-bg);
   height: 50vh;
-  margin-top: 2rem;
+  margin-bottom: 5rem;
   margin-left: 2rem;
   margin-right: 2rem;
 }
@@ -203,7 +203,8 @@ body {
 .chart-wrapper {
   display: flex;
   flex: 2;
-  background: var(--nav-bg);
+  background: rgb(231, 231, 231);
+
   padding: 16px;
   border-radius: 12px;
   padding-left: 2rem;
@@ -479,6 +480,12 @@ body {
 }
 
 /* ================= MAP ================= */
+.mapElement {
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+}
+
 .map {
   flex: 1;
   background: var(--nav-bg);
@@ -490,4 +497,12 @@ body {
 .pin {
   font-size: 34px;
   margin-bottom: 10px;
+}
+
+.dayElement {
+  display: flex;
+  gap: 1rem;
+  color: rgb(95, 93, 93);
+  text-align: center;
+  padding: 1.5rem;
 }
