@@ -97,15 +97,24 @@
         </section>
 
         <section class="card attendance-card">
+
             <div class="card-header">
                 <h3 style="margin-bottom: 2rem;">Staff Attendance</h3>
+
                 <div class="filter-group">
                     <select>
                         <option>All Campaigns</option>
                     </select>
+                    <div class="promoInput">
+                        <input type="text" placeholder="Coca-Cola Promo">
+                    </div>
+
                     <div class="search-box"><i class="fa-solid fa-magnifying-glass"></i></div>
+
                 </div>
             </div>
+
+
 
             <table style="margin-top: 2rem;" class="attendance-table">
                 <thead>
@@ -128,6 +137,13 @@
                         <td>10:00 AM</td>
                         <td><i class="fa-solid fa-location-dot"></i></td>
                         <td><button class="btn-action">Clock In</button></td>
+                    </tr>
+
+                    <tr class="alert-row">
+                        <td><strong>Emily Clark</strong><br><small>Central Mall</small></td>
+                        <td>10:00 AM</td>
+                        <td><span class="status-in">In</span></td>
+                        <td><button class="btn-out">Clock Out</button></td>
                     </tr>
                 </tbody>
             </table>
