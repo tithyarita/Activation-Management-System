@@ -1,3 +1,4 @@
+/* ================= GLOBAL RESET ================= */
 * {
   margin: 0;
   padding: 0;
@@ -5,7 +6,7 @@
 }
 
 :root {
-  --primary: #422afb;
+  --primary: #4318ff;
   --primary-dark: #2b3674;
   --bg-header: linear-gradient(135deg, #4a6cf7, #422afb);
   --text-light: #ffffff;
@@ -13,33 +14,30 @@
   --nav-bg: #ffffff;
   --nav-text: #a3aed0;
   --shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
-  --radius: 14px;
+  --radius: 12px;
   --font: "Inter", sans-serif;
-  --primary: #4318ff;
-  --navy: #2b3674;
   --gray: #a3aed0;
   --bg: #f4f7fe;
   --white: #ffffff;
-  --shadow: 14px 17px 40px 4px rgba(112, 144, 176, 0.08);
   --color-clock-out: #fc0303;
 }
 
 body {
   font-family: var(--font);
-  background: #f4f7fe;
+  background: var(--bg);
+  min-height: 100vh;
 }
 
-/* ===== HEADER TOP ===== */
+/* ================= HEADER ================= */
 .headerBg {
   background: var(--bg-header);
   height: 72px;
-  padding: 0 28px;
+  padding: 0 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-/* Left */
 .lederElement {
   display: flex;
   align-items: center;
@@ -47,8 +45,8 @@ body {
 }
 
 .image img {
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid rgba(255, 255, 255, 0.6);
@@ -66,10 +64,9 @@ body {
   color: var(--text-muted);
 }
 
-/* Right Icons */
 .iconElement {
   display: flex;
-  gap: 22px;
+  gap: 16px;
 }
 
 .iconElement div {
@@ -93,15 +90,14 @@ body {
   font-size: 18px;
 }
 
-/* ===== NAVIGATION ===== */
+/* ================= NAVIGATION ================= */
 .navBar {
   background: var(--nav-bg);
-  margin: -20px auto 0;
-  width: calc(100% - 40px);
+  margin: 1rem auto 0;
+  width: calc(100% - 4rem);
   border-radius: 18px;
   box-shadow: var(--shadow);
   padding: 6px;
-  margin-top: 2rem;
 }
 
 .navBar ul {
@@ -132,99 +128,92 @@ body {
   box-shadow: 0 6px 16px rgba(66, 42, 251, 0.35);
 }
 
+/* ================= QUICK STATS ================= */
 .quickStatsElement {
   background: var(--nav-bg);
-  height: 50vh;
-  margin-bottom: 5rem;
-  margin-left: 2rem;
-  margin-right: 2rem;
-}
-
-.card {
-  background: var(--nav-bg);
-  padding-left: 2%;
-  padding-top: 2rem;
-  width: 50vw;
-  height: 50vh;
-  margin-top: 2rem;
-  margin-left: 2rem;
-  margin-right: 2rem;
+  padding: 2rem;
+  margin: 2rem auto;
+  border-radius: 16px;
+  width: calc(100% - 4rem);
+  box-shadow: var(--shadow);
 }
 
 .quickElement {
   display: flex;
   justify-content: space-between;
-  padding: 2%;
-  margin-top: 2rem;
+  align-items: center;
+  margin-bottom: 1rem;
 }
 
 .quickElement h3 {
-  font-family: var(--font);
-  font-size: 1.6rem;
-  font-weight: bold;
+  font-size: 1.5rem;
+  font-weight: 700;
 }
 
 .btnReport {
-  width: 7%;
-  padding: 10px;
+  padding: 10px 20px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
   cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+ 
+}
+
+.btnReport:hover {
+  background: #2b14c9;
 }
 
 .divider {
-  border: 0;
   height: 1px;
-  background-color: rgb(123, 122, 122);
-  opacity: 0.6;
+  background: #ddd;
+  margin: 1rem 0 1.5rem;
 }
 
-.myCam,
-.campaigns {
-  padding-left: 2%;
-  padding-top: 2rem;
+.myCam h3 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
 }
 
 .campaigns {
   display: flex;
-  gap: 10rem;
+  flex-wrap: wrap;
+  gap: 2rem;
+  margin-bottom: 2rem;
 }
 
-.myCam h3,
-.planned h3,
-.clockIn h3,
-.Atten h3,
-.hours h3 {
-  font-family: var(--font);
-  font-size: 1.6rem;
-  font-weight: bold;
+.campaigns div h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
 }
 
-/* Activity Chart Styles */
-/* Chart area */
+.campaigns div p {
+  font-size: 0.9rem;
+  color: gray;
+}
+
 /* ================= CHART ================= */
 .chart-wrapper {
   display: flex;
-  flex: 2;
-  background: rgb(231, 231, 231);
-
-  padding: 16px;
-  border-radius: 12px;
-  padding-left: 2rem;
-  padding-right: 2rem;
-  margin-top: 2rem;
+  flex-wrap: wrap;
+  gap: 2rem;
+  background: #f0f0f0;
+  padding: 1.5rem;
+  border-radius: 16px;
 }
 
-/* Y Axis */
 .y-axis {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  height: 160px;
   font-size: 12px;
   color: gray;
-  margin-right: 12px;
+  min-width: 30px;
 }
 
-/* Chart Area */
 .chart-area {
   flex: 1;
 }
@@ -232,171 +221,191 @@ body {
 .bars {
   display: flex;
   align-items: flex-end;
-  gap: 14px;
+  gap: 12px;
   height: 160px;
 }
 
-/* Single Bar */
-/* each bar container MUST have height */
 .bar {
-  height: 160px; /* chart height */
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
   align-items: center;
+  height: 160px;
 }
 
-/* bar itself */
 .bar-fill {
-  display: block; /* span must be block */
-  width: 30px;
-  background: #2f80ed;
-  border-radius: 4px 4px 0 0;
+  display: block;
+  width: 28px;
+  background: var(--primary);
+  border-radius: 6px 6px 0 0;
 }
 
-/* X Axis Labels */
 .bar small {
   margin-top: 6px;
   font-size: 11px;
   color: gray;
-  white-space: nowrap;
 }
 
-/* Table styles */
-.attendance-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-.attendance-table th {
-  text-align: left;
-  font-size: 11px;
-  color: var(--gray);
-  text-transform: uppercase;
-  padding-bottom: 15px;
-}
-.attendance-table td {
-  padding: 15px 0;
-  border-bottom: 1px solid #f1f1f1;
-  font-size: 14px;
-}
-.status-in {
-  color: #05cd99;
-  font-weight: 800;
-}
-.btn-primary {
-  background: var(--primary);
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 10px;
-  font-weight: 700;
-  cursor: pointer;
-}
-.btn-action {
-  background: #05cd99;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 10px;
-  font-weight: 700;
+/* ================= ALL ELEMENTS ================= */
+.allElement {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  margin: 2rem auto;
+  width: calc(100% - 4rem);
 }
 
-.btn-out {
-  background: var(--color-clock-out);
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 10px;
-  font-weight: 700;
+/* Attendance Card */
+.card.attendance-card {
+  flex: 1 1 600px;
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
 }
 
-/* Filter Group Container */
+.card-header h3 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+/* Filter Group */
 .filter-group {
   display: flex;
   align-items: center;
   gap: 1rem;
+  flex-wrap: wrap;
 }
 
-/* Select Dropdown */
-.filter-group select {
-  padding: 0.6rem 1rem;
-  border-radius: 0.5rem;
-  border: 1px solid #dcdcdc;
-  font-size: 0.9rem;
-  background-color: #f9f9f9;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.filter-group select:focus {
-  outline: none;
-  border-color: #4f46e5;
-  background-color: #fff;
-}
-
-/* Promo Input */
+.filter-group select,
 .promoInput input {
-  width: 220px;
   padding: 0.6rem 1rem;
-  border-radius: 0.5rem;
+  border-radius: 8px;
   border: 1px solid #dcdcdc;
   font-size: 0.9rem;
   transition: all 0.3s ease;
 }
 
-.promoInput input::placeholder {
-  color: #9ca3af;
-}
-
+.filter-group select:focus,
 .promoInput input:focus {
   outline: none;
-  border-color: #4f46e5;
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(67, 24, 255, 0.15);
 }
 
-/* Search Button */
 .search-box {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 42px;
   height: 42px;
-  background: #4f46e5;
-  color: #ffffff;
-  border-radius: 0.5rem;
+  background: var(--primary);
+  color: #fff;
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
-.search-box i {
-  font-size: 1rem;
-}
-
 .search-box:hover {
-  background: #4338ca;
+  background: #2b14c9;
   transform: translateY(-1px);
   box-shadow: 0 6px 15px rgba(79, 70, 229, 0.35);
 }
 
-/*Report*/
+/* Attendance Table */
+.attendance-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.attendance-table th {
+  text-align: left;
+  font-size: 12px;
+  color: var(--gray);
+  text-transform: uppercase;
+  padding-bottom: 12px;
+}
+
+.attendance-table td {
+  padding: 12px 0;
+  border-bottom: 1px solid #f1f1f1;
+  font-size: 14px;
+}
+
+.status-in {
+  color: #05cd99;
+  font-weight: 700;
+}
+
+.btn-primary,
+.btn-action,
+.btn-out {
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: #2b14c9;
+}
+
+.btn-action {
+  background: #05cd99;
+  color: #fff;
+}
+
+.btn-action:hover {
+  background: #049f7b;
+}
+
+.btn-out {
+  background: var(--color-clock-out);
+  color: #fff;
+}
+
+.btn-out:hover {
+  background: #d60000;
+}
+
+/* Reports Button */
+.rElement {
+  flex: 1 1 350px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
 
 .reports-btn {
-  width: 300px;
-  background: #2f80ed;
-  color: white;
+  background: var(--primary);
+  color: #fff;
   padding: 12px 16px;
-  border-radius: 10px;
+  border-radius: 12px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+}
+
+.reports-btn:hover {
+  background: #2b14c9;
+  transform: translateY(-2px);
 }
 
 .reports-btn .left {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .reports-btn .icon {
@@ -409,30 +418,29 @@ body {
 }
 
 .reports-btn .right {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: bold;
 }
 
+/* Activity Card */
 .activity-card {
-  background: var(--nav-bg);
-  padding-left: 2rem;
-  padding-right: 2rem;
-  padding-top: 2rem;
-  width: 50vw;
-  height: 41vh;
-  margin-top: 2rem;
-  margin-right: 2rem;
+  background: #fff;
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  flex: 1;
+  box-shadow: var(--shadow);
 }
 
 .activity-title {
   font-size: 16px;
-  margin-bottom: 10px;
+  font-weight: 700;
+  margin-bottom: 1rem;
 }
 
 .activity-item {
   display: flex;
-  gap: 10px;
-  padding: 8px 0;
+  gap: 12px;
+  padding: 10px 0;
   border-bottom: 1px solid #eee;
 }
 
@@ -444,10 +452,6 @@ body {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-}
-
-.activity-info {
-  flex: 1;
 }
 
 .activity-info .row {
@@ -463,47 +467,85 @@ body {
 
 .activity-info p {
   font-size: 12px;
-  margin: 4px 0 0;
   color: #555;
+  margin-top: 4px;
 }
 
 .view-all {
   text-align: center;
-  color: #2f80ed;
+  margin-top: 8px;
+  color: var(--primary);
   font-weight: 600;
-  margin-top: 10px;
   cursor: pointer;
 }
 
-.allElement {
-  display: flex;
-  margin-top: 2rem;
+.view-all:hover {
+  text-decoration: underline;
 }
 
-/* ================= MAP ================= */
+/* Map Section */
 .mapElement {
   display: flex;
   flex-direction: column;
   text-align: center;
+  gap: 1rem;
 }
 
 .map {
-  flex: 1;
-  background: var(--nav-bg);
-  border-radius: 12px;
-  padding: 20px;
-  text-align: center;
+  background: #fff;
+  padding: 1rem;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
 }
 
 .pin {
-  font-size: 34px;
-  margin-bottom: 10px;
+  font-size: 32px;
+  margin-bottom: 8px;
 }
 
 .dayElement {
   display: flex;
-  gap: 1rem;
-  color: rgb(95, 93, 93);
-  text-align: center;
-  padding: 1.5rem;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 14px;
+  color: #5f5d5d;
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 1200px) {
+  .allElement,
+  .chart-wrapper,
+  .campaigns {
+    flex-direction: column;
+  }
+
+  .card.attendance-card,
+  .rElement,
+  .activity-card {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+
+  .quickStatsElement {
+    height: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .navBar ul {
+    flex-direction: column;
+  }
+
+  .navBar li {
+    margin-bottom: 8px;
+  }
+
+  .campaigns {
+    gap: 1rem;
+  }
+
+  .bars {
+    justify-content: flex-start;
+    overflow-x: auto;
+  }
 }
