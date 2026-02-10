@@ -344,3 +344,104 @@ body {
   transform: translateY(-1px);
   box-shadow: 0 6px 15px rgba(79, 70, 229, 0.35);
 }
+
+/*Report*/
+
+.reports-btn {
+  width: 300px;
+  background: #2f80ed;
+  color: white;
+  padding: 12px 16px;
+  border-radius: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.reports-btn .left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.reports-btn .icon {
+  font-size: 18px;
+}
+
+.reports-btn .text {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.reports-btn .right {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.activity-card {
+  background: var(--nav-bg);
+  padding-left: 2rem;
+  padding-right: 2rem;
+  padding-top: 2rem;
+  width: 50vw;
+  height: 41vh;
+  margin-top: 2rem;
+  margin-right: 2rem;
+}
+
+.activity-title {
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+
+.activity-item {
+  display: flex;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.activity-item:last-child {
+  border-bottom: none;
+}
+
+.activity-item img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.activity-info {
+  flex: 1;
+}
+
+.activity-info .row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+}
+
+.activity-info span {
+  font-size: 12px;
+  color: gray;
+}
+
+.activity-info p {
+  font-size: 12px;
+  margin: 4px 0 0;
+  color: #555;
+}
+
+.view-all {
+  text-align: center;
+  color: #2f80ed;
+  font-weight: 600;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+.allElement {
+  display: flex;
+}

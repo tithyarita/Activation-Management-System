@@ -96,58 +96,126 @@
 
         </section>
 
-        <section class="card attendance-card">
+        <section class="allElement">
+            <div class="card attendance-card">
 
-            <div class="card-header">
-                <h3 style="margin-bottom: 2rem;">Staff Attendance</h3>
+                <div class="card-header">
+                    <h3 style="margin-bottom: 2rem;">Staff Attendance</h3>
 
-                <div class="filter-group">
-                    <select>
-                        <option>All Campaigns</option>
-                    </select>
-                    <div class="promoInput">
-                        <input type="text" placeholder="Coca-Cola Promo">
+                    <div class="filter-group">
+                        <select>
+                            <option>All Campaigns</option>
+                        </select>
+                        <div class="promoInput">
+                            <input type="text" placeholder="Coca-Cola Promo">
+                        </div>
+
+                        <div class="search-box"><i class="fa-solid fa-magnifying-glass"></i></div>
+
                     </div>
-
-                    <div class="search-box"><i class="fa-solid fa-magnifying-glass"></i></div>
-
                 </div>
+
+
+
+                <table style="margin-top: 2rem;" class="attendance-table">
+                    <thead>
+                        <tr>
+                            <th>Ambassador</th>
+                            <th>Check-In</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Jack Martin</strong></td>
+                            <td>10:00 AM</td>
+                            <td><span class="status-in">In</span></td>
+                            <td><button class="btn-primary" onclick="viewDetail('Jack')">View</button></td>
+                        </tr>
+                        <tr class="alert-row">
+                            <td><strong>Emily Clark</strong><br><small>Central Mall</small></td>
+                            <td>10:00 AM</td>
+                            <td><i class="fa-solid fa-location-dot"></i></td>
+                            <td><button class="btn-action">Clock In</button></td>
+                        </tr>
+
+                        <tr class="alert-row">
+                            <td><strong>Emily Clark</strong><br><small>Central Mall</small></td>
+                            <td>10:00 AM</td>
+                            <td><span class="status-in">In</span></td>
+                            <td><button class="btn-out">Clock Out</button></td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
 
+            <div style="margin-top: 2rem;" class="rElement">
+                <div class="reports-btn">
+                    <div class="left">
+                        <span class="icon">📄</span>
+                        <span class="text">Reports</span>
+                    </div>
+
+                    <div class="right">
+                        ›
+                    </div>
+                </div>
+
+                <div class="activity-card">
+
+                    <h3 class="activity-title">Recent Activity</h3>
+
+                    <div class="activity-item">
+                        <img src="https://i.pravatar.cc/40?img=12">
+                        <div class="activity-info">
+                            <div class="row">
+                                <strong>Jack Martin</strong>
+                                <span>25 mins ago</span>
+                            </div>
+                            <p>📍 Central Mall<br>123 Main St, Springfield</p>
+                        </div>
+                    </div>
+
+                    <div class="activity-item">
+                        <img src="https://i.pravatar.cc/40?img=32">
+                        <div class="activity-info">
+                            <div class="row">
+                                <strong>Sarah Lee</strong>
+                                <span>30 mins ago</span>
+                            </div>
+                            <p>📍 (25km) 10:09 – 10:00 AM</p>
+                        </div>
+                    </div>
+
+                    <div class="activity-item">
+                        <img src="https://i.pravatar.cc/40?img=45">
+                        <div class="activity-info">
+                            <div class="row">
+                                <strong>Emily Clark</strong>
+                                <span>5 mins ago</span>
+                            </div>
+                            <p>📍 Central Mall<br>10 Springfield</p>
+                        </div>
+                    </div>
+
+                    <div class="view-all">
+                        View All ›
+                    </div>
+
+                </div>
 
 
-            <table style="margin-top: 2rem;" class="attendance-table">
-                <thead>
-                    <tr>
-                        <th>Ambassador</th>
-                        <th>Check-In</th>
-                        <th>Status</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><strong>Jack Martin</strong></td>
-                        <td>10:00 AM</td>
-                        <td><span class="status-in">In</span></td>
-                        <td><button class="btn-primary" onclick="viewDetail('Jack')">View</button></td>
-                    </tr>
-                    <tr class="alert-row">
-                        <td><strong>Emily Clark</strong><br><small>Central Mall</small></td>
-                        <td>10:00 AM</td>
-                        <td><i class="fa-solid fa-location-dot"></i></td>
-                        <td><button class="btn-action">Clock In</button></td>
-                    </tr>
+            </div>
 
-                    <tr class="alert-row">
-                        <td><strong>Emily Clark</strong><br><small>Central Mall</small></td>
-                        <td>10:00 AM</td>
-                        <td><span class="status-in">In</span></td>
-                        <td><button class="btn-out">Clock Out</button></td>
-                    </tr>
-                </tbody>
-            </table>
         </section>
+
+
+
+
+
+
+
 
 
 
