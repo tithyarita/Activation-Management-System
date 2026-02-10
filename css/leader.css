@@ -159,7 +159,6 @@ body {
   cursor: pointer;
   font-weight: 600;
   transition: all 0.3s ease;
- 
 }
 
 .btnReport:hover {
@@ -548,4 +547,21 @@ body {
     justify-content: flex-start;
     overflow-x: auto;
   }
+}
+
+/* Hide inactive pages */
+
+/* Optional: make nav tabs nicely spaced */
+.navBar li {
+  padding: 12px 20px;
+  font-weight: 600;
+}
+
+.page {
+  display: none;
+  background: var(--nav-bg);
+  padding: 2rem;
+}
+.page.active {
+  display: block;
 }

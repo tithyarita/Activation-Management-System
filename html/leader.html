@@ -40,156 +40,272 @@
 
         <nav class="navBar">
             <ul>
-                <li class="active">Campaigns</li>
-                <li>Attendance</li>
-                <li>Staff List</li>
-                <li>Reports</li>
+                <li class="active" data-page="campaigns">Campaigns</li>
+                <li data-page="attendance">Attendance</li>
+                <li data-page="stafflist">Staff List</li>
+                <li data-page="reports">Reports</li>
             </ul>
+
         </nav>
     </header>
 
     <main>
 
-        <section class="quickStatsElement">
+        <!-- ===== Campaigns ===== -->
+        <section class="page active" id="campaigns">
+            <section class="quickStatsElement">
 
-            <section class="quickElement">
-                <h3>
-                    Quick Stats
-                </h3>
+                <section class="quickElement">
+                    <h3>
+                        Quick Stats
+                    </h3>
 
-                <button class="btnReport">
-                    Reports
-                </button>
+                    <button class="btnReport">
+                        Reports
+                    </button>
+
+                </section>
+                <hr class="divider">
+
+                <div class="myCam">
+                    <h3>
+                        April Coca-Cola Promo
+                    </h3>
+                </div>
+
+                <div class="campaigns">
+
+                    <div class="planned">
+                        <h3>20</h3>
+                        <p>Planned</p>
+                    </div>
+
+                    <div class="clockIn">
+                        <h3>18</h3>
+                        <p>Clock-In</p>
+                    </div>
+
+                    <div class="Atten">
+                        <h3>90%</h3>
+                        <p>Attendance</p>
+                    </div>
+
+                    <div class="hours">
+                        <h3>4.7 hrs</h3>
+                        <p>Avg Hours</p>
+                    </div>
+                </div>
+
+                <div class="chart-wrapper">
+
+                    <!-- Y axis -->
+                    <div class="y-axis">
+                        <span>6ht</span>
+                        <span>4ht</span>
+                        <span>2ht</span>
+                        <span>0</span>
+                    </div>
+
+                    <!-- Chart -->
+                    <div class="chart-area">
+                        <div class="bars">
+                            <div class="bar">
+                                <span class="bar-fill" style="height:20%"></span>
+                                <small>Apr 18</small>
+                            </div>
+                            <div class="bar">
+                                <span class="bar-fill" style="height:30%"></span>
+                                <small>Apr 18</small>
+                            </div>
+                            <div class="bar">
+                                <span class="bar-fill" style="height:40%"></span>
+                                <small>Apr 18</small>
+                            </div>
+                            <div class="bar">
+                                <span class="bar-fill" style="height:45%"></span>
+                                <small>Apr 19</small>
+                            </div>
+                            <div class="bar">
+                                <span class="bar-fill" style="height:50%"></span>
+                                <small>Apr 20</small>
+                            </div>
+                            <div class="bar">
+                                <span class="bar-fill" style="height:60%"></span>
+                                <small>Apr 21</small>
+                            </div>
+                            <div class="bar">
+                                <span class="bar-fill" style="height:70%"></span>
+                                <small>Apr 22</small>
+                            </div>
+                            <div class="bar">
+                                <span class="bar-fill" style="height:80%"></span>
+                                <small>Apr 23</small>
+                            </div>
+                            <div class="bar">
+                                <span class="bar-fill" style="height:90%"></span>
+                                <small>Apr 24</small>
+                            </div>
+                        </div>
+
+
+                    </div>
+                    <div class=" mapElement">
+                        <div class="dayElement">
+
+                            <h3>
+                                Last 7 Days
+                            </h3>
+                            <div class="downArrow">
+                                <i class="fa-solid fa-arrow-down"></i>
+                            </div>
+
+                        </div>
+
+                        <div class="map">
+                            <div class="pin">📍</div>
+                            <p><strong>GPS Verified</strong><br>123 Main St, Springfield</p>
+                        </div>
+                    </div>
+
+
 
             </section>
-            <hr class="divider">
 
-            <div class="myCam">
-                <h3>
-                    April Coca-Cola Promo
-                </h3>
-            </div>
+            <section class="allElement">
+                <div class="card attendance-card">
 
-            <div class="campaigns">
+                    <div class="card-header">
+                        <h3 style="margin-bottom: 2rem;">Staff Attendance</h3>
 
-                <div class="planned">
-                    <h3>20</h3>
-                    <p>Planned</p>
-                </div>
+                        <div class="filter-group">
+                            <select>
+                                <option>All Campaigns</option>
+                            </select>
+                            <div class="promoInput">
+                                <input type="text" placeholder="Coca-Cola Promo">
+                            </div>
 
-                <div class="clockIn">
-                    <h3>18</h3>
-                    <p>Clock-In</p>
-                </div>
+                            <div class="search-box"><i class="fa-solid fa-magnifying-glass"></i></div>
 
-                <div class="Atten">
-                    <h3>90%</h3>
-                    <p>Attendance</p>
-                </div>
-
-                <div class="hours">
-                    <h3>4.7 hrs</h3>
-                    <p>Avg Hours</p>
-                </div>
-            </div>
-
-            <div class="chart-wrapper">
-
-                <!-- Y axis -->
-                <div class="y-axis">
-                    <span>6ht</span>
-                    <span>4ht</span>
-                    <span>2ht</span>
-                    <span>0</span>
-                </div>
-
-                <!-- Chart -->
-                <div class="chart-area">
-                    <div class="bars">
-                        <div class="bar">
-                            <span class="bar-fill" style="height:20%"></span>
-                            <small>Apr 18</small>
-                        </div>
-                        <div class="bar">
-                            <span class="bar-fill" style="height:30%"></span>
-                            <small>Apr 18</small>
-                        </div>
-                        <div class="bar">
-                            <span class="bar-fill" style="height:40%"></span>
-                            <small>Apr 18</small>
-                        </div>
-                        <div class="bar">
-                            <span class="bar-fill" style="height:45%"></span>
-                            <small>Apr 19</small>
-                        </div>
-                        <div class="bar">
-                            <span class="bar-fill" style="height:50%"></span>
-                            <small>Apr 20</small>
-                        </div>
-                        <div class="bar">
-                            <span class="bar-fill" style="height:60%"></span>
-                            <small>Apr 21</small>
-                        </div>
-                        <div class="bar">
-                            <span class="bar-fill" style="height:70%"></span>
-                            <small>Apr 22</small>
-                        </div>
-                        <div class="bar">
-                            <span class="bar-fill" style="height:80%"></span>
-                            <small>Apr 23</small>
-                        </div>
-                        <div class="bar">
-                            <span class="bar-fill" style="height:90%"></span>
-                            <small>Apr 24</small>
                         </div>
                     </div>
 
 
-                </div>
-                <div class=" mapElement">
-                    <div class="dayElement">
 
-                        <h3>
-                            Last 7 Days
-                        </h3>
-                        <div class="downArrow">
-                            <i class="fa-solid fa-arrow-down"></i>
+                    <table style="margin-top: 2rem;" class="attendance-table">
+                        <thead>
+                            <tr>
+                                <th>Ambassador</th>
+                                <th>Check-In</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Jack Martin</strong></td>
+                                <td>10:00 AM</td>
+                                <td><span class="status-in">In</span></td>
+                                <td><button class="btn-primary" onclick="viewDetail('Jack')">View</button></td>
+                            </tr>
+                            <tr class="alert-row">
+                                <td><strong>Emily Clark</strong><br><small>Central Mall</small></td>
+                                <td>10:00 AM</td>
+                                <td><i class="fa-solid fa-location-dot"></i></td>
+                                <td><button class="btn-action">Clock In</button></td>
+                            </tr>
+
+                            <tr class="alert-row">
+                                <td><strong>Emily Clark</strong></td>
+                                <td>10:00 AM</td>
+                                <td><span class="status-in">In</span></td>
+                                <td><button class="btn-out">Clock Out</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div style="margin-top: 2rem;" class="rElement">
+                    <div style="width: 30%;" class="reports-btn">
+                        <div class="left">
+                            <span class="icon">📄</span>
+                            <span class="text">Reports</span>
+                        </div>
+
+                        <div class="right">
+                            ›
+                        </div>
+                    </div>
+
+                    <div class="activity-card">
+
+                        <h3 class="activity-title">Recent Activity</h3>
+
+                        <div class="activity-item">
+                            <img src="https://i.pravatar.cc/40?img=12">
+                            <div class="activity-info">
+                                <div class="row">
+                                    <strong>Jack Martin</strong>
+                                    <span>25 mins ago</span>
+                                </div>
+                                <p>📍 Central Mall<br>123 Main St, Springfield</p>
+                            </div>
+                        </div>
+
+                        <div class="activity-item">
+                            <img src="https://i.pravatar.cc/40?img=32">
+                            <div class="activity-info">
+                                <div class="row">
+                                    <strong>Sarah Lee</strong>
+                                    <span>30 mins ago</span>
+                                </div>
+                                <p>📍 (25km) 10:09 – 10:00 AM</p>
+                            </div>
+                        </div>
+
+                        <div class="activity-item">
+                            <img src="https://i.pravatar.cc/40?img=45">
+                            <div class="activity-info">
+                                <div class="row">
+                                    <strong>Emily Clark</strong>
+                                    <span>5 mins ago</span>
+                                </div>
+                                <p>📍 Central Mall<br>10 Springfield</p>
+                            </div>
+                        </div>
+
+                        <div class="view-all">
+                            View All ›
                         </div>
 
                     </div>
 
-                    <div class="map">
-                        <div class="pin">📍</div>
-                        <p><strong>GPS Verified</strong><br>123 Main St, Springfield</p>
-                    </div>
+
                 </div>
 
-
-
+            </section>
         </section>
 
-        <section class="allElement">
-            <div class="card attendance-card">
 
-                <div class="card-header">
-                    <h3 style="margin-bottom: 2rem;">Staff Attendance</h3>
 
-                    <div class="filter-group">
-                        <select>
-                            <option>All Campaigns</option>
-                        </select>
-                        <div class="promoInput">
-                            <input type="text" placeholder="Coca-Cola Promo">
-                        </div>
+        <!-- ===== ATTENDANCE ===== -->
+        <section style="margin-top: 2rem;" class="page" id="attendance">
+            <h2>Staff Attendance</h2>
+            <div class="attendance-card">
 
-                        <div class="search-box"><i class="fa-solid fa-magnifying-glass"></i></div>
-
+                <div class="filter-group">
+                    <select>
+                        <option>All Campaigns</option>
+                    </select>
+                    <div class="promoInput">
+                        <input type="text" placeholder="Search staff">
                     </div>
+
+                    <div class="search-box"><i class="fa-solid fa-magnifying-glass"></i></div>
+
                 </div>
 
-
-
-                <table style="margin-top: 2rem;" class="attendance-table">
+                <table class="attendance-table">
                     <thead>
                         <tr>
                             <th>Ambassador</th>
@@ -200,99 +316,68 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td><strong>Jack Martin</strong></td>
+                            <td>Jack Martin</td>
                             <td>10:00 AM</td>
                             <td><span class="status-in">In</span></td>
-                            <td><button class="btn-primary" onclick="viewDetail('Jack')">View</button></td>
+                            <td><button class="btn-primary">View</button></td>
                         </tr>
-                        <tr class="alert-row">
-                            <td><strong>Emily Clark</strong><br><small>Central Mall</small></td>
+                        <tr>
+                            <td>Emily Clark</td>
                             <td>10:00 AM</td>
-                            <td><i class="fa-solid fa-location-dot"></i></td>
-                            <td><button class="btn-action">Clock In</button></td>
-                        </tr>
-
-                        <tr class="alert-row">
-                            <td><strong>Emily Clark</strong></td>
-                            <td>10:00 AM</td>
-                            <td><span class="status-in">In</span></td>
+                            <td><span class="status-out">Out</span></td>
                             <td><button class="btn-out">Clock Out</button></td>
                         </tr>
                     </tbody>
                 </table>
             </div>
 
-            <div style="margin-top: 2rem;" class="rElement">
-                <div style="width: 30%;" class="reports-btn">
-                    <div class="left">
-                        <span class="icon">📄</span>
-                        <span class="text">Reports</span>
-                    </div>
-
-                    <div class="right">
-                        ›
+            <div class="activity-card">
+                <h3 class="activity-title">Recent Activity</h3>
+                <div class="activity-item">
+                    <img src="https://i.pravatar.cc/40?img=12">
+                    <div class="activity-info">
+                        <div class="row">
+                            <strong>Jack Martin</strong>
+                            <span>25 mins ago</span>
+                        </div>
+                        <p>📍 Central Mall<br>123 Main St, Springfield</p>
                     </div>
                 </div>
-
-                <div class="activity-card">
-
-                    <h3 class="activity-title">Recent Activity</h3>
-
-                    <div class="activity-item">
-                        <img src="https://i.pravatar.cc/40?img=12">
-                        <div class="activity-info">
-                            <div class="row">
-                                <strong>Jack Martin</strong>
-                                <span>25 mins ago</span>
-                            </div>
-                            <p>📍 Central Mall<br>123 Main St, Springfield</p>
+                <div class="activity-item">
+                    <img src="https://i.pravatar.cc/40?img=32">
+                    <div class="activity-info">
+                        <div class="row">
+                            <strong>Sarah Lee</strong>
+                            <span>30 mins ago</span>
                         </div>
+                        <p>📍 (25km) 10:09 – 10:00 AM</p>
                     </div>
-
-                    <div class="activity-item">
-                        <img src="https://i.pravatar.cc/40?img=32">
-                        <div class="activity-info">
-                            <div class="row">
-                                <strong>Sarah Lee</strong>
-                                <span>30 mins ago</span>
-                            </div>
-                            <p>📍 (25km) 10:09 – 10:00 AM</p>
-                        </div>
-                    </div>
-
-                    <div class="activity-item">
-                        <img src="https://i.pravatar.cc/40?img=45">
-                        <div class="activity-info">
-                            <div class="row">
-                                <strong>Emily Clark</strong>
-                                <span>5 mins ago</span>
-                            </div>
-                            <p>📍 Central Mall<br>10 Springfield</p>
-                        </div>
-                    </div>
-
-                    <div class="view-all">
-                        View All ›
-                    </div>
-
                 </div>
-
-
+                <div class="activity-item">
+                    <img src="https://i.pravatar.cc/40?img=45">
+                    <div class="activity-info">
+                        <div class="row">
+                            <strong>Emily Clark</strong>
+                            <span>5 mins ago</span>
+                        </div>
+                        <p>📍 Central Mall<br>10 Springfield</p>
+                    </div>
+                </div>
             </div>
-
         </section>
 
+        <section style="margin-top: 2rem;" class="page" id="stafflist">
+            <h2>Staff List</h2>
+            <p>Staff list content here...</p>
+        </section>
 
-
-
-
-
-
-
-
-
+        <section style="margin-top: 2rem;" class="page" id="reports">
+            <h2>Reports</h2>
+            <p>Reports content here...</p>
+        </section>
 
     </main>
 </body>
+<script src="../js/leader.js"></script>
 
 </html>
