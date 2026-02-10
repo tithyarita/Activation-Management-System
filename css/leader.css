@@ -198,35 +198,66 @@ body {
 }
 
 /* Activity Chart Styles */
-
-.chart-section {
-  margin-top: 20px;
-}
-
-.chart-header {
+/* Chart area */
+/* ================= CHART ================= */
+.chart-wrapper {
   display: flex;
-  justify-content: space-between;
-  margin-bottom: 15px;
+  flex: 2;
+  background: var(--nav-bg);
+  padding: 16px;
+  border-radius: 12px;
+  padding-left: 2rem;
+  padding-right: 2rem;
+  margin-top: 2rem;
 }
 
-.bar-container {
+/* Y Axis */
+.y-axis {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 160px;
+  font-size: 12px;
+  color: gray;
+  margin-right: 12px;
+}
+
+/* Chart Area */
+.chart-area {
+  flex: 1;
+}
+
+.bars {
   display: flex;
   align-items: flex-end;
-  justify-content: space-between;
-  height: 100px;
-  padding-top: 20px;
-  border-bottom: 1px solid blue;
+  gap: 14px;
+  height: 160px;
 }
 
+/* Single Bar */
+/* each bar container MUST have height */
 .bar {
-  width: 12px;
-  background: blue;
-  border-radius: 4px 4px 0 0;
-  transition: 0.3s;
+  height: 160px; /* chart height */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
 }
 
-.bar:hover {
-  opacity: 0.8;
+/* bar itself */
+.bar-fill {
+  display: block; /* span must be block */
+  width: 18px;
+  background: #2f80ed;
+  border-radius: 4px 4px 0 0;
+}
+
+/* X Axis Labels */
+.bar small {
+  margin-top: 6px;
+  font-size: 11px;
+  color: gray;
+  white-space: nowrap;
 }
 
 /* Table styles */
@@ -444,4 +475,5 @@ body {
 
 .allElement {
   display: flex;
+  margin-top: 2rem;
 }
