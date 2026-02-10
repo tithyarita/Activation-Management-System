@@ -477,3 +477,17 @@ body {
   display: flex;
   margin-top: 2rem;
 }
+
+/* ================= MAP ================= */
+.map {
+  flex: 1;
+  background: var(--nav-bg);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+}
+
+.pin {
+  font-size: 34px;
+  margin-bottom: 10px;
+}
