@@ -155,6 +155,7 @@ body {
   display: flex;
   justify-content: space-between;
   padding: 2%;
+  margin-top: 2rem;
 }
 
 .quickElement h3 {
