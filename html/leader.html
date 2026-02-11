@@ -39,7 +39,7 @@
     <main class="dashboard-content">
         <!-- Campaigns Page -->
         <section class="page active" id="campaigns">
-            
+
             <div class="section-header">
                 <div>
                     <h1></h1>
@@ -445,17 +445,18 @@
         const approveBtn = document.getElementById('approveBtn');
         const flagBtn = document.getElementById('flagBtn');
 
-        // Sample Reports Data
-        const reportsData = [
-            { id: 1, name: "John Doe", photo: "../asset/user1.jpg", location: "Phnom Penh, Cambodia", timestamp: "2026-02-11 09:15", comment: "" },
-            { id: 2, name: "Jane Smith", photo: "../asset/user2.jpg", location: "Siem Reap, Cambodia", timestamp: "2026-02-11 10:20", comment: "" },
-            { id: 3, name: "Alice Chan", photo: "../asset/user3.jpg", location: "Battambang, Cambodia", timestamp: "2026-02-10 14:30", comment: "" }
-        ];
+        // Empty Reports Data for testing
+        const reportsData = []; // <-- empty initially
 
         // Open Modal
-        reportsBtn.onclick = () => { reportsModal.style.display = 'flex'; loadReportTable(); };
+        reportsBtn.onclick = () => {
+            reportsModal.style.display = 'flex';
+            loadReportTable();
+        };
         reportsClose.onclick = () => reportsModal.style.display = 'none';
-        window.addEventListener('keydown', e => { if (e.key === "Escape") reportsModal.style.display = 'none'; });
+        window.addEventListener('keydown', e => {
+            if (e.key === "Escape") reportsModal.style.display = 'none';
+        });
 
         // View change
         reportView.onchange = () => {
@@ -468,21 +469,27 @@
             }
         };
 
-        // Load Table
+        // Load Table (empty initially)
         function loadReportTable() {
             reportsTable.innerHTML = "";
-            reportsData.forEach(rep => {
+            if (reportsData.length === 0) {
                 const tr = document.createElement('tr');
-                tr.innerHTML = `
-            <td>${rep.name}</td>
-            <td><img src="${rep.photo}" alt="${rep.name}" style="width:50px;height:50px;object-fit:cover;border-radius:5px;"></td>
-            <td>${rep.location}</td>
-            <td>${rep.timestamp}</td>
-            <td><button class="btn-secondary viewDetailBtn">View</button></td>
-        `;
-                tr.querySelector('.viewDetailBtn').onclick = () => showReportDetail(rep);
+                tr.innerHTML = `<td colspan="5" style="text-align:center; color: #6b7280;">No reports available</td>`;
                 reportsTable.appendChild(tr);
-            });
+            } else {
+                reportsData.forEach(rep => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                <td>${rep.name}</td>
+                <td><img src="${rep.photo}" alt="${rep.name}" style="width:50px;height:50px;object-fit:cover;border-radius:5px;"></td>
+                <td>${rep.location}</td>
+                <td>${rep.timestamp}</td>
+                <td><button class="btn-secondary viewDetailBtn">View</button></td>
+            `;
+                    tr.querySelector('.viewDetailBtn').onclick = () => showReportDetail(rep);
+                    reportsTable.appendChild(tr);
+                });
+            }
         }
 
         // Show Detail
@@ -498,6 +505,7 @@
         // Approve / Flag
         approveBtn.onclick = () => { alert("Approved!"); reportDetail.style.display = "none"; };
         flagBtn.onclick = () => { alert("Flagged!"); reportDetail.style.display = "none"; };
+
 
     </script>
 </body>
