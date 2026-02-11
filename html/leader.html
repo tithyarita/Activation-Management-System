@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-<<<<<<< HEAD
 
 <head>
     <meta charset="UTF-8">
@@ -36,14 +35,30 @@
     </header>
 
     <main class="dashboard-content">
+        <!-- Campaigns Page -->
         <section class="page active" id="campaigns">
             <div class="section-header">
                 <div>
-                    <h1>April Coca-Cola Promo</h1>
-                    <p class="subtitle">Campaign ID: #CC-2026-APR</p>
+                    <h1></h1>
+                    <p class="subtitle"></p>
                 </div>
                 <div class="header-buttons">
-                    <button class="btn-secondary"><i class="fa-solid fa-user-plus"></i> Assign Staff</button>
+                    <button class="btn-secondary" id="assignStaffBtn">
+                        <i class="fa-solid fa-user-plus"></i> Assign Staff
+                    </button>
+                    <div id="assignStaffModal" class="modal">
+                        <div class="modal-content">
+                            <span class="close">&times;</span>
+                            <h2>Assign Staff to Campaign</h2>
+                            <input type="text" id="userSearch" placeholder="Search users..." />
+                            <ul id="userList"></ul>
+                            <select id="campaignSelect">
+                                <option value="">Select Campaign</option>
+                            </select>
+                            <button id="confirmAssign" class="btn-primary">Assign</button>
+                        </div>
+                    </div>
+                    <div id="notification" class="notification"></div>
                     <button class="btn-primary"><i class="fa-solid fa-file-export"></i> Reports</button>
                 </div>
             </div>
@@ -51,22 +66,22 @@
             <div class="stats-grid">
                 <div class="stat-card">
                     <span class="stat-label">Planned</span>
-                    <div class="stat-value">20</div>
+                    <div class="stat-value">0</div>
                     <span class="stat-change positive">Total Required</span>
                 </div>
                 <div class="stat-card">
                     <span class="stat-label">Clocked-In</span>
-                    <div class="stat-value">18</div>
+                    <div class="stat-value">0</div>
                     <span class="stat-change">Active Now</span>
                 </div>
                 <div class="stat-card">
                     <span class="stat-label">Attendance</span>
-                    <div class="stat-value highlight">90%</div>
-                    <span class="stat-change negative">-5% vs Yesterday</span>
+                    <div class="stat-value highlight">0%</div>
+                    <span class="stat-change negative"></span>
                 </div>
                 <div class="stat-card">
                     <span class="stat-label">Avg Hours</span>
-                    <div class="stat-value">4.7h</div>
+                    <div class="stat-value">0</div>
                     <span class="stat-change">Per Shift</span>
                 </div>
             </div>
@@ -84,26 +99,25 @@
                             </div>
                             <div class="chart-bars">
                                 <div class="bar-group">
-                                    <div class="bar-fill" style="height: 80%;"></div><span class="bar-label">Mon</span>
+                                    <div class="bar-fill" style="height:0%;"></div><span class="bar-label">Mon</span>
                                 </div>
                                 <div class="bar-group">
-                                    <div class="bar-fill" style="height: 65%;"></div><span class="bar-label">Tue</span>
+                                    <div class="bar-fill" style="height:0%;"></div><span class="bar-label">Tue</span>
                                 </div>
                                 <div class="bar-group">
-                                    <div class="bar-fill" style="height: 90%;"></div><span class="bar-label">Wed</span>
+                                    <div class="bar-fill" style="height:0%;"></div><span class="bar-label">Wed</span>
                                 </div>
                                 <div class="bar-group">
-                                    <div class="bar-fill" style="height: 75%;"></div><span class="bar-label">Thu</span>
+                                    <div class="bar-fill" style="height:0%;"></div><span class="bar-label">Thu</span>
                                 </div>
                                 <div class="bar-group">
-                                    <div class="bar-fill active" style="height: 95%;"></div><span
-                                        class="bar-label">Fri</span>
+                                    <div class="bar-fill" style="height:0%;"></div><span class="bar-label">Fri</span>
                                 </div>
                                 <div class="bar-group">
-                                    <div class="bar-fill" style="height: 40%;"></div><span class="bar-label">Sat</span>
+                                    <div class="bar-fill" style="height:0%;"></div><span class="bar-label">Sat</span>
                                 </div>
                                 <div class="bar-group">
-                                    <div class="bar-fill" style="height: 30%;"></div><span class="bar-label">Sun</span>
+                                    <div class="bar-fill" style="height:0%;"></div><span class="bar-label">Sun</span>
                                 </div>
                             </div>
                         </div>
@@ -126,20 +140,7 @@
                                     <th>Action</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <tr>
-                                    <td><strong>Jack Martin</strong><br><small>North Square</small></td>
-                                    <td>10:00 AM</td>
-                                    <td><span class="status-pill in">In</span></td>
-                                    <td><button class="btn-text">View Detail</button></td>
-                                </tr>
-                                <tr class="alert-row">
-                                    <td><strong>Emily Clark</strong><br><small>Central Mall</small></td>
-                                    <td>--:--</td>
-                                    <td><span class="status-pill missing">Missing</span></td>
-                                    <td><button class="btn-action-small">Flag</button></td>
-                                </tr>
-                            </tbody>
+                            <tbody></tbody>
                         </table>
                     </div>
                 </div>
@@ -147,146 +148,218 @@
                 <div class="right-col">
                     <div class="card activity-card">
                         <h3>Recent Activity</h3>
-                        <div class="activity-feed">
-                            <div class="activity-item">
-                                <div class="activity-icon"><i class="fa-solid fa-clock"></i></div>
-                                <div class="activity-text">
-                                    <strong>Jack Martin</strong> clocked in
-                                    <span class="time">25 mins ago</span>
-                                </div>
-                            </div>
-                            <div class="activity-item">
-                                <div class="activity-icon alert"><i class="fa-solid fa-triangle-exclamation"></i></div>
-                                <div class="activity-text">
-                                    <strong>Sarah Lee</strong> is late (25km away)
-                                    <span class="time">30 mins ago</span>
-                                </div>
-                            </div>
-                        </div>
+                        <div class="activity-feed"></div>
                     </div>
 
                     <div class="card map-card">
                         <h3>GPS Verification</h3>
                         <div class="mini-map">
                             <i class="fa-solid fa-map-location-dot"></i>
-                            <p><strong>123 Main St, Springfield</strong><br>Center Point Hub</p>
+                            <p></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Attendance Page -->
+        <section class="page" id="attendance">
+            <div class="card table-card">
+                <div class="card-header">
+                    <h3>Daily Attendance</h3>
+                </div>
+                <table class="pro-table">
+                    <thead>
+                        <tr>
+                            <th>Staff</th>
+                            <th>Location</th>
+                            <th>Check-In</th>
+                            <th>Check-Out</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Staff List Page -->
+        <section class="page" id="stafflist">
+            <div class="card table-card">
+                <div class="card-header">
+                    <h3>Team Members</h3>
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" placeholder="Search staff...">
+                    </div>
+                </div>
+                <table class="pro-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Location</th>
+                            <th>Role</th>
+                            <th>Contact</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Reports Page -->
+        <section class="page" id="reports">
+            <div class="stats-grid">
+                <div class="stat-card"><span class="stat-label">Attendance Rate</span>
+                    <div class="stat-value highlight">0%</div>
+                </div>
+                <div class="stat-card"><span class="stat-label">Active Staff</span>
+                    <div class="stat-value">0</div>
+                </div>
+                <div class="stat-card"><span class="stat-label">Avg Work Hours</span>
+                    <div class="stat-value">0</div>
+                </div>
+                <div class="stat-card"><span class="stat-label">Late Arrivals</span>
+                    <div class="stat-value">0</div>
+                </div>
+            </div>
+
+            <div class="card chart-card">
+                <div class="card-header">
+                    <h3>Weekly Attendance Summary</h3>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-y-axis">
+                        <span>100%</span><span>75%</span><span>50%</span><span>25%</span><span>0%</span>
+                    </div>
+                    <div class="chart-bars">
+                        <div class="bar-group">
+                            <div class="bar-fill" style="height:0%;"></div><span class="bar-label">Mon</span>
+                        </div>
+                        <div class="bar-group">
+                            <div class="bar-fill" style="height:0%;"></div><span class="bar-label">Tue</span>
+                        </div>
+                        <div class="bar-group">
+                            <div class="bar-fill" style="height:0%;"></div><span class="bar-label">Wed</span>
+                        </div>
+                        <div class="bar-group">
+                            <div class="bar-fill" style="height:0%;"></div><span class="bar-label">Thu</span>
+                        </div>
+                        <div class="bar-group">
+                            <div class="bar-fill" style="height:0%;"></div><span class="bar-label">Fri</span>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
     </main>
-</body>
 
-</html>
-=======
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Campaign Leader</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../css/style.css">
-    <link rel="stylesheet" href="../css/leader.css">
-</head>
-<body>
-<div class="leader-container">
-    <!-- Header -->
-    <header class="leader-header">
-        <div class="header-content">
-            <div class="logo">
-                <i class="fa-solid fa-chart-line"></i> AMS
-            </div>
-            <div class="header-title">
-                <h1>Leader Dashboard</h1>
-                <p>Welcome, <span id="leaderNameDisplay">Leader</span></p>
-            </div>
-            <div class="header-actions">
-                <button class="btn btn-logout" onclick="handleLogout()">
-                    <i class="fa-solid fa-sign-out-alt"></i> Logout
-                </button>
-            </div>
-        </div>
-    </header>
+    <script>
+        // ===============================
+        // 1. Page Navigation
+        // ===============================
+        document.querySelectorAll(".main-nav li").forEach(item => {
+            item.addEventListener("click", () => {
+                document.querySelectorAll(".main-nav li").forEach(i => i.classList.remove("active"));
+                document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+                item.classList.add("active");
+                const pageId = item.getAttribute("data-page");
+                const page = document.getElementById(pageId);
+                if (page) page.classList.add("active");
+            });
+        });
 
-    <!-- Main Content -->
-    <main class="leader-main">
-        <!-- Performance Summary -->
-        <section class="performance-summary">
-            <h2>Your Performance</h2>
-            <div class="summary-cards">
-                <div class="summary-card">
-                    <h3>Campaigns Led</h3>
-                    <p id="campaignsLed" class="summary-number">0</p>
-                </div>
-                <div class="summary-card">
-                    <h3>Team Members</h3>
-                    <p id="teamMembers" class="summary-number">0</p>
-                </div>
-                <div class="summary-card">
-                    <h3>Total Check-ins</h3>
-                    <p id="totalCheckIns" class="summary-number">0</p>
-                </div>
-                <div class="summary-card">
-                    <h3>Attendance Rate</h3>
-                    <p id="attendanceRate" class="summary-number">0%</p>
-                </div>
-            </div>
-        </section>
+        // ===============================
+        // 2. Initialize Dashboard at 0
+        // ===============================
+        function initializeDashboard() {
+            document.querySelectorAll(".stat-value").forEach(el => el.innerText = "0");
+            document.querySelectorAll(".highlight").forEach(el => el.innerText = "0%");
+            document.querySelectorAll(".bar-fill").forEach(bar => bar.style.height = "0%");
+            document.querySelectorAll(".pro-table tbody").forEach(tbody => tbody.innerHTML = "");
+            const mapText = document.querySelector(".mini-map p");
+            if (mapText) mapText.innerText = "";
+            const notif = document.getElementById("notification");
+            if (notif) notif.style.display = "none";
+        }
 
-        <!-- Assigned Campaigns -->
-        <section class="campaigns-section">
-            <h2>My Campaigns</h2>
-            <div id="leaderCampaigns" class="campaigns-list">
-                <p class="loading-text">Loading campaigns...</p>
-            </div>
-        </section>
+        window.addEventListener("DOMContentLoaded", initializeDashboard);
 
-        <!-- Team Members -->
-        <section class="team-section">
-            <h2>My Team</h2>
-            <div class="table-responsive">
-                <table class="team-table">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Check-ins</th>
-                            <th>Attendance Rate</th>
-                            <th>Last Check-in</th>
-                        </tr>
-                    </thead>
-                    <tbody id="teamMembersList">
-                        <tr><td colspan="5" class="loading-text">Loading team members...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
+        // ===============================
+        // 3. Staff Search Filter
+        // ===============================
+        document.querySelectorAll(".search-box input").forEach(input => {
+            input.addEventListener("keyup", () => {
+                const value = input.value.toLowerCase();
+                const tbody = input.closest(".card").querySelector("tbody");
+                tbody.querySelectorAll("tr").forEach(row => {
+                    row.style.display = row.innerText.toLowerCase().includes(value) ? "" : "none";
+                });
+            });
+        });
 
-        <!-- Campaign Attendance Details -->
-        <section class="attendance-section">
-            <h2>Campaign Attendance</h2>
-            <div class="table-responsive">
-                <table class="attendance-table">
-                    <thead>
-                        <tr>
-                            <th>Campaign</th>
-                            <th>Date</th>
-                            <th>Staff Member</th>
-                            <th>Check-in Time</th>
-                            <th>Location</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="attendanceList">
-                        <tr><td colspan="6" class="loading-text">Loading attendance records...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-    </main>
-</div>
+        // ===============================
+        // 4. Notification Bell
+        // ===============================
+        const bellBtn = document.querySelector(".fa-bell")?.parentElement;
+        const dot = document.querySelector(".dot");
+        if (bellBtn) bellBtn.addEventListener("click", () => { alert("You have 0 new notifications!"); if (dot) dot.style.display = "none"; });
 
-<script type="module" src="../js/leader.js"></script>
+        // ===============================
+        // 5. Assign Staff Modal (empty)
+        // ===============================
+        const users = [];
+        const btn = document.getElementById('assignStaffBtn');
+        const modal = document.getElementById('assignStaffModal');
+
+        if (btn && modal) {
+            const close = modal.querySelector('.close');
+            const userList = document.getElementById('userList');
+            const modalSearchInput = document.getElementById('userSearch');
+            const confirmBtn = document.getElementById('confirmAssign');
+            const campaignSelect = document.getElementById('campaignSelect');
+            const notification = document.getElementById('notification');
+            let selectedUsers = new Set();
+            let notifTimeout;
+
+            btn.onclick = () => { modal.style.display = 'flex'; renderUserList(users); };
+            close.onclick = () => modal.style.display = 'none';
+            modal.addEventListener('click', e => { if (e.target === modal) modal.style.display = 'none'; });
+            window.addEventListener('keydown', e => { if (e.key === "Escape") modal.style.display = 'none'; });
+
+            function renderUserList(list) {
+                userList.innerHTML = '';
+                list.forEach(user => {
+                    const li = document.createElement('li');
+                    li.textContent = user.name;
+                    li.onclick = () => {
+                        if (selectedUsers.has(user.id)) { selectedUsers.delete(user.id); li.classList.remove('selected'); }
+                        else { selectedUsers.add(user.id); li.classList.add('selected'); }
+                    };
+                    if (selectedUsers.has(user.id)) li.classList.add('selected');
+                    userList.appendChild(li);
+                });
+            }
+
+            modalSearchInput.oninput = () => {
+                const query = modalSearchInput.value.toLowerCase();
+                renderUserList(users.filter(u => u.name.toLowerCase().includes(query)));
+            };
+
+            confirmBtn.onclick = () => {
+                const campaign = campaignSelect.value;
+                if (!campaign) return alert('Please select a campaign!');
+                if (selectedUsers.size === 0) return alert('Please select at least one user!');
+                notification.textContent = `Assigned ${selectedUsers.size} user(s) to ${campaign}`;
+                notification.style.display = "block";
+                clearTimeout(notifTimeout);
+                notifTimeout = setTimeout(() => { notification.style.display = "none"; }, 3000);
+                selectedUsers.clear();
+                modal.style.display = 'none';
+                modalSearchInput.value = '';
+                renderUserList(users);
+            };
+        }
+    </script>
 </body>
 </html>
->>>>>>> f89b15fc9c10f4e49175b9b2690570c5465916ef
