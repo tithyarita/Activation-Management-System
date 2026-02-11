@@ -39,6 +39,7 @@
     <main class="dashboard-content">
         <!-- Campaigns Page -->
         <section class="page active" id="campaigns">
+            
             <div class="section-header">
                 <div>
                     <h1></h1>
@@ -62,7 +63,62 @@
                     </div>
                     <!-- RED BACKGROUND DISABLED -->
                     <div id="notification" class="notification" style="background:none;"></div>
-                    <button class="btn-primary"><i class="fa-solid fa-file-export"></i> Reports</button>
+
+                    <!-- Reports Button (existing) -->
+                    <button class="btn-primary" id="reportsBtn">
+                        <i class="fa-solid fa-file-export"></i> Reports
+                    </button>
+
+                    <!-- Reports Modal -->
+                    <div id="reportsModal" class="modal report">
+                        <div class="modal-content large">
+                            <span class="close">&times;</span>
+                            <h2>Reports</h2>
+
+                            <!-- Date Filters -->
+                            <div class="report-filters">
+                                <label>View: </label>
+                                <select id="reportView">
+                                    <option value="daily">Daily</option>
+                                    <option value="range">Date Range</option>
+                                </select>
+
+                                <input type="date" id="startDate" style="display:none;">
+                                <input type="date" id="endDate" style="display:none;">
+                                <button id="loadReports" class="btn-secondary">Load</button>
+                            </div>
+
+                            <!-- Report Table -->
+                            <table class="pro-table" id="reportsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Staff</th>
+                                        <th>Photo</th>
+                                        <th>Location</th>
+                                        <th>Timestamp</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+
+                            <!-- Record Detail -->
+                            <div id="reportDetail" class="report-detail" style="display:none;">
+                                <h3>Report Detail</h3>
+                                <p><strong>Staff:</strong> <span id="detailName"></span></p>
+                                <img id="detailPhoto" src="" alt="Staff Photo" style="max-width:200px;">
+                                <p><strong>Location:</strong> <span id="detailLocation"></span></p>
+                                <p><strong>Timestamp:</strong> <span id="detailTimestamp"></span></p>
+                                <textarea id="detailComment" placeholder="Add comment..."></textarea>
+                                <div class="detail-actions">
+                                    <button class="btn-primary" id="approveBtn">Approve</button>
+                                    <button class="btn-secondary" id="flagBtn">Flag</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
                 </div>
             </div>
 
@@ -257,7 +313,6 @@
         </section>
     </main>
 
-    
     <script>
         // ===============================
         // 1. Page Navigation
@@ -371,6 +426,79 @@
                 renderUserList(users);
             };
         }
+
+        // Reports Button
+        const reportsBtn = document.getElementById('reportsBtn');
+        const reportsModal = document.getElementById('reportsModal');
+        const reportsClose = reportsModal.querySelector('.close');
+        const reportView = document.getElementById('reportView');
+        const startDate = document.getElementById('startDate');
+        const endDate = document.getElementById('endDate');
+        const loadReports = document.getElementById('loadReports');
+        const reportsTable = document.getElementById('reportsTable').querySelector('tbody');
+        const reportDetail = document.getElementById('reportDetail');
+        const detailName = document.getElementById('detailName');
+        const detailPhoto = document.getElementById('detailPhoto');
+        const detailLocation = document.getElementById('detailLocation');
+        const detailTimestamp = document.getElementById('detailTimestamp');
+        const detailComment = document.getElementById('detailComment');
+        const approveBtn = document.getElementById('approveBtn');
+        const flagBtn = document.getElementById('flagBtn');
+
+        // Sample Reports Data
+        const reportsData = [
+            { id: 1, name: "John Doe", photo: "../asset/user1.jpg", location: "Phnom Penh, Cambodia", timestamp: "2026-02-11 09:15", comment: "" },
+            { id: 2, name: "Jane Smith", photo: "../asset/user2.jpg", location: "Siem Reap, Cambodia", timestamp: "2026-02-11 10:20", comment: "" },
+            { id: 3, name: "Alice Chan", photo: "../asset/user3.jpg", location: "Battambang, Cambodia", timestamp: "2026-02-10 14:30", comment: "" }
+        ];
+
+        // Open Modal
+        reportsBtn.onclick = () => { reportsModal.style.display = 'flex'; loadReportTable(); };
+        reportsClose.onclick = () => reportsModal.style.display = 'none';
+        window.addEventListener('keydown', e => { if (e.key === "Escape") reportsModal.style.display = 'none'; });
+
+        // View change
+        reportView.onchange = () => {
+            if (reportView.value === "range") {
+                startDate.style.display = "inline-block";
+                endDate.style.display = "inline-block";
+            } else {
+                startDate.style.display = "none";
+                endDate.style.display = "none";
+            }
+        };
+
+        // Load Table
+        function loadReportTable() {
+            reportsTable.innerHTML = "";
+            reportsData.forEach(rep => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+            <td>${rep.name}</td>
+            <td><img src="${rep.photo}" alt="${rep.name}" style="width:50px;height:50px;object-fit:cover;border-radius:5px;"></td>
+            <td>${rep.location}</td>
+            <td>${rep.timestamp}</td>
+            <td><button class="btn-secondary viewDetailBtn">View</button></td>
+        `;
+                tr.querySelector('.viewDetailBtn').onclick = () => showReportDetail(rep);
+                reportsTable.appendChild(tr);
+            });
+        }
+
+        // Show Detail
+        function showReportDetail(rep) {
+            reportDetail.style.display = "block";
+            detailName.innerText = rep.name;
+            detailPhoto.src = rep.photo;
+            detailLocation.innerText = rep.location;
+            detailTimestamp.innerText = rep.timestamp;
+            detailComment.value = rep.comment || "";
+        }
+
+        // Approve / Flag
+        approveBtn.onclick = () => { alert("Approved!"); reportDetail.style.display = "none"; };
+        flagBtn.onclick = () => { alert("Flagged!"); reportDetail.style.display = "none"; };
+
     </script>
 </body>
 

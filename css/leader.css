@@ -543,7 +543,7 @@ body {
   background: #fff;
   padding: 2rem 2.5rem;
   border-radius: 12px;
-  width: 400px;
+  width: 500px;
   max-width: 90%;
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
   position: relative;
@@ -645,6 +645,34 @@ li.selected {
   position: absolute;
   top: 0;
   right: 0;
+}
+
+/* Reports Modal Styles */
+.modal.large .modal-content {
+  width: 100%;
+  max-width: 1000px;
+}
+
+.report-filters {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 1rem;
+  align-items: center;
+}
+.report-detail {
+  margin-top: 1rem;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+.report-detail img {
+  display: block;
+  margin-bottom: 10px;
+}
+.detail-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
 }
 
 /* Input inside modal */
