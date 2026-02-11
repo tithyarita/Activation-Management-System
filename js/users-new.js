@@ -1,118 +1,231 @@
-import { db, collection, getDocs } from "../js/firebase.js";
+import {
+    db,
+    collection,
+    addDoc,
+    getDocs,
+    deleteDoc,
+    doc,
+    updateDoc
+} from "../js/firebase.js";
 
-/* =========================
+let users = [];
+let editingUserId = null;
+
+/* =============================
    INIT
-========================= */
-document.addEventListener("DOMContentLoaded", loadPage);
+============================= */
+document.addEventListener("DOMContentLoaded", init);
 
-async function loadPage(){
-    const data = await gatherLeaderData();
-    renderPerformance(data);
-    renderRanking(data);
-    renderTimeline(data);
+async function init(){
+    bindFilters();
+    await loadUsers();
 }
 
-/* =========================
-   DATA GATHERING
-========================= */
-async function gatherLeaderData(){
+/* =============================
+   LOAD USERS
+============================= */
+async function loadUsers(){
 
-    const usersSnap = await getDocs(collection(db,'users'));
-    const attendanceSnap = await getDocs(collection(db,'attendance'));
-    const campaignsSnap = await getDocs(collection(db,'campaigns'));
+    const snap = await getDocs(collection(db,"users"));
+    users = [];
 
-    const leaders=[];
-
-    usersSnap.forEach(d=>{
-        const u=d.data();
-        if(u.role==="leader"){
-            leaders.push({id:d.id,...u});
-        }
+    snap.forEach(d=>{
+        users.push({ id:d.id, ...d.data() });
     });
 
-    leaders.forEach(l=>{
-        l.campaigns=0;
-        l.attendance=0;
-        l.staff=new Set();
-
-        campaignsSnap.forEach(c=>{
-            if(c.data().leaderId===l.id){
-                l.campaigns++;
-                (c.data().staffIds||[]).forEach(s=>l.staff.add(s));
-            }
-        });
-
-        attendanceSnap.forEach(a=>{
-            if(a.data().userId===l.id){
-                l.attendance++;
-            }
-        });
-
-        l.staffCount=l.staff.size;
-        l.rate=l.campaigns
-            ? Math.round((l.attendance/l.campaigns)*100)
-            : 0;
-    });
-
-    leaders.sort((a,b)=>b.attendance-a.attendance);
-    return leaders;
+    updateStats();
+    renderUsers(users);
 }
 
-/* =========================
-   UI RENDER
-========================= */
-function renderPerformance(leaders){
-    const el=document.getElementById("leaderPerformance");
+/* =============================
+   STATS
+============================= */
+function updateStats(){
 
-    if(!leaders.length){
-        el.innerHTML="No leaders found";
+    const total = users.length;
+    const staff = users.filter(u=>u.role==="staff").length;
+    const leaders = users.filter(u=>u.role==="leader").length;
+    const admins = users.filter(u=>u.role==="admin").length;
+
+    setText("statTotalUsers", total);
+    setText("statStaffMembers", staff);
+    setText("statLeaders", leaders);
+    setText("statAdmins", admins);
+}
+
+function setText(id,val){
+    const el=document.getElementById(id);
+    if(el) el.textContent=val;
+}
+
+/* =============================
+   RENDER USERS
+============================= */
+function renderUsers(list){
+
+    const container = document.getElementById("usersList");
+
+    if(!list.length){
+        container.innerHTML="No users found";
         return;
     }
 
-    el.innerHTML=leaders.slice(0,3).map((l,i)=>`
-        <div class="performance-card">
-            <div class="rank-badge">#${i+1}</div>
-            <h4>${l.name}</h4>
-            <p>${l.email}</p>
-            <div class="stat-row">
-                <span>Campaigns: ${l.campaigns}</span>
-                <span>Check-ins: ${l.attendance}</span>
-            </div>
-        </div>
-    `).join("");
+    container.innerHTML = `
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th style="width:160px">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${list.map(u=>`
+                    <tr>
+                        <td>${u.name}</td>
+                        <td>${u.email}</td>
+                        <td>${formatRole(u.role)}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary"
+                                onclick="openEditRole('${u.id}')">
+                                Role
+                            </button>
+
+                            <button class="btn btn-sm btn-danger"
+                                onclick="deleteUser('${u.id}')">
+                                Delete
+                            </button>
+                        </td>
+                    </tr>
+                `).join("")}
+            </tbody>
+        </table>
+    `;
 }
 
-function renderRanking(leaders){
-    const el=document.getElementById("leaderRankingTable");
-
-    el.innerHTML=leaders.map((l,i)=>`
-        <tr>
-            <td>${i+1}</td>
-            <td>${l.name}</td>
-            <td>${l.email}</td>
-            <td>${l.campaigns}</td>
-            <td>${l.staffCount}</td>
-            <td>${l.rate}%</td>
-            <td>${l.attendance}</td>
-        </tr>
-    `).join("");
+function formatRole(r){
+    if(r==="staff") return "Brand Ambassador";
+    if(r==="leader") return "Leader";
+    if(r==="admin") return "Admin";
+    return r;
 }
 
-function renderTimeline(leaders){
-    const el=document.getElementById("leaderActivityTimeline");
+/* =============================
+   FILTERS
+============================= */
+function bindFilters(){
 
-    el.innerHTML=leaders.slice(0,5).map(l=>`
-        <div class="timeline-item">
-            <strong>${l.name}</strong>
-            checked in ${l.attendance} times
-        </div>
-    `).join("");
+    document.getElementById("searchUser")
+        .addEventListener("input", applyFilters);
+
+    document.getElementById("filterRole")
+        .addEventListener("change", applyFilters);
 }
 
-/* =========================
+function applyFilters(){
+
+    const text = document.getElementById("searchUser").value.toLowerCase();
+    const role = document.getElementById("filterRole").value;
+
+    let filtered = users.filter(u=>{
+        const matchText =
+            u.name?.toLowerCase().includes(text) ||
+            u.email?.toLowerCase().includes(text);
+
+        const matchRole = !role || u.role===role;
+
+        return matchText && matchRole;
+    });
+
+    renderUsers(filtered);
+}
+
+/* =============================
+   ADD USER
+============================= */
+window.openUserModal = ()=>{
+    document.getElementById("userModal").style.display="flex";
+};
+
+window.closeUserModal = ()=>{
+    document.getElementById("userModal").style.display="none";
+};
+
+document.getElementById("userForm")
+.addEventListener("submit", async e=>{
+    e.preventDefault();
+
+    const name = userName.value.trim();
+    const email = userEmail.value.trim();
+    const pass = userPassword.value;
+    const confirm = userConfirmPassword.value;
+    const role = userRole.value;
+
+    if(pass !== confirm){
+        alert("Passwords do not match");
+        return;
+    }
+
+    await addDoc(collection(db,"users"),{
+        name,
+        email,
+        password: pass,   // ⚠️ dev-only — use Firebase Auth in production
+        role
+    });
+
+    closeUserModal();
+    e.target.reset();
+    loadUsers();
+});
+
+/* =============================
+   DELETE USER
+============================= */
+window.deleteUser = async id=>{
+
+    if(!confirm("Delete this user?")) return;
+
+    await deleteDoc(doc(db,"users",id));
+    loadUsers();
+};
+
+/* =============================
+   EDIT ROLE
+============================= */
+window.openEditRole = id=>{
+
+    const user = users.find(u=>u.id===id);
+    if(!user) return;
+
+    editingUserId = id;
+
+    document.getElementById("editRoleUserName").textContent = user.name;
+    document.getElementById("editRoleSelect").value = user.role;
+    document.getElementById("editRoleModal").style.display="flex";
+};
+
+window.closeEditRoleModal = ()=>{
+    document.getElementById("editRoleModal").style.display="none";
+};
+
+window.confirmRoleChange = async ()=>{
+
+    const role = document.getElementById("editRoleSelect").value;
+
+    await updateDoc(
+        doc(db,"users",editingUserId),
+        { role }
+    );
+
+    closeEditRoleModal();
+    loadUsers();
+};
+
+/* =============================
    LOGOUT
-========================= */
-window.handleLogout=()=>{
+============================= */
+window.handleLogout = ()=>{
     if(confirm("Logout?")){
         sessionStorage.clear();
         location.href="login.html";
