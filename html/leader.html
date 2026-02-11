@@ -20,7 +20,9 @@
                 </div>
             </div>
             <div class="header-actions">
-                <div class="icon-btn"><i class="fa-solid fa-bell"></i><span class="dot"></span></div>
+                <!-- RED DOT HIDDEN -->
+                <div class="icon-btn"><i class="fa-solid fa-bell"></i><span class="dot" style="display:none;"></span>
+                </div>
                 <div class="icon-btn"><i class="fa-solid fa-gear"></i></div>
             </div>
         </div>
@@ -58,7 +60,8 @@
                             <button id="confirmAssign" class="btn-primary">Assign</button>
                         </div>
                     </div>
-                    <div id="notification" class="notification"></div>
+                    <!-- RED BACKGROUND DISABLED -->
+                    <div id="notification" class="notification" style="background:none;"></div>
                     <button class="btn-primary"><i class="fa-solid fa-file-export"></i> Reports</button>
                 </div>
             </div>
@@ -254,6 +257,7 @@
         </section>
     </main>
 
+    
     <script>
         // ===============================
         // 1. Page Navigation
@@ -280,7 +284,7 @@
             const mapText = document.querySelector(".mini-map p");
             if (mapText) mapText.innerText = "";
             const notif = document.getElementById("notification");
-            if (notif) notif.style.display = "none";
+            if (notif) notif.style.display = "none"; // hide notification by default
         }
 
         window.addEventListener("DOMContentLoaded", initializeDashboard);
@@ -299,14 +303,15 @@
         });
 
         // ===============================
-        // 4. Notification Bell
+        // 4. Notification Bell (dot removed)
         // ===============================
         const bellBtn = document.querySelector(".fa-bell")?.parentElement;
-        const dot = document.querySelector(".dot");
-        if (bellBtn) bellBtn.addEventListener("click", () => { alert("You have 0 new notifications!"); if (dot) dot.style.display = "none"; });
+        if (bellBtn) bellBtn.addEventListener("click", () => {
+            alert("You have 0 new notifications!");
+        });
 
         // ===============================
-        // 5. Assign Staff Modal (empty)
+        // 5. Assign Staff Modal (unchanged)
         // ===============================
         const users = [];
         const btn = document.getElementById('assignStaffBtn');
@@ -350,10 +355,16 @@
                 const campaign = campaignSelect.value;
                 if (!campaign) return alert('Please select a campaign!');
                 if (selectedUsers.size === 0) return alert('Please select at least one user!');
+
+                // Notification text without red background
                 notification.textContent = `Assigned ${selectedUsers.size} user(s) to ${campaign}`;
                 notification.style.display = "block";
+                notification.style.background = "none"; // remove red
                 clearTimeout(notifTimeout);
-                notifTimeout = setTimeout(() => { notification.style.display = "none"; }, 3000);
+                notifTimeout = setTimeout(() => {
+                    notification.style.display = "none";
+                }, 3000);
+
                 selectedUsers.clear();
                 modal.style.display = 'none';
                 modalSearchInput.value = '';
@@ -362,4 +373,5 @@
         }
     </script>
 </body>
+
 </html>
