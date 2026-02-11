@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - Admin Panel</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <link rel="stylesheet" href="../css/admin-layout.css">
+</head>
+
+<body>
+<div id="header-placeholder"></div>
+
+<div class="admin-wrapper">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2><i class="fa-solid fa-chart-line"></i> AMS Admin</h2>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="dashboard.html" class="nav-item">
+                <i class="fa-solid fa-home"></i> Dashboard
+            </a>
+            <a href="campaigns.html" class="nav-item">
+                <i class="fa-solid fa-calendar"></i> Campaigns
+            </a>
+            <a href="users.html" class="nav-item">
+                <i class="fa-solid fa-users"></i> Users
+            </a>
+            <a href="leaders.html" class="nav-item">
+                <i class="fa-solid fa-star"></i> Leaders
+            </a>
+            <a href="reports.html" class="nav-item active">
+                <i class="fa-solid fa-chart-bar"></i> Reports
+            </a>
+            <a href="#" class="nav-item" onclick="handleLogout()">
+                <i class="fa-solid fa-sign-out-alt"></i> Logout
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="admin-container">
+            <!-- Top Row -->
+            <section class="top-row">
+                <div class="page-title">Attendance Reports & Analytics</div>
+                <button class="btn btn-primary" onclick="openReportModal()">
+                    <i class="fa-solid fa-sliders"></i> Generate Report
+                </button>
+            </section>
+
+            <!-- Analytics Cards -->
+            <section class="reports-analytics">
+                <div class="report-card">
+                    <h4>Total Records</h4>
+                    <p id="totalRecords" class="report-number">0</p>
+                    <span class="report-label">All-time attendance records</span>
+                </div>
+
+                <div class="report-card">
+                    <h4>Clocked In</h4>
+                    <p id="totalIn" class="report-number">0</p>
+                    <span class="report-label">Successful check-ins</span>
+                </div>
+
+                <div class="report-card">
+                    <h4>Clocked Out</h4>
+                    <p id="totalOut" class="report-number">0</p>
+                    <span class="report-label">Successful check-outs</span>
+                </div>
+
+                <div class="report-card">
+                    <h4>Attendance Rate</h4>
+                    <p id="attendanceRate" class="report-number">0%</p>
+                    <span class="report-label">Overall rate</span>
+                </div>
+            </section>
+
+            <!-- Full Report Table -->
+            <section class="table-section">
+                <h3>Attendance Records</h3>
+                <div class="table-responsive">
+                    <table class="reports-table">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Campaign</th>
+                                <th>Clock In</th>
+                                <th>Clock Out</th>
+                                <th>Location</th>
+                                <th>Photo</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reportsList">
+                            <tr>
+                                <td colspan="6" class="loading-text">Loading reports...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Generated Report Results -->
+            <section class="report-results-section" id="reportResultsSection" style="display:none;">
+                <h3>Filtered Report</h3>
+                <div class="report-actions">
+                    <button class="btn btn-primary" onclick="downloadReportCSV()">
+                        <i class="fa-solid fa-download"></i> Download CSV
+                    </button>
+                    <button class="btn btn-secondary" onclick="printReport()">
+                        <i class="fa-solid fa-print"></i> Print
+                    </button>
+                </div>
+                <div id="reportResults" class="report-results">
+                    <!-- Report results will be displayed here -->
+                </div>
+            </section>
+        </div>
+    </main>
+</div>
+
+<!-- Report Generation Modal -->
+<div id="reportModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Generate Attendance Report</h2>
+            <button class="close-btn" onclick="closeReportModal()">&times;</button>
+        </div>
+
+        <div style="padding:20px;">
+            <div class="form-group">
+                <label>Start Date</label>
+                <input type="date" id="reportStart">
+            </div>
+
+            <div class="form-group">
+                <label>End Date</label>
+                <input type="date" id="reportEnd">
+            </div>
+
+            <div class="form-group">
+                <label>Campaign</label>
+                <select id="reportCampaign">
+                    <option value="">All Campaigns</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>User</label>
+                <select id="reportUser">
+                    <option value="">All Users</option>
+                </select>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-success" onclick="generateReport()">Generate Report</button>
+                <button class="btn btn-secondary" onclick="closeReportModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="module" src="../js/reports-new.js"></script>
+</body>
+
+</html>

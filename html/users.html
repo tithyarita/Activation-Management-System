@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Users - Admin Panel</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <link rel="stylesheet" href="../css/admin-layout.css">
+</head>
+
+<body>
+<div id="header-placeholder"></div>
+
+<div class="admin-wrapper">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2><i class="fa-solid fa-chart-line"></i> AMS Admin</h2>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="dashboard.html" class="nav-item">
+                <i class="fa-solid fa-home"></i> Dashboard
+            </a>
+            <a href="campaigns.html" class="nav-item">
+                <i class="fa-solid fa-calendar"></i> Campaigns
+            </a>
+            <a href="users.html" class="nav-item active">
+                <i class="fa-solid fa-users"></i> Users
+            </a>
+            <a href="leaders.html" class="nav-item">
+                <i class="fa-solid fa-star"></i> Leaders
+            </a>
+            <a href="reports.html" class="nav-item">
+                <i class="fa-solid fa-chart-bar"></i> Reports
+            </a>
+            <a href="#" class="nav-item" onclick="handleLogout()">
+                <i class="fa-solid fa-sign-out-alt"></i> Logout
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- User Statistics -->
+            <section class="stats-section">
+                <h3>User Statistics</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h4>Total Users</h4>
+                        <p id="statTotalUsers" class="stat-number">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Staff Members</h4>
+                        <p id="statStaffMembers" class="stat-number">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Leaders</h4>
+                        <p id="statLeaders" class="stat-number">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Admins</h4>
+                        <p id="statAdmins" class="stat-number">0</p>
+                    </div>
+                </div>
+            </section>
+        <div class="admin-container">
+            <!-- Top Row -->
+            <section class="top-row">
+                <div class="page-title">User Management</div>
+                <button class="btn btn-primary" onclick="openUserModal()">
+                    <i class="fa-solid fa-plus"></i> Add User
+                </button>
+            </section>
+
+            <!-- Search & Filter -->
+            <section class="filters-section">
+                <input type="text" id="searchUser" placeholder="Search by name or email..." class="filter-input">
+                <select id="filterRole" class="filter-input">
+                    <option value="">All Roles</option>
+                    <option value="staff">Brand Ambassador</option>
+                    <option value="leader">Leader</option>
+                    <option value="admin">Admin</option>
+                </select>
+            </section>
+
+            <!-- Users List -->
+            <section class="users-section">
+                <div class="table-responsive">
+                    <div id="usersList" class="loading-text">Loading users...</div>
+                </div>
+            </section>
+        </div>
+    </main>
+</div>
+
+<!-- Add User Modal -->
+<div id="userModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Add New User</h2>
+            <button class="close-btn" onclick="closeUserModal()">&times;</button>
+        </div>
+
+        <form id="userForm">
+            <div class="form-group">
+                <label>User Name *</label>
+                <input type="text" id="userName" required>
+            </div>
+
+            <div class="form-group">
+                <label>Email *</label>
+                <input type="email" id="userEmail" required>
+            </div>
+
+            <div class="form-group">
+                <label>Password *</label>
+                <input type="password" id="userPassword" required>
+            </div>
+
+            <div class="form-group">
+                <label>Confirm Password *</label>
+                <input type="password" id="userConfirmPassword" required>
+            </div>
+
+            <div class="form-group">
+                <label>Role *</label>
+                <select id="userRole" required>
+                    <option value="staff">Brand Ambassador</option>
+                    <option value="leader">Leader</option>
+                    <option value="admin">Admin</option>
+                </select>
+            </div>
+
+            <div class="modal-actions">
+                <button type="submit" class="btn btn-success">Save User</button>
+                <button type="button" class="btn btn-secondary" onclick="closeUserModal()">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Role Modal -->
+<div id="editRoleModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Change User Role</h2>
+            <button class="close-btn" onclick="closeEditRoleModal()">&times;</button>
+        </div>
+        <div style="padding:20px;">
+            <div class="form-group">
+                <label>User: <span id="editRoleUserName"></span></label>
+                <select id="editRoleSelect" required>
+                    <option value="staff">Brand Ambassador</option>
+                    <option value="leader">Leader</option>
+                    <option value="admin">Admin</option>
+                </select>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-success" onclick="confirmRoleChange()">Update Role</button>
+                <button class="btn btn-secondary" onclick="closeEditRoleModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="module" src="../js/users-new.js"></script>
+</body>
+
+</html>

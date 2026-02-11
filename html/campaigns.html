@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campaigns - Admin Panel</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <link rel="stylesheet" href="../css/admin-layout.css">
+</head>
+
+<body>
+<div id="header-placeholder"></div>
+
+<div class="admin-wrapper">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2><i class="fa-solid fa-chart-line"></i> AMS Admin</h2>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="dashboard.html" class="nav-item">
+                <i class="fa-solid fa-home"></i> Dashboard
+            </a>
+            <a href="campaigns.html" class="nav-item active">
+                <i class="fa-solid fa-calendar"></i> Campaigns
+            </a>
+            <a href="users.html" class="nav-item">
+                <i class="fa-solid fa-users"></i> Users
+            </a>
+            <a href="leaders.html" class="nav-item">
+                <i class="fa-solid fa-star"></i> Leaders
+            </a>
+            <a href="reports.html" class="nav-item">
+                <i class="fa-solid fa-chart-bar"></i> Reports
+            </a>
+            <a href="#" class="nav-item" onclick="handleLogout()">
+                <i class="fa-solid fa-sign-out-alt"></i> Logout
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="admin-container">
+            <!-- Top Row -->
+            <section class="top-row">
+                <div class="page-title">Campaign Management</div>
+                <button class="btn btn-primary" onclick="openModal()">
+                    <i class="fa-solid fa-plus"></i> Add Campaign
+                </button>
+            </section>
+
+            <!-- Filters -->
+            <section class="filters-section">
+                <input type="date" id="filterDate" placeholder="Filter by date" class="filter-input">
+                <select id="filterStatus" class="filter-input">
+                    <option value="">All Status</option>
+                    <option value="upcoming">Upcoming</option>
+                    <option value="ongoing">Ongoing</option>
+                    <option value="completed">Completed</option>
+                </select>
+            </section>
+
+            <!-- Campaigns Grid -->
+            <section>
+                <div id="campaignsList" class="campaigns-grid">
+                    <p class="loading-text">Loading campaigns...</p>
+                </div>
+            </section>
+
+            <!-- Campaign Analytics -->
+            <section class="analytics-section">
+                <h3>Campaign Analytics</h3>
+                <div id="campaignAnalytics" class="analytics-grid">
+                    <div class="analytics-card">
+                        <h4>Total Campaigns</h4>
+                        <p id="analyticsTotalCampaigns" class="analytics-value">0</p>
+                    </div>
+                    <div class="analytics-card">
+                        <h4>Avg Attendance</h4>
+                        <p id="analyticsAvgAttendance" class="analytics-value">0%</p>
+                    </div>
+                    <div class="analytics-card">
+                        <h4>Staff Deployed</h4>
+                        <p id="analyticsStaffDeployed" class="analytics-value">0</p>
+                    </div>
+                    <div class="analytics-card">
+                        <h4>This Week</h4>
+                        <p id="analyticsThisWeek" class="analytics-value">0</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+</div>
+
+<!-- Add Campaign Modal -->
+<div id="campaignModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Add New Campaign</h2>
+            <button class="close-btn" onclick="closeModal()">&times;</button>
+        </div>
+        <form id="campaignForm">
+            <div class="form-group">
+                <label>Campaign Name *</label>
+                <input type="text" id="campaignName" required>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Date *</label>
+                    <input type="date" id="campaignDate" required>
+                </div>
+                <div class="form-group">
+                    <label>Start Time *</label>
+                    <input type="time" id="campaignStartTime" required>
+                </div>
+                <div class="form-group">
+                    <label>End Time *</label>
+                    <input type="time" id="campaignEndTime" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Location *</label>
+                <input type="text" id="campaignLocation" required>
+            </div>
+
+            <div class="modal-actions">
+                <button type="submit" class="btn btn-success">Save Campaign</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Leader Assignment Modal -->
+<div id="leaderAssignModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Assign Leader to Campaign: <span id="leaderAssignCampaignName"></span></h2>
+            <button class="close-btn" onclick="closeLeaderAssignModal()">&times;</button>
+        </div>
+        <div style="padding:20px;">
+            <input type="hidden" id="leaderAssignCampaignId">
+            <div class="form-group">
+                <label>Select Leader *</label>
+                <select id="leaderSelect">
+                    <option value="">-- Select a leader --</option>
+                </select>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-success" onclick="confirmLeaderAssign()">Assign</button>
+                <button class="btn btn-secondary" onclick="closeLeaderAssignModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="module" src="../js/campaigns-new.js"></script>
+</body>
+
+</html>

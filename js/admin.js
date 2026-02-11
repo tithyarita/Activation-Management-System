@@ -1,5 +1,14 @@
 import { db, collection, addDoc, getDocs, deleteDoc, doc, updateDoc } from "../js/firebase.js";
 
+// Hash helper using SubtleCrypto (SHA-256)
+async function hashPassword(password) {
+	const enc = new TextEncoder();
+	const data = enc.encode(password);
+	const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+	const hashArray = Array.from(new Uint8Array(hashBuffer));
+	return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 // Modal Control
 window.openModal = function() {
     const modal = document.getElementById("campaignModal");
@@ -71,44 +80,58 @@ window.openUserModal = function() {
 };
 
 window.closeUserModal = function() {
-    document.getElementById("userModal").style.display = "none";
+	document.getElementById("userModal").style.display = "none";
 };
-// Add user to Firestore
-async function addUser(name, email, role){
-    try{
-        await addDoc(collection(db, 'users'), {
-            name,
-            email,
-            role,
-            createdAt: new Date().toISOString()
-        });
+// Add user to Firestore (stores hashed password)
+async function addUser(name, email, password, role){
+	try{
+		const passwordHash = await hashPassword(password);
+		await addDoc(collection(db, 'users'), {
+			name,
+			email,
+			passwordHash,
+			role,
+			createdAt: new Date().toLocaleString()
+		});
 
-        closeUserModal();
-        loadUsers();
-        alert("User added successfully!");
+		closeUserModal();
+		loadUsers();
+		alert("User added successfully!");
 
-    }catch(err){
-        console.error(err);
-        alert("Error adding user");
-    }
+	}catch(err){
+		console.error(err);
+		alert("Error adding user: " + (err.message || err));
+	}
 }
 const userForm = document.getElementById('userForm');
 
 if(userForm){
-    userForm.addEventListener('submit', (e)=>{
-        e.preventDefault();
+	userForm.addEventListener('submit', async (e)=>{
+		e.preventDefault();
 
-        const name = document.getElementById('userName').value.trim();
-        const email = document.getElementById('userEmail').value.trim();
-        const role = document.getElementById('userRole').value;
+		const name = document.getElementById('userName').value.trim();
+		const email = document.getElementById('userEmail').value.trim();
+		const password = document.getElementById('userPassword').value;
+		const confirmPassword = document.getElementById('userConfirmPassword').value;
+		const role = document.getElementById('userRole').value;
 
-        if(!name || !email){
-            alert("Fill all fields");
-            return;
-        }
+		if(!name || !email || !password || !confirmPassword){
+			alert("Fill all fields");
+			return;
+		}
 
-        addUser(name,email,role);
-    });
+		if(password !== confirmPassword){
+			alert("Passwords do not match");
+			return;
+		}
+
+		if(password.length < 6){
+			alert("Password must be at least 6 characters long");
+			return;
+		}
+
+		await addUser(name, email, password, role);
+	});
 }
 
 // Helper: keep leaders list cached
@@ -321,6 +344,8 @@ async function loadUsers() {
 		const querySnapshot = await getDocs(collection(db, 'users'));
 		console.log('Users loaded:', querySnapshot.size);
 		usersList.innerHTML = '';
+		// reset cached leaders to avoid duplicates
+		window.leaders = [];
 
 		if (querySnapshot.empty) {
 			usersList.innerHTML = '<p class="loading-text">No users found</p>';
@@ -329,25 +354,52 @@ async function loadUsers() {
 
 		querySnapshot.forEach((docSnap) => {
 			const user = docSnap.data();
-			// cache leaders
+			// cache leaders (only necessary fields)
 			if (user.role && user.role.toLowerCase() === 'leader') {
-				window.leaders.push({ id: docSnap.id, ...user });
+				window.leaders.push({ id: docSnap.id, name: user.name, email: user.email, role: user.role });
 			}
-			const userEl = document.createElement('div');
-			userEl.className = 'user-card';
-			userEl.innerHTML = `
-				<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
-					<div>
-						<strong>${user.name || 'Unknown'}</strong>
-						<div style="font-size:13px;color:var(--text-muted);">${user.email || 'N/A'}</div>
-						<div style="font-size:13px;color:var(--text-muted);">Role: ${user.role || 'N/A'}</div>
-					</div>
-					<div>
-						<button class="btn-remove" onclick="removeUser('${docSnap.id}')" title="Delete user"><i class="fa-solid fa-trash"></i></button>
-					</div>
-				</div>
-			`;
-			usersList.appendChild(userEl);
+
+			const roleDisplay = (user.role === 'ba') ? 'Brand Ambassador' : (user.role === 'leader') ? 'Leader' : (user.role === 'admin') ? 'Admin' : (user.role || 'N/A');
+
+// Create header once
+if (!usersList.dataset.headerBuilt) {
+    usersList.innerHTML = `
+        <div class="users-header">
+            <div>Name</div>
+            <div>Email</div>
+            <div>Role</div>
+            <div>Action</div>
+        </div>
+    `;
+    usersList.dataset.headerBuilt = "true";
+}
+
+// Role class for styling
+let roleClass = "role-ba";
+if(user.role === "admin") roleClass = "role-admin";
+if(user.role === "leader") roleClass = "role-leader";
+
+const row = document.createElement("div");
+row.className = "user-row";
+
+row.innerHTML = `
+    <div class="user-name">${user.name || "Unknown"}</div>
+    <div class="user-email">${user.email || "N/A"}</div>
+    <div>
+        <span class="user-role ${roleClass}">
+            ${roleDisplay}
+        </span>
+    </div>
+    <div>
+        <button class="btn-remove"
+            onclick="removeUser('${docSnap.id}')"
+            title="Delete user">
+            <i class="fa-solid fa-trash"></i>
+        </button>
+    </div>
+`;
+
+usersList.appendChild(row);
 		});
 
 		// Populate report campaign dropdown and leader lists

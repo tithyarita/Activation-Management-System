@@ -3,11 +3,171 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BA Dashboard</title>
-    <link rel="stylesheet" href="../css/style.css"> 
-    <link rel="stylesheet" href="../css/ba.css"> 
+    <title>Dashboard - Brand Ambassador</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/ba.css">
 </head>
 <body>
+<<<<<<< HEAD
+<div class="ba-container">
+    <!-- Header -->
+    <header class="ba-header">
+        <div class="header-content">
+            <div class="logo">
+                <i class="fa-solid fa-chart-line"></i> AMS
+            </div>
+            <div class="header-title">
+                <h1>Brand Ambassador Dashboard</h1>
+                <p>Welcome, <span id="userNameDisplay">User</span></p>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-logout" onclick="handleLogout()">
+                    <i class="fa-solid fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="ba-main">
+        <!-- Quick Actions -->
+        <section class="quick-actions">
+            <button class="action-btn" onclick="openCheckInModal()">
+                <i class="fa-solid fa-arrow-right-to-bracket"></i>
+                <span>Clock In</span>
+            </button>
+            <button class="action-btn" onclick="openCheckOutModal()">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                <span>Clock Out</span>
+            </button>
+            <button class="action-btn" onclick="viewCampaigns()">
+                <i class="fa-solid fa-calendar"></i>
+                <span>My Campaigns</span>
+            </button>
+            <button class="action-btn" onclick="viewAttendance()">
+                <i class="fa-solid fa-chart-bar"></i>
+                <span>My Attendance</span>
+            </button>
+        </section>
+
+        <!-- Dashboard Summary -->
+        <section class="summary-section">
+            <div class="summary-card">
+                <h3>Campaigns Assigned</h3>
+                <p id="assignedCampaigns" class="summary-number">0</p>
+            </div>
+            <div class="summary-card">
+                <h3>Check-ins Today</h3>
+                <p id="todayCheckIns" class="summary-number">0</p>
+            </div>
+            <div class="summary-card">
+                <h3>Total Check-ins</h3>
+                <p id="totalCheckIns" class="summary-number">0</p>
+            </div>
+            <div class="summary-card">
+                <h3>Attendance Rate</h3>
+                <p id="attendanceRate" class="summary-number">0%</p>
+            </div>
+        </section>
+
+        <!-- Assigned Campaigns -->
+        <section class="campaigns-section">
+            <h2>Assigned Campaigns</h2>
+            <div id="campaignsList" class="campaigns-list">
+                <p class="loading-text">Loading campaigns...</p>
+            </div>
+        </section>
+
+        <!-- Recent Check-ins -->
+        <section class="checkins-section">
+            <h2>Recent Check-ins</h2>
+            <div class="table-responsive">
+                <table class="checkins-table">
+                    <thead>
+                        <tr>
+                            <th>Date & Time</th>
+                            <th>Location</th>
+                            <th>Campaign</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="checkinsList">
+                        <tr><td colspan="4" class="loading-text">Loading check-ins...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</div>
+
+<!-- Check-in Modal -->
+<div id="checkInModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Clock In</h2>
+            <button class="close-btn" onclick="closeCheckInModal()">&times;</button>
+        </div>
+        <form id="checkInForm">
+            <div class="form-group">
+                <label>Select Campaign *</label>
+                <select id="campaignSelect" required>
+                    <option value="">-- Select a campaign --</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Location *</label>
+                <input type="text" id="checkInLocation" placeholder="Enter your location" required>
+            </div>
+            <div class="form-group">
+                <label>Notes (optional)</label>
+                <textarea id="checkInNotes" placeholder="Add any notes..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="capturePhoto"> Take Photo
+                </label>
+                <div id="photoPreview" style="display: none; margin-top: 10px;">
+                    <img id="photoImg" style="max-width: 200px;">
+                </div>
+                <div id="cameraInput" style="display: none;">
+                    <input type="file" id="photoFile" accept="image/*" onchange="previewPhoto()">
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="submit" class="btn btn-success">Clock In</button>
+                <button type="button" class="btn btn-secondary" onclick="closeCheckInModal()">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Check-out Modal -->
+<div id="checkOutModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Clock Out</h2>
+            <button class="close-btn" onclick="closeCheckOutModal()">&times;</button>
+        </div>
+        <form id="checkOutForm">
+            <div class="form-group">
+                <label>Location *</label>
+                <input type="text" id="checkOutLocation" placeholder="Enter your location" required>
+            </div>
+            <div class="form-group">
+                <label>Notes (optional)</label>
+                <textarea id="checkOutNotes" placeholder="Add any notes..."></textarea>
+            </div>
+            <div class="modal-actions">
+                <button type="submit" class="btn btn-success">Clock Out</button>
+                <button type="button" class="btn btn-secondary" onclick="closeCheckOutModal()">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script type="module" src="../js/ba.js"></script>
+=======
     <div class="container-1" style="display: none;">
         <div class="login-box">
             <h2>Login</h2>
@@ -120,5 +280,6 @@
 
   </main>
     </div>
+>>>>>>> 7e4c5acda973fe40f5c1c335f076e16b0f5f1718
 </body>
 </html>
