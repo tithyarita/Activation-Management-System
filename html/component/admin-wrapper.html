@@ -1,0 +1,35 @@
+<div class="admin-wrapper">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2><i class="fa-solid fa-chart-line"></i> AMS Admin</h2>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active" data-page="dashboard" onclick="pageLoader.loadPage('dashboard'); return false;">
+                <i class="fa-solid fa-home"></i> Dashboard
+            </a>
+            <a href="#" class="nav-item" data-page="campaigns" onclick="pageLoader.loadPage('campaigns'); return false;">
+                <i class="fa-solid fa-calendar"></i> Campaigns
+            </a>
+            <a href="#" class="nav-item" data-page="users" onclick="pageLoader.loadPage('users'); return false;">
+                <i class="fa-solid fa-users"></i> Users
+            </a>
+            <a href="#" class="nav-item" data-page="leaders" onclick="pageLoader.loadPage('leaders'); return false;">
+                <i class="fa-solid fa-star"></i> Leaders
+            </a>
+            <a href="#" class="nav-item" data-page="reports" onclick="pageLoader.loadPage('reports'); return false;">
+                <i class="fa-solid fa-chart-bar"></i> Reports
+            </a>
+            <a href="#" class="nav-item" onclick="handleLogout(); return false;">
+                <i class="fa-solid fa-sign-out-alt"></i> Logout
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div id="page-content" class="admin-container">
+            <p class="loading-text">Loading page...</p>
+        </div>
+    </main>
+</div>

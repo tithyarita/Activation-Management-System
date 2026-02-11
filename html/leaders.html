@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaders - Admin Panel</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <link rel="stylesheet" href="../css/admin-layout.css">
+</head>
+<body>
+<div class="admin-wrapper">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2><i class="fa-solid fa-chart-line"></i> AMS Admin</h2>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="dashboard.html" class="nav-item"><i class="fa-solid fa-home"></i> Dashboard</a>
+            <a href="campaigns.html" class="nav-item"><i class="fa-solid fa-calendar"></i> Campaigns</a>
+            <a href="users.html" class="nav-item"><i class="fa-solid fa-users"></i> Users</a>
+            <a href="leader.html" class="nav-item active"><i class="fa-solid fa-star"></i> Leaders</a>
+            <a href="reports.html" class="nav-item"><i class="fa-solid fa-chart-bar"></i> Reports</a>
+            <a href="login.html" class="nav-item" onclick="if(confirm('Logout?')){sessionStorage.clear();} return true;"><i class="fa-solid fa-sign-out-alt"></i> Logout</a>
+        </nav>
+    </aside>
+    <main class="main-content">
+        <section class="top-row">
+            <div class="page-title">Campaign Leaders Management</div>
+        </section>
+        <section class="performance-section">
+            <h3>Leader Performance Analytics</h3>
+            <div id="leaderPerformance" class="performance-grid">
+                <p class="loading-text">Loading leaders...</p>
+            </div>
+        </section>
+        <section class="ranking-section">
+            <h3>Leaders Ranking (by attendance rate)</h3>
+            <table class="leaders-table">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Leader Name</th>
+                        <th>Email</th>
+                        <th>Campaigns</th>
+                        <th>Staff Managed</th>
+                        <th>Attendance Rate</th>
+                        <th>Check-ins</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderRankingTable">
+                    <tr><td colspan="7" class="loading-text">Loading leaders...</td></tr>
+                </tbody>
+            </table>
+        </section>
+        <section class="timeline-section">
+            <h3>Recent Leader Activity</h3>
+            <div id="leaderActivityTimeline" class="activity-timeline">
+                <p class="loading-text">Loading activities...</p>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script type="module">
+    import { db, collection, getDocs } from "../js/firebase.js";
+
+    async function loadLeaders() {
+        try {
+            const usersSnap = await getDocs(collection(db, 'users'));
+            const attendanceSnap = await getDocs(collection(db, 'attendance'));
+            const campaignsSnap = await getDocs(collection(db, 'campaigns'));
+
+            const leaders = [];
+            usersSnap.forEach(doc => {
+                const user = doc.data();
+                if (user.role === 'leader') {
+                    leaders.push({ id: doc.id, ...user });
+                }
+            });
+
+            // Calculate stats for each leader
+            leaders.forEach(leader => {
+                let campaigns = 0, attendance = 0, staff = new Set();
+                
+                campaignsSnap.forEach(doc => {
+                    if (doc.data().leaderId === leader.id) campaigns++;
+                });
+                
+                attendanceSnap.forEach(doc => {
+                    if (doc.data().userId === leader.id) attendance++;
+                });
+
+                leader.campaigns = campaigns;
+                leader.attendance = attendance;
+                leader.rate = 0;
+            });
+
+            // Sort by attendance
+            leaders.sort((a, b) => b.attendance - a.attendance);
+
+            // Display performance cards
+            const perfDiv = document.getElementById('leaderPerformance');
+            if (leaders.length > 0) {
+                perfDiv.innerHTML = leaders.slice(0, 3).map((l, i) => `
+                    <div class="performance-card">
+                        <div class="rank-badge">#${i + 1}</div>
+                        <h4>${l.name}</h4>
+                        <p>${l.email}</p>
+                        <div class="stat-row">
+                            <span>Campaigns: ${l.campaigns}</span>
+                            <span>Check-ins: ${l.attendance}</span>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            // Display ranking table
+            const rankTable = document.getElementById('leaderRankingTable');
+            rankTable.innerHTML = leaders.map((l, i) => `
+                <tr>
+                    <td>${i + 1}</td>
+                    <td>${l.name}</td>
+                    <td>${l.email}</td>
+                    <td>${l.campaigns}</td>
+                    <td>0</td>
+                    <td>0%</td>
+                    <td>${l.attendance}</td>
+                </tr>
+            `).join('');
+
+        } catch (err) {
+            console.error('Error:', err);
+        }
+    }
+
+    loadLeaders();
+</script>
+<script type="module" src="../js/leaders-new.js"></script>
+</body>
+</html>
