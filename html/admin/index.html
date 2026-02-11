@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - AMS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <link rel="stylesheet" href="../css/admin-layout.css">
+</head>
+<body>
+    <div id="header-placeholder"></div>
+    <div id="wrapper-placeholder"></div>
+
+    <!-- Add Campaign Modal -->
+    <div id="campaignModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add New Campaign</h2>
+                <button class="close-btn" onclick="closeModal('campaignModal')">&times;</button>
+            </div>
+            <form id="campaignForm">
+                <div class="form-group">
+                    <label>Campaign Name *</label>
+                    <input type="text" id="campaignName" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Date *</label>
+                        <input type="date" id="campaignDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Start Time *</label>
+                        <input type="time" id="campaignStartTime" required>
+                    </div>
+                    <div class="form-group">
+                        <label>End Time *</label>
+                        <input type="time" id="campaignEndTime" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Location *</label>
+                    <input type="text" id="campaignLocation" required>
+                </div>
+                <div class="modal-actions">
+                    <button type="submit" class="btn btn-success">Save Campaign</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('campaignModal')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Leader Assignment Modal -->
+    <div id="leaderAssignModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Assign Leader to Campaign</h2>
+                <button class="close-btn" onclick="closeModal('leaderAssignModal')">&times;</button>
+            </div>
+            <div style="padding:20px;">
+                <input type="hidden" id="leaderAssignCampaignId">
+                <p>Campaign: <strong id="leaderAssignCampaignName"></strong></p>
+                <div class="form-group">
+                    <label>Select Leader *</label>
+                    <select id="leaderSelect">
+                        <option value="">-- Select a leader --</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-success" onclick="confirmLeaderAssign()">Assign</button>
+                    <button class="btn btn-secondary" onclick="closeModal('leaderAssignModal')">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add User Modal -->
+    <div id="userModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add New User</h2>
+                <button class="close-btn" onclick="closeModal('userModal')">&times;</button>
+            </div>
+            <form id="userForm">
+                <div class="form-group">
+                    <label>User Name *</label>
+                    <input type="text" id="userName" required>
+                </div>
+                <div class="form-group">
+                    <label>Email *</label>
+                    <input type="email" id="userEmail" required>
+                </div>
+                <div class="form-group">
+                    <label>Password *</label>
+                    <input type="password" id="userPassword" required>
+                </div>
+                <div class="form-group">
+                    <label>Confirm Password *</label>
+                    <input type="password" id="userConfirmPassword" required>
+                </div>
+                <div class="form-group">
+                    <label>Role *</label>
+                    <select id="userRole" required>
+                        <option value="staff">Brand Ambassador</option>
+                        <option value="leader">Leader</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="submit" class="btn btn-success">Save User</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('userModal')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Role Modal -->
+    <div id="editRoleModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Change User Role</h2>
+                <button class="close-btn" onclick="closeModal('editRoleModal')">&times;</button>
+            </div>
+            <div style="padding:20px;">
+                <div class="form-group">
+                    <label>User: <span id="editRoleUserName"></span></label>
+                    <select id="editRoleSelect" required>
+                        <option value="staff">Brand Ambassador</option>
+                        <option value="leader">Leader</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-success" onclick="confirmRoleChange()">Update Role</button>
+                    <button class="btn btn-secondary" onclick="closeModal('editRoleModal')">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Modal -->
+    <div id="reportModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Generate Report</h2>
+                <button class="close-btn" onclick="closeModal('reportModal')">&times;</button>
+            </div>
+            <div style="padding:20px;">
+                <div class="form-group">
+                    <label>Start Date</label>
+                    <input type="date" id="reportStart">
+                </div>
+                <div class="form-group">
+                    <label>End Date</label>
+                    <input type="date" id="reportEnd">
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-success" onclick="generateReport()">Generate</button>
+                    <button class="btn btn-secondary" onclick="closeModal('reportModal')">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { pageLoader } from "../js/page-loader.js";
+        
+        // Global modal functions
+        window.openModal = function(modalId = 'campaignModal') {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.style.display = 'flex';
+                const form = modal.querySelector('form');
+                if (form) form.reset();
+            }
+        };
+        
+        window.closeModal = function(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) modal.style.display = 'none';
+        };
+        
+        window.handleLogout = function() {
+            if (confirm('Are you sure you want to logout?')) {
+                sessionStorage.clear();
+                localStorage.clear();
+                window.location.href = '../login.html';
+            }
+        };
+        
+        // Confirm functions
+        window.confirmLeaderAssign = async function() {
+            alert('Leader assignment functionality coming soon');
+        };
+        
+        window.confirmRoleChange = async function() {
+            alert('Role change functionality coming soon');
+        };
+        
+        window.generateReport = async function() {
+            alert('Report generation coming soon');
+        };
+        
+        // Close modals when clicking outside
+        window.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal')) {
+                e.target.style.display = 'none';
+            }
+        });
+        
+        // Make pageLoader global
+        window.pageLoader = pageLoader;
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('Initializing page loader...');
+            await pageLoader.init();
+            console.log('Loading dashboard...');
+            await pageLoader.loadPage('dashboard');
+        });
+    </script>
+</body>
+</html>

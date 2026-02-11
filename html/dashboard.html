@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - AMS Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <link rel="stylesheet" href="../css/admin-layout.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="admin-wrapper">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2><i class="fa-solid fa-chart-line"></i> AMS Admin</h2>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="dashboard.html" class="nav-item active"><i class="fa-solid fa-home"></i> Dashboard</a>
+            <a href="campaigns.html" class="nav-item"><i class="fa-solid fa-calendar"></i> Campaigns</a>
+            <a href="users.html" class="nav-item"><i class="fa-solid fa-users"></i> Users</a>
+            <a href="leader.html" class="nav-item"><i class="fa-solid fa-star"></i> Leaders</a>
+            <a href="reports.html" class="nav-item"><i class="fa-solid fa-chart-bar"></i> Reports</a>
+            <a href="login.html" class="nav-item" onclick="if(confirm('Logout?')){sessionStorage.clear();} return true;"><i class="fa-solid fa-sign-out-alt"></i> Logout</a>
+        </nav>
+    </aside>
+    <main class="main-content">
+        <section class="welcome-section">
+            <div class="welcome-card">
+                <h1>Welcome, Admin!</h1>
+                <p>Here's your system overview</p>
+            </div>
+        </section>
+        <section class="summary-section">
+            <div class="summary-card"><div class="card-icon campaigns"><i class="fa-solid fa-calendar"></i></div><div class="card-content"><h3>Total Campaigns</h3><p class="card-number" id="totalCampaigns">0</p><span class="card-label">Active & Completed</span></div></div>
+            <div class="summary-card"><div class="card-icon users"><i class="fa-solid fa-users"></i></div><div class="card-content"><h3>Total Users</h3><p class="card-number" id="totalUsers">0</p><span class="card-label">Staff & Leaders</span></div></div>
+            <div class="summary-card"><div class="card-icon leaders"><i class="fa-solid fa-star"></i></div><div class="card-content"><h3>Active Leaders</h3><p class="card-number" id="activeLeaders">0</p><span class="card-label">Managing teams</span></div></div>
+            <div class="summary-card"><div class="card-icon attendance"><i class="fa-solid fa-check-circle"></i></div><div class="card-content"><h3>Today's Attendance</h3><p class="card-number" id="todayAttendance">0</p><span class="card-label">Clock-ins recorded</span></div></div>
+        </section>
+        <section class="charts-section">
+            <div class="chart-card"><h3>Attendance Trend (7 Days)</h3><canvas id="attendanceTrendChart"></canvas></div>
+            <div class="chart-card"><h3>Campaign Activity</h3><canvas id="campaignActivityChart"></canvas></div>
+        </section>
+        <section class="quick-stats-section">
+            <h3>Quick Stats</h3>
+            <div class="stats-grid">
+                <div class="stat-box"><i class="fa-solid fa-users"></i><div class="stat-content"><p class="stat-label">Total Staff</p><p class="stat-number" id="statStaffCount">0</p></div></div>
+                <div class="stat-box"><i class="fa-solid fa-star"></i><div class="stat-content"><p class="stat-label">Total Leaders</p><p class="stat-number" id="statLeaderCount">0</p></div></div>
+                <div class="stat-box"><i class="fa-solid fa-percent"></i><div class="stat-content"><p class="stat-label">Attendance Rate</p><p class="stat-number" id="statAttendanceRate">0%</p></div></div>
+                <div class="stat-box"><i class="fa-solid fa-calendar-week"></i><div class="stat-content"><p class="stat-label">This Week</p><p class="stat-number" id="statWeeklyCampaigns">0</p></div></div>
+            </div>
+        </section>
+        <section class="activity-section">
+            <div class="activity-card">
+                <h3>Recent Activity</h3>
+                <div id="activityLog" class="activity-log"><p class="loading-text">Loading activities...</p></div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script type="module">
+    import { db, collection, getDocs } from "../js/firebase.js";
+
+    async function loadDashboardData() {
+        const campaignsSnap = await getDocs(collection(db, 'campaigns'));
+        const usersSnap = await getDocs(collection(db, 'users'));
+        const attendanceSnap = await getDocs(collection(db, 'attendance'));
+
+        let activeLeaders = 0, staffCount = 0, leaderCount = 0;
+        usersSnap.forEach(doc => {
+            const user = doc.data();
+            if (user.role === 'leader') { leaderCount++; activeLeaders++; }
+            else if (user.role === 'staff') staffCount++;
+        });
+
+        const today = new Date().toDateString();
+        let todayAttendance = 0;
+        attendanceSnap.forEach(doc => {
+            if (doc.data().timestamp && new Date(doc.data().timestamp).toDateString() === today) todayAttendance++;
+        });
+
+        document.getElementById('totalCampaigns').textContent = campaignsSnap.size;
+        document.getElementById('totalUsers').textContent = usersSnap.size;
+        document.getElementById('activeLeaders').textContent = activeLeaders;
+        document.getElementById('todayAttendance').textContent = todayAttendance;
+        document.getElementById('statStaffCount').textContent = staffCount;
+        document.getElementById('statLeaderCount').textContent = leaderCount;
+
+        const uniqueAttendees = new Set(Array.from(attendanceSnap.docs).map(d => d.data().userId)).size;
+        const rate = usersSnap.size > 0 ? Math.round((uniqueAttendees / usersSnap.size) * 100) : 0;
+        document.getElementById('statAttendanceRate').textContent = rate + '%';
+
+        // Load charts
+        const data = {};
+        const today_date = new Date();
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date(today_date);
+            d.setDate(d.getDate() - i);
+            const ds = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            data[ds] = 0;
+        }
+        attendanceSnap.forEach(doc => {
+            const att = doc.data();
+            if (att.timestamp) {
+                const ad = new Date(att.timestamp);
+                const ds = ad.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                if (data[ds] !== undefined) data[ds]++;
+            }
+        });
+
+        new Chart(document.getElementById('attendanceTrendChart'), {
+            type: 'line',
+            data: {
+                labels: Object.keys(data),
+                datasets: [{
+                    label: 'Attendance',
+                    data: Object.values(data),
+                    borderColor: '#007bff',
+                    backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true } }
+            }
+        });
+
+        let active = 0, completed = 0;
+        campaignsSnap.forEach(doc => {
+            if (doc.data().status === 'completed') completed++;
+            else active++;
+        });
+
+        new Chart(document.getElementById('campaignActivityChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Active', 'Completed'],
+                datasets: [{
+                    data: [active, completed],
+                    backgroundColor: ['#007bff', '#28a745']
+                }]
+            },
+            options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+        });
+
+        // Recent activity
+        const activities = [];
+        attendanceSnap.forEach(doc => {
+            if (doc.data().timestamp) activities.push({
+                time: new Date(doc.data().timestamp),
+                msg: `${doc.data().userName || 'User'} clocked in`
+            });
+        });
+        campaignsSnap.forEach(doc => {
+            if (doc.data().createdAt) activities.push({
+                time: new Date(doc.data().createdAt),
+                msg: `Campaign "${doc.data().name}" created`
+            });
+        });
+
+        activities.sort((a, b) => b.time - a.time);
+        const html = activities.slice(0, 10).map(a => `
+            <div class="activity-item">
+                <div class="activity-icon"><i class="fa-solid fa-check-circle"></i></div>
+                <div class="activity-content">
+                    <p>${a.msg}</p>
+                    <span class="activity-time">${a.time.toLocaleString()}</span>
+                </div>
+            </div>
+        `).join('');
+        document.getElementById('activityLog').innerHTML = html || '<p class="loading-text">No activities</p>';
+    }
+
+    loadDashboardData();
+</script>
+</body>
+</html>

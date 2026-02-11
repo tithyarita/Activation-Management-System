@@ -1,124 +1,134 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BA Dashboard</title>
-    <link rel="stylesheet" href="../css/style.css"> 
-    <link rel="stylesheet" href="../css/ba.css"> 
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Brand Ambassador</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/ba.css">
 </head>
+
 <body>
-    <div class="container-1">
-        <div class="login-box">
-            <h2>Login</h2>
+  <div class="container-1">
+    <div class="login-box">
+      <h2>Login</h2>
 
-            <form>
-                <input type="email" placeholder="Email" required>
-                <input type="password" placeholder="Password" required>
+      <form>
+        <input type="email" placeholder="Email" required>
+        <input type="password" placeholder="Password" required>
 
-                <button type="submit">Login</button>
-            </form>
-        </div>
+        <button type="submit">Login</button>
+      </form>
     </div>
+  </div>
 
-    <div class="container-2" style="display: none;">
-          <header class="topbar">
-    <div class="brand">
-      <div class="avatar"></div>
-      <div>
-        <h1>Vanraid</h1>
-        <span>Brand Ambassador</span>
-      </div>
-    </div>
-    <div class="top-actions">
-      <span class="icon">🔔</span>
-      <span class="icon">☰</span>
-    </div>
-  </header>
-
-  <!-- Navigation -->
-  <nav class="nav">
-    <a class="active">Dashboard</a>
-    <a>My Campaigns</a>
-    <a>History</a>
-  </nav>
-
-  <!-- Main -->
-  <main class="container">
-
-    <!-- Current Campaign -->
-    <section class="card">
-      <div class="card-header">
-        <h2>Current Campaign</h2>
-        <span class="pill">Today</span>
-      </div>
-
-      <div class="campaign active-campaign">
+  <div class="container-2">
+    <header class="topbar">
+      <div class="brand">
+        <div class="avatar"></div>
         <div>
-          <h3>Milkita Event <span>@ Aeon2</span></h3>
-          <p>April 24, 2026 · 9:00 am – 6:00 pm</p>
-          <small>Sen Sok, Aeon2</small>
+          <h1>Vanraid</h1>
+          <span>Brand Ambassador</span>
         </div>
-        <button class="btn">✔ Check In</button>
       </div>
-    </section>
+      <div class="top-actions">
+        <span class="icon">🔔</span>
+        <span class="icon">☰</span>
+      </div>
+    </header>
 
-    <!-- My Campaigns -->
-    <section class="card">
-      <h2>My Campaigns</h2>
+    <!-- Navigation -->
+    <nav class="nav">
+      <a class="active">Dashboard</a>
+      <a>My Campaigns</a>
+      <a>History</a>
+    </nav>
 
-      <div class="list-item">
-        <span class="icon-green">📣</span>
-        <div>
-          <h4>Milkita Event</h4>
-          <p>April 24, 2026 · 9:00 am – 6:00 pm</p>
+    <!-- Main -->
+    <main class="container">
+
+      <!-- Current Campaign -->
+      <section class="card">
+        <div class="card-header">
+          <h2>Current Campaign</h2>
+          <span class="pill">Today</span>
         </div>
-        <span class="pill">12h</span>
-      </div>
 
-      <div class="list-item">
-        <span class="icon-green">📣</span>
-        <div>
-          <h4>Milkita Event</h4>
-          <p>April 24, 2026 · 9:00 am – 6:00 pm</p>
+        <div class="campaign active-campaign">
+          <div>
+            <h3>Milkita Event <span>@ Aeon2</span></h3>
+            <p>April 24, 2026 · 9:00 am – 6:00 pm</p>
+            <small>Sen Sok, Aeon2</small>
+          </div>
+          <button class="btn">✔ Check In</button>
         </div>
-        <span class="pill">12h</span>
-      </div>
+      </section>
 
-      <div class="list-item">
-        <span class="icon-green">📣</span>
-        <div>
-          <h4>Milkita Event</h4>
-          <p>April 24, 2026 · 9:00 am – 6:00 pm</p>
+      <!-- My Campaigns -->
+      <section class="card">
+        <h2>My Campaigns</h2>
+
+        <div class="list-item">
+          <span class="icon-green">📣</span>
+          <div>
+            <h4>Milkita Event</h4>
+            <p>April 24, 2026 · 9:00 am – 6:00 pm</p>
+          </div>
+          <span class="pill">12h</span>
         </div>
-        <span class="pill">12h</span>
-      </div>
-    </section>
 
-    <!-- History -->
-    <section class="card">
-      <h2>History</h2>
-
-      <div class="campaign history-item">
-        <div>
-          <h3>Milkita Event <span>@ Aeon2</span></h3>
-          <p>April 24, 2026 · 9:00 am – 6:00 pm</p>
-          <small>Sen Sok, Aeon2</small>
+        <div class="list-item">
+          <span class="icon-green">📣</span>
+          <div>
+            <h4>Milkita Event</h4>
+            <p>April 24, 2026 · 9:00 am – 6:00 pm</p>
+          </div>
+          <span class="pill">12h</span>
         </div>
-        <button class="btn secondary">View</button>
-      </div>
 
-      <div class="campaign history-item">
-        <div>
-          <h3>Milkita Event <span>@ Aeon2</span></h3>
-          <p>April 24, 2026 · 9:00 am – 6:00 pm</p>
-          <small>Sen Sok, Aeon2</small>
+        <div class="list-item">
+          <span class="icon-green">📣</span>
+          <div>
+            <h4>Milkita Event</h4>
+            <p>April 24, 2026 · 9:00 am – 6:00 pm</p>
+          </div>
+          <span class="pill">12h</span>
         </div>
-        <button class="btn secondary">View</button>
-      </div>
-    </section>
+      </section>
 
-  </main>
-    </div>
+      <!-- History -->
+      <section class="card">
+        <h2>History</h2>
+
+        <div class="campaign history-item">
+          <div>
+            <h3>Milkita Event <span>@ Aeon2</span></h3>
+            <p>April 24, 2026 · 9:00 am – 6:00 pm</p>
+            <small>Sen Sok, Aeon2</small>
+          </div>
+          <button class="btn secondary">View</button>
+        </div>
+
+        <div class="campaign history-item">
+          <div>
+            <h3>Milkita Event <span>@ Aeon2</span></h3>
+            <p>April 24, 2026 · 9:00 am – 6:00 pm</p>
+            <small>Sen Sok, Aeon2</small>
+          </div>
+          <button class="btn secondary">View</button>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+
+
+
+
+  <!-- <script type="module" src="../js/ba.js"></script> -->
 </body>
+
 </html>
