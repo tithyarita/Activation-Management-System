@@ -1,6 +1,7 @@
-import { db, collection, getDocs } from "../js/firebase.js";
+import { db, collection, getDocs, query, where } from "../js/firebase.js";
 
-// Hash helper using SubtleCrypto (SHA-256)
+
+// Hash helper
 async function hashPassword(password) {
     const enc = new TextEncoder();
     const data = enc.encode(password);
@@ -9,54 +10,80 @@ async function hashPassword(password) {
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-// Function to handle login
-async function handleLogin(event) {
-    event.preventDefault(); // Prevent form submission
 
-    const email = document.getElementById('email').value.trim();
+// Login handler
+async function handleLogin(event) {
+
+    event.preventDefault();
+
+    const email = document.getElementById('email').value.trim().toLowerCase();
     const password = document.getElementById('password').value;
 
     if (!email || !password) {
-        alert('Please enter email and password');
+        alert("Please enter email and password");
         return;
     }
 
     try {
+
         const enteredHash = await hashPassword(password);
-        // Fetch users from Firestore
-        const usersSnapshot = await getDocs(collection(db, "users"));
-        let userFound = false;
 
-        usersSnapshot.forEach((userDoc) => {
-            const userData = userDoc.data();
-            // Support new hashed passwords (`passwordHash`) and fallback to legacy `password` if present
-            const passwordMatches = (userData.passwordHash && userData.passwordHash === enteredHash) || (userData.password && userData.password === password);
-            if (userData.email === email && passwordMatches) {
-                userFound = true;
-                const role = userData.role;
-                // Redirect based on role
-                if (role === 'staff') {
-                    window.location.href = 'ba.html';
-                } else if (role === 'leader') {
-                    window.location.href = 'leader.html';
-                } else if (role === 'admin') {
-                    window.location.href = 'admin.html';
-                } else {
-                    // fallback
-                    window.location.href = 'ba.html';
-                }
-            }
-        });
+        // 🔥 Query ONLY matching email
+        const q = query(
+            collection(db, "users"),
+            where("email", "==", email)
+        );
 
-        if (!userFound) {
-            alert("Invalid username or password");
+        const snapshot = await getDocs(q);
+
+        if (snapshot.empty) {
+            alert("Invalid email or password");
+            return;
         }
+
+        const userDoc = snapshot.docs[0];
+        const userData = userDoc.data();
+
+        const passwordMatches =
+            (userData.passwordHash === enteredHash) ||
+            (userData.password === password);
+
+        if (!passwordMatches) {
+            alert("Invalid email or password");
+            return;
+        }
+
+        // ✅ Save session
+        sessionStorage.setItem("user", JSON.stringify({
+            id: userDoc.id,
+            role: userData.role,
+            name: userData.name
+        }));
+
+        // Redirect by role
+        switch (userData.role) {
+            case "staff":
+                window.location.href = "ba.html";
+                break;
+            case "leader":
+                window.location.href = "leader.html";
+                break;
+            case "admin":
+                window.location.href = "admin.html";
+                break;
+            default:
+                window.location.href = "ba.html";
+        }
+
     } catch (error) {
-        console.error("Error logging in: ", error);
-        alert("An error occurred while logging in. Please try again.");
+        console.error(error);
+        alert("Login error. Please try again.");
     }
 }
 
-// Add event listener to the login form
+
+// Attach event
 const loginForm = document.getElementById('loginForm');
-if (loginForm) loginForm.addEventListener('submit', handleLogin);
+if (loginForm) {
+    loginForm.addEventListener('submit', handleLogin);
+}
