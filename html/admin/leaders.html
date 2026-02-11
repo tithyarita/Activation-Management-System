@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Leaders - Admin Panel</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../css/style.css">
-    <link rel="stylesheet" href="../css/admin.css">
-    <link rel="stylesheet" href="../css/admin-layout.css">
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="../../css/admin.css">
+    <link rel="stylesheet" href="../../css/admin-layout.css">
 </head>
 <body>
 <div class="admin-wrapper">
@@ -63,7 +63,7 @@
 </div>
 
 <script type="module">
-    import { db, collection, getDocs } from "../js/firebase.js";
+    import { db, collection, getDocs } from "../../js/firebase.js";
 
     async function loadLeaders() {
         try {
@@ -136,6 +136,6 @@
 
     loadLeaders();
 </script>
-<script type="module" src="../js/leaders-new.js"></script>
+<script type="module" src="../../"></script>
 </body>
 </html>
