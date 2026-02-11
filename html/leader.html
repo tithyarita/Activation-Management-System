@@ -23,7 +23,33 @@
                 <!-- RED DOT HIDDEN -->
                 <div class="icon-btn"><i class="fa-solid fa-bell"></i><span class="dot" style="display:none;"></span>
                 </div>
-                <div class="icon-btn"><i class="fa-solid fa-gear"></i></div>
+
+                <div class="icon-btn" id="settingsBtn">
+                    <i class="fa-solid fa-gear"></i>
+                </div>
+
+                <div id="settingsModal" class="modal">
+                    <div class="modal-content">
+                        <span class="close">&times;</span>
+                        <h2>Settings</h2>
+                        <div class="settings-options">
+                            <label>
+                                Theme:
+                                <select id="themeSelect">
+                                    <option value="light">Light</option>
+                                    <option value="dark">Dark</option>
+                                </select>
+                            </label>
+                            <label>
+                                Notifications:
+                                <input type="checkbox" id="notifToggle" checked>
+                            </label>
+                            <button id="saveSettings" class="btn-primary">Save Settings</button>
+                        </div>
+                    </div>
+                </div>
+
+
             </div>
         </div>
         <nav class="main-nav">
@@ -507,11 +533,43 @@
         flagBtn.onclick = () => { alert("Flagged!"); reportDetail.style.display = "none"; };
 
 
+        const settingsBtn = document.getElementById('settingsBtn');
+        const settingsModal = document.getElementById('settingsModal');
+        const settingsClose = settingsModal.querySelector('.close');
+        const saveSettings = document.getElementById('saveSettings');
+
+        settingsBtn.onclick = () => {
+            settingsModal.style.display = 'flex';
+        };
+
+        settingsClose.onclick = () => {
+            settingsModal.style.display = 'none';
+        };
+
+        window.addEventListener('click', e => {
+            if (e.target === settingsModal) settingsModal.style.display = 'none';
+        });
+
+        window.addEventListener('keydown', e => {
+            if (e.key === "Escape") settingsModal.style.display = 'none';
+        });
+
+        saveSettings.onclick = () => {
+            const theme = document.getElementById('themeSelect').value;
+            const notifications = document.getElementById('notifToggle').checked;
+
+            // Save theme by toggling body class
+            if (theme === 'dark') {
+                document.body.classList.add('dark');
+            } else {
+                document.body.classList.remove('dark');
+            }
+
+            settingsModal.style.display = 'none';
+        };
+        
+
     </script>
 </body>
 
-<<<<<<< HEAD
 </html>
-=======
-</html>
->>>>>>> 264506a756b6201af13cdc41c460ee558b41a221
