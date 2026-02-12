@@ -110,6 +110,69 @@ body {
 }
 
 /* =========================
+   BADGES & STATUS
+========================= */
+.badge-role {
+  background: var(--primary);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge-status {
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge-status.active {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.badge-status.present {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.badge-status.absent {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.badge-status.late {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.badge-alert {
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge-alert.late-arrival {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.badge-alert.missing-check-out {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.badge-alert.gps-not-verified {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+/* =========================
    HEADER
 ========================= */
 .main-header {
@@ -874,6 +937,137 @@ li.selected {
 
 #settingsModal #saveSettings:hover {
   background-color: var(--primary-dark);
+}
+
+/* =========================
+   MODAL FORMS
+========================= */
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.modal-form label {
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 5px;
+  display: block;
+}
+
+.modal-form input,
+.modal-form select {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 14px;
+  background: var(--card);
+  color: var(--text);
+  transition: border-color 0.2s;
+}
+
+.modal-form input:focus,
+.modal-form select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
+
+/* User Selection List */
+.user-selection-list {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px;
+  background: var(--bg);
+  margin-bottom: 10px;
+}
+
+.user-selection-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.user-selection-item:hover {
+  background: var(--card);
+}
+
+.user-selection-item input[type="checkbox"] {
+  cursor: pointer;
+  width: 18px;
+  height: 18px;
+}
+
+.user-selection-item span {
+  flex: 1;
+  color: var(--text);
+}
+
+/* Button Sizes */
+.btn-sm {
+  padding: 6px 12px !important;
+  font-size: 12px !important;
+}
+
+/* Detail Content */
+.detail-content {
+  padding: 20px;
+  text-align: center;
+}
+
+.detail-content img {
+  margin: 15px 0;
+}
+
+.detail-content p {
+  margin: 10px 0;
+  text-align: left;
+}
+
+.staff-detail-content {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.staff-detail-content img {
+  max-width: 200px;
+  margin: 0 auto;
+}
+
+/* Filter Group */
+.filter-group {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
+}
+
+.filter-group label {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.filter-group input,
+.filter-group select {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--card);
+  color: var(--text);
+  font-size: 13px;
+}
+
+.filter-group span {
+  color: var(--muted);
+  font-size: 13px;
 }
 
 /* =========================

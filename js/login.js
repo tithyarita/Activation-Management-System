@@ -60,6 +60,17 @@ async function handleLogin(event) {
             name: userData.name
         }));
 
+        // If leader, persist a leaderProfile for dashboard header
+        if (userData.role === 'leader') {
+            const profile = {
+                id: userDoc.id,
+                name: userData.name,
+                role: 'Leader',
+                photo: userData.photo || '../asset/e8509f8003b9dc24c37ba8d92a9a069b.jpg'
+            };
+            try { localStorage.setItem('leaderProfile', JSON.stringify(profile)); } catch (e) {}
+        }
+
         // Redirect by role
         switch (userData.role) {
             case "staff":
