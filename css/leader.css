@@ -178,6 +178,9 @@ body {
 .main-header {
   background: var(--card);
   border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  padding: 2%;
 }
 
 .header-container {
@@ -211,20 +214,20 @@ body {
 .header-actions {
   display: flex;
   gap: 15px;
+  align-items: center;
+  font-size: 1.5rem;
 }
 
-.icon-btn {
-  position: relative;
+.header-actions .icon {
   cursor: pointer;
-  font-size: 18px;
-  padding: 10px;
-  border-radius: 10px;
-  transition: 0.2s;
+  color: var(--muted);
+  transition: color 0.2s;
 }
 
-.icon-btn:hover {
-  background: var(--bg);
+.header-actions .icon:hover {
+  color: var(--text);
 }
+
 
 .dot {
   position: absolute;
@@ -1092,3 +1095,5 @@ li.selected {
     padding: 20px;
   }
 }
+
+

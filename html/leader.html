@@ -19,17 +19,18 @@
                                 </div>
                         </div>
 
-                        <div class="top-actions">
-                                <span class="icon" onclick="logout()">Logout</span>
-                        </div>
             <div class="header-actions">
                 <!-- RED DOT HIDDEN -->
+                <span class="icon" onclick="logout()">Logout</span>
+
                 <div class="icon-btn"><i class="fa-solid fa-bell"></i><span class="dot" style="display:none;"></span>
                 </div>
 
                 <div class="icon-btn" id="settingsBtn">
                     <i class="fa-solid fa-gear"></i>
                 </div>
+
+                
 
                 <div id="settingsModal" class="modal">
                     <div class="modal-content">
@@ -55,7 +56,10 @@
 
             </div>
         </div>
-        <nav class="main-nav">
+    
+    </header>
+
+    <nav class="main-nav">
             <ul>
                 <li class="active" data-page="campaigns">Campaigns</li>
                 <li data-page="attendance">Attendance</li>
@@ -63,7 +67,6 @@
                 <li data-page="reports">Reports</li>
             </ul>
         </nav>
-    </header>
 
     <main class="dashboard-content">
         <!-- Campaigns Page -->
