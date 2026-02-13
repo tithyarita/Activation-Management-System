@@ -11,56 +11,62 @@
 
 <body>
     <header class="main-header">
-        <div class="header-container">
-            <div class="user-profile">
-                <img src="../asset/e8509f8003b9dc24c37ba8d92a9a069b.jpg" alt="Leader" class="avatar">
-                <div class="user-meta">
-                    <h2>Van Ravid</h2>
-                    <span class="badge-role">Leader Access</span>
-                </div>
-            </div>
-            <div class="header-actions">
-                <!-- RED DOT HIDDEN -->
-                <div class="icon-btn"><i class="fa-solid fa-bell"></i><span class="dot" style="display:none;"></span>
-                </div>
-
-                <div class="icon-btn" id="settingsBtn">
-                    <i class="fa-solid fa-gear"></i>
-                </div>
-
-                <div id="settingsModal" class="modal">
-                    <div class="modal-content">
-                        <span class="close">&times;</span>
-                        <h2>Settings</h2>
-                        <div class="settings-options">
-                            <label>
-                                Theme:
-                                <select id="themeSelect">
-                                    <option value="light">Light</option>
-                                    <option value="dark">Dark</option>
-                                </select>
-                            </label>
-                            <label>
-                                Notifications:
-                                <input type="checkbox" id="notifToggle" checked>
-                            </label>
-                            <button id="saveSettings" class="btn-primary">Save Settings</button>
-                        </div>
-                    </div>
-                </div>
-
-
+        <div class="user-profile">
+            <img id="leaderAvatar" src="../asset/e8509f8003b9dc24c37ba8d92a9a069b.jpg" alt="Leader" class="avatar">
+            <div class="user-meta">
+                <h2 id="leaderName">Loading...</h2>
+                <span class="badge-role" id="leaderRole">Leader</span>
             </div>
         </div>
-        <nav class="main-nav">
-            <ul>
-                <li class="active" data-page="campaigns">Campaigns</li>
-                <li data-page="attendance">Attendance</li>
-                <li data-page="stafflist">Staff List</li>
-                <li data-page="reports">Reports</li>
-            </ul>
-        </nav>
+
+        <div class="header-actions">
+            <!-- RED DOT HIDDEN -->
+            <span class="icon" onclick="logout()">Logout</span>
+
+            <div class="icon-btn"><i class="fa-solid fa-bell"></i><span class="dot" style="display:none;"></span>
+            </div>
+
+            <div class="icon-btn" id="settingsBtn">
+                <i class="fa-solid fa-gear"></i>
+            </div>
+
+
+
+            <div id="settingsModal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <h2>Settings</h2>
+                    <div class="settings-options">
+                        <label>
+                            Theme:
+                            <select id="themeSelect">
+                                <option value="light">Light</option>
+                                <option value="dark">Dark</option>
+                            </select>
+                        </label>
+                        <label>
+                            Notifications:
+                            <input type="checkbox" id="notifToggle" checked>
+                        </label>
+                        <button id="saveSettings" class="btn-primary">Save Settings</button>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+        </div>
+
     </header>
+
+    <nav class="main-nav">
+        <ul>
+            <li class="active" data-page="campaigns">Campaigns</li>
+            <li data-page="attendance">Attendance</li>
+            <li data-page="stafflist">Staff List</li>
+            <li data-page="reports">Reports</li>
+        </ul>
+    </nav>
 
     <main class="dashboard-content">
         <!-- Campaigns Page -->
@@ -68,83 +74,33 @@
 
             <div class="section-header">
                 <div>
-                    <h1></h1>
-                    <p class="subtitle"></p>
+                    <h1>My Campaigns</h1>
+                    <p class="subtitle">Manage assigned campaigns and staff</p>
                 </div>
                 <div class="header-buttons">
                     <button class="btn-secondary" id="assignStaffBtn">
-                        <i class="fa-solid fa-user-plus"></i> Assign Staff
+                        <i class="fa-solid fa-user-plus"></i> Assign Staff to Campaign
                     </button>
                     <div id="assignStaffModal" class="modal">
                         <div class="modal-content">
                             <span class="close">&times;</span>
                             <h2>Assign Staff to Campaign</h2>
-                            <input type="text" id="userSearch" placeholder="Search users..." />
-                            <ul id="userList"></ul>
-                            <select id="campaignSelect">
-                                <option value="">Select Campaign</option>
-                            </select>
-                            <button id="confirmAssign" class="btn-primary">Assign</button>
-                        </div>
-                    </div>
-                    <!-- RED BACKGROUND DISABLED -->
-                    <div id="notification" class="notification" style="background:none;"></div>
-
-                    <!-- Reports Button (existing) -->
-                    <button class="btn-primary" id="reportsBtn">
-                        <i class="fa-solid fa-file-export"></i> Reports
-                    </button>
-
-                    <!-- Reports Modal -->
-                    <div id="reportsModal" class="modal report">
-                        <div class="modal-content large">
-                            <span class="close">&times;</span>
-                            <h2>Reports</h2>
-
-                            <!-- Date Filters -->
-                            <div class="report-filters">
-                                <label>View: </label>
-                                <select id="reportView">
-                                    <option value="daily">Daily</option>
-                                    <option value="range">Date Range</option>
+                            <div class="modal-form">
+                                <label>Select Campaign:</label>
+                                <select id="campaignSelect">
+                                    <option value="">-- Choose Campaign --</option>
                                 </select>
 
-                                <input type="date" id="startDate" style="display:none;">
-                                <input type="date" id="endDate" style="display:none;">
-                                <button id="loadReports" class="btn-secondary">Load</button>
-                            </div>
+                                <label>Search & Select Users/BA:</label>
+                                <input type="text" id="userSearch" placeholder="Search by name..." />
+                                <div id="userList" class="user-selection-list"></div>
 
-                            <!-- Report Table -->
-                            <table class="pro-table" id="reportsTable">
-                                <thead>
-                                    <tr>
-                                        <th>Staff</th>
-                                        <th>Photo</th>
-                                        <th>Location</th>
-                                        <th>Timestamp</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                            </table>
-
-                            <!-- Record Detail -->
-                            <div id="reportDetail" class="report-detail" style="display:none;">
-                                <h3>Report Detail</h3>
-                                <p><strong>Staff:</strong> <span id="detailName"></span></p>
-                                <img id="detailPhoto" src="" alt="Staff Photo" style="max-width:200px;">
-                                <p><strong>Location:</strong> <span id="detailLocation"></span></p>
-                                <p><strong>Timestamp:</strong> <span id="detailTimestamp"></span></p>
-                                <textarea id="detailComment" placeholder="Add comment..."></textarea>
-                                <div class="detail-actions">
-                                    <button class="btn-primary" id="approveBtn">Approve</button>
-                                    <button class="btn-secondary" id="flagBtn">Flag</button>
-                                </div>
+                                <button id="confirmAssign" class="btn-primary">Assign Selected Users</button>
                             </div>
                         </div>
                     </div>
 
-
+                    <div id="notification" class="notification" style="background:none;"></div>
                 </div>
             </div>
 
@@ -173,39 +129,21 @@
 
             <div class="dashboard-grid">
                 <div class="left-col">
-                    <div class="card chart-card">
+                    <div class="card table-card">
                         <div class="card-header">
-                            <h3>Attendance Trends</h3>
-                            <span class="subtitle">Last 7 Days</span>
+                            <h3>Assigned Campaigns</h3>
                         </div>
-                        <div class="chart-container">
-                            <div class="chart-y-axis">
-                                <span>100%</span><span>75%</span><span>50%</span><span>25%</span><span>0%</span>
-                            </div>
-                            <div class="chart-bars">
-                                <div class="bar-group">
-                                    <div class="bar-fill" style="height:0%;"></div><span class="bar-label">Mon</span>
-                                </div>
-                                <div class="bar-group">
-                                    <div class="bar-fill" style="height:0%;"></div><span class="bar-label">Tue</span>
-                                </div>
-                                <div class="bar-group">
-                                    <div class="bar-fill" style="height:0%;"></div><span class="bar-label">Wed</span>
-                                </div>
-                                <div class="bar-group">
-                                    <div class="bar-fill" style="height:0%;"></div><span class="bar-label">Thu</span>
-                                </div>
-                                <div class="bar-group">
-                                    <div class="bar-fill" style="height:0%;"></div><span class="bar-label">Fri</span>
-                                </div>
-                                <div class="bar-group">
-                                    <div class="bar-fill" style="height:0%;"></div><span class="bar-label">Sat</span>
-                                </div>
-                                <div class="bar-group">
-                                    <div class="bar-fill" style="height:0%;"></div><span class="bar-label">Sun</span>
-                                </div>
-                            </div>
-                        </div>
+                        <table class="pro-table">
+                            <thead>
+                                <tr>
+                                    <th>Campaign Name</th>
+                                    <th>Status</th>
+                                    <th>Staff Count</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="campaignsTableBody"></tbody>
+                        </table>
                     </div>
 
                     <div class="card table-card">
@@ -213,34 +151,34 @@
                             <h3>Staff List</h3>
                             <div class="search-box">
                                 <i class="fa-solid fa-magnifying-glass"></i>
-                                <input type="text" placeholder="Search ambassadors...">
+                                <input type="text" placeholder="Search staff...">
                             </div>
                         </div>
                         <table class="pro-table">
                             <thead>
                                 <tr>
-                                    <th>Ambassador</th>
-                                    <th>Check-In</th>
+                                    <th>Name</th>
+                                    <th>Role</th>
+                                    <th>Campaign</th>
                                     <th>Status</th>
-                                    <th>Action</th>
                                 </tr>
                             </thead>
-                            <tbody></tbody>
+                            <tbody id="campaignsStaffTableBody"></tbody>
                         </table>
                     </div>
                 </div>
 
                 <div class="right-col">
                     <div class="card activity-card">
-                        <h3>Recent Activity</h3>
-                        <div class="activity-feed"></div>
+                        <h3>Real-Time Activity</h3>
+                        <div class="activity-feed" id="activityFeed"></div>
                     </div>
 
                     <div class="card map-card">
-                        <h3>GPS Verification</h3>
-                        <div class="mini-map">
+                        <h3>Current Locations</h3>
+                        <div class="mini-map" id="mapContainer">
                             <i class="fa-solid fa-map-location-dot"></i>
-                            <p></p>
+                            <p id="mapText">Select campaign to view locations</p>
                         </div>
                     </div>
                 </div>
@@ -251,20 +189,42 @@
         <section class="page" id="attendance">
             <div class="card table-card">
                 <div class="card-header">
-                    <h3>Daily Attendance</h3>
+                    <h3>Daily Attendance Monitoring</h3>
+                    <div>
+                        <label>Date:</label>
+                        <input type="date" id="attendanceDateFilter">
+                    </div>
                 </div>
                 <table class="pro-table">
                     <thead>
                         <tr>
-                            <th>Staff</th>
+                            <th>Staff Name</th>
+                            <th>Photo</th>
                             <th>Location</th>
                             <th>Check-In</th>
                             <th>Check-Out</th>
                             <th>Status</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
-                    <tbody></tbody>
+                    <tbody id="attendanceTableBody"></tbody>
                 </table>
+            </div>
+
+            <!-- Clock-In Detail Modal -->
+            <div id="clockDetailModal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <h2>Clock-In Details</h2>
+                    <div class="detail-content">
+                        <img id="clockDetailPhoto" src="" alt="Staff Photo" style="max-width:300px;border-radius:8px;">
+                        <p><strong>Staff:</strong> <span id="clockDetailName"></span></p>
+                        <p><strong>Time:</strong> <span id="clockDetailTime"></span></p>
+                        <p><strong>Location:</strong> <span id="clockDetailLocation"></span></p>
+                        <p><strong>GPS Verified:</strong> <span id="clockDetailGPS"></span></p>
+                        <p><strong>Notes:</strong> <span id="clockDetailNotes"></span></p>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -275,38 +235,119 @@
                     <h3>Team Members</h3>
                     <div class="search-box">
                         <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" placeholder="Search staff...">
+                        <input type="text" id="staffSearchInput" placeholder="Search staff...">
                     </div>
                 </div>
                 <table class="pro-table">
                     <thead>
                         <tr>
                             <th>Name</th>
-                            <th>Location</th>
+                            <th>Photo</th>
                             <th>Role</th>
+                            <th>Campaign</th>
                             <th>Contact</th>
+                            <th>Status</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
-                    <tbody></tbody>
+                    <tbody id="staffTableBody"></tbody>
                 </table>
+            </div>
+
+            <!-- Staff Detail Modal -->
+            <div id="staffDetailModal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <h2>Staff Details</h2>
+                    <div class="staff-detail-content">
+                        <img id="staffDetailPhoto" src="" alt="Staff Photo" style="max-width:200px;border-radius:8px;">
+                        <p><strong>Name:</strong> <span id="staffDetailName"></span></p>
+                        <p><strong>Role:</strong> <span id="staffDetailRole"></span></p>
+                        <p><strong>Campaign:</strong> <span id="staffDetailCampaign"></span></p>
+                        <p><strong>Contact:</strong> <span id="staffDetailContact"></span></p>
+                        <p><strong>Status:</strong> <span id="staffDetailStatus"></span></p>
+                        <p><strong>Total Hours Today:</strong> <span id="staffDetailHours"></span></p>
+                        <button id="reassignStaffBtn" class="btn-secondary">Reassign to Campaign</button>
+                    </div>
+                </div>
             </div>
         </section>
 
         <!-- Reports Page -->
         <section class="page" id="reports">
+            <div class="section-header">
+                <div>
+                    <h1>Campaign Reports</h1>
+                    <p class="subtitle">Attendance, performance & anomalies</p>
+                </div>
+                <div class="header-buttons">
+                    <button class="btn-primary" id="generateReportBtn">
+                        <i class="fa-solid fa-download"></i> Export Report
+                    </button>
+                </div>
+            </div>
+
             <div class="stats-grid">
                 <div class="stat-card"><span class="stat-label">Attendance Rate</span>
-                    <div class="stat-value highlight">0%</div>
+                    <div class="stat-value highlight" id="reportAttendanceRate">0%</div>
                 </div>
                 <div class="stat-card"><span class="stat-label">Active Staff</span>
-                    <div class="stat-value">0</div>
+                    <div class="stat-value" id="reportActiveStaff">0</div>
                 </div>
                 <div class="stat-card"><span class="stat-label">Avg Work Hours</span>
-                    <div class="stat-value">0</div>
+                    <div class="stat-value" id="reportAvgHours">0</div>
                 </div>
                 <div class="stat-card"><span class="stat-label">Late Arrivals</span>
-                    <div class="stat-value">0</div>
+                    <div class="stat-value" id="reportLateArrivals">0</div>
                 </div>
+            </div>
+
+            <div class="card table-card">
+                <div class="card-header">
+                    <h3>Campaign Performance</h3>
+                    <div class="filter-group">
+                        <label>Campaign:</label>
+                        <select id="reportCampaignFilter">
+                            <option value="">All Campaigns</option>
+                        </select>
+                        <label>Date Range:</label>
+                        <input type="date" id="reportStartDate">
+                        <span>to</span>
+                        <input type="date" id="reportEndDate">
+                        <button class="btn-secondary" id="applyReportFilter">Apply Filter</button>
+                    </div>
+                </div>
+                <table class="pro-table">
+                    <thead>
+                        <tr>
+                            <th>Staff</th>
+                            <th>Campaign</th>
+                            <th>Check-In</th>
+                            <th>Check-Out</th>
+                            <th>Hours Worked</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reportTableBody"></tbody>
+                </table>
+            </div>
+
+            <div class="card table-card">
+                <div class="card-header">
+                    <h3>Anomalies & Alerts</h3>
+                </div>
+                <table class="pro-table">
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Staff</th>
+                            <th>Details</th>
+                            <th>Time</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="anomaliesTableBody"></tbody>
+                </table>
             </div>
 
             <div class="card chart-card">
@@ -339,237 +380,7 @@
         </section>
     </main>
 
-    <script>
-        // ===============================
-        // 1. Page Navigation
-        // ===============================
-        document.querySelectorAll(".main-nav li").forEach(item => {
-            item.addEventListener("click", () => {
-                document.querySelectorAll(".main-nav li").forEach(i => i.classList.remove("active"));
-                document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
-                item.classList.add("active");
-                const pageId = item.getAttribute("data-page");
-                const page = document.getElementById(pageId);
-                if (page) page.classList.add("active");
-            });
-        });
-
-        // ===============================
-        // 2. Initialize Dashboard at 0
-        // ===============================
-        function initializeDashboard() {
-            document.querySelectorAll(".stat-value").forEach(el => el.innerText = "0");
-            document.querySelectorAll(".highlight").forEach(el => el.innerText = "0%");
-            document.querySelectorAll(".bar-fill").forEach(bar => bar.style.height = "0%");
-            document.querySelectorAll(".pro-table tbody").forEach(tbody => tbody.innerHTML = "");
-            const mapText = document.querySelector(".mini-map p");
-            if (mapText) mapText.innerText = "";
-            const notif = document.getElementById("notification");
-            if (notif) notif.style.display = "none"; // hide notification by default
-        }
-
-        window.addEventListener("DOMContentLoaded", initializeDashboard);
-
-        // ===============================
-        // 3. Staff Search Filter
-        // ===============================
-        document.querySelectorAll(".search-box input").forEach(input => {
-            input.addEventListener("keyup", () => {
-                const value = input.value.toLowerCase();
-                const tbody = input.closest(".card").querySelector("tbody");
-                tbody.querySelectorAll("tr").forEach(row => {
-                    row.style.display = row.innerText.toLowerCase().includes(value) ? "" : "none";
-                });
-            });
-        });
-
-        // ===============================
-        // 4. Notification Bell (dot removed)
-        // ===============================
-        const bellBtn = document.querySelector(".fa-bell")?.parentElement;
-        if (bellBtn) bellBtn.addEventListener("click", () => {
-            alert("You have 0 new notifications!");
-        });
-
-        // ===============================
-        // 5. Assign Staff Modal (unchanged)
-        // ===============================
-        const users = [];
-        const btn = document.getElementById('assignStaffBtn');
-        const modal = document.getElementById('assignStaffModal');
-
-        if (btn && modal) {
-            const close = modal.querySelector('.close');
-            const userList = document.getElementById('userList');
-            const modalSearchInput = document.getElementById('userSearch');
-            const confirmBtn = document.getElementById('confirmAssign');
-            const campaignSelect = document.getElementById('campaignSelect');
-            const notification = document.getElementById('notification');
-            let selectedUsers = new Set();
-            let notifTimeout;
-
-            btn.onclick = () => { modal.style.display = 'flex'; renderUserList(users); };
-            close.onclick = () => modal.style.display = 'none';
-            modal.addEventListener('click', e => { if (e.target === modal) modal.style.display = 'none'; });
-            window.addEventListener('keydown', e => { if (e.key === "Escape") modal.style.display = 'none'; });
-
-            function renderUserList(list) {
-                userList.innerHTML = '';
-                list.forEach(user => {
-                    const li = document.createElement('li');
-                    li.textContent = user.name;
-                    li.onclick = () => {
-                        if (selectedUsers.has(user.id)) { selectedUsers.delete(user.id); li.classList.remove('selected'); }
-                        else { selectedUsers.add(user.id); li.classList.add('selected'); }
-                    };
-                    if (selectedUsers.has(user.id)) li.classList.add('selected');
-                    userList.appendChild(li);
-                });
-            }
-
-            modalSearchInput.oninput = () => {
-                const query = modalSearchInput.value.toLowerCase();
-                renderUserList(users.filter(u => u.name.toLowerCase().includes(query)));
-            };
-
-            confirmBtn.onclick = () => {
-                const campaign = campaignSelect.value;
-                if (!campaign) return alert('Please select a campaign!');
-                if (selectedUsers.size === 0) return alert('Please select at least one user!');
-
-                // Notification text without red background
-                notification.textContent = `Assigned ${selectedUsers.size} user(s) to ${campaign}`;
-                notification.style.display = "block";
-                notification.style.background = "none"; // remove red
-                clearTimeout(notifTimeout);
-                notifTimeout = setTimeout(() => {
-                    notification.style.display = "none";
-                }, 3000);
-
-                selectedUsers.clear();
-                modal.style.display = 'none';
-                modalSearchInput.value = '';
-                renderUserList(users);
-            };
-        }
-
-        // Reports Button
-        const reportsBtn = document.getElementById('reportsBtn');
-        const reportsModal = document.getElementById('reportsModal');
-        const reportsClose = reportsModal.querySelector('.close');
-        const reportView = document.getElementById('reportView');
-        const startDate = document.getElementById('startDate');
-        const endDate = document.getElementById('endDate');
-        const loadReports = document.getElementById('loadReports');
-        const reportsTable = document.getElementById('reportsTable').querySelector('tbody');
-        const reportDetail = document.getElementById('reportDetail');
-        const detailName = document.getElementById('detailName');
-        const detailPhoto = document.getElementById('detailPhoto');
-        const detailLocation = document.getElementById('detailLocation');
-        const detailTimestamp = document.getElementById('detailTimestamp');
-        const detailComment = document.getElementById('detailComment');
-        const approveBtn = document.getElementById('approveBtn');
-        const flagBtn = document.getElementById('flagBtn');
-
-        // Empty Reports Data for testing
-        const reportsData = []; // <-- empty initially
-
-        // Open Modal
-        reportsBtn.onclick = () => {
-            reportsModal.style.display = 'flex';
-            loadReportTable();
-        };
-        reportsClose.onclick = () => reportsModal.style.display = 'none';
-        window.addEventListener('keydown', e => {
-            if (e.key === "Escape") reportsModal.style.display = 'none';
-        });
-
-        // View change
-        reportView.onchange = () => {
-            if (reportView.value === "range") {
-                startDate.style.display = "inline-block";
-                endDate.style.display = "inline-block";
-            } else {
-                startDate.style.display = "none";
-                endDate.style.display = "none";
-            }
-        };
-
-        // Load Table (empty initially)
-        function loadReportTable() {
-            reportsTable.innerHTML = "";
-            if (reportsData.length === 0) {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `<td colspan="5" style="text-align:center; color: #6b7280;">No reports available</td>`;
-                reportsTable.appendChild(tr);
-            } else {
-                reportsData.forEach(rep => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                <td>${rep.name}</td>
-                <td><img src="${rep.photo}" alt="${rep.name}" style="width:50px;height:50px;object-fit:cover;border-radius:5px;"></td>
-                <td>${rep.location}</td>
-                <td>${rep.timestamp}</td>
-                <td><button class="btn-secondary viewDetailBtn">View</button></td>
-            `;
-                    tr.querySelector('.viewDetailBtn').onclick = () => showReportDetail(rep);
-                    reportsTable.appendChild(tr);
-                });
-            }
-        }
-
-        // Show Detail
-        function showReportDetail(rep) {
-            reportDetail.style.display = "block";
-            detailName.innerText = rep.name;
-            detailPhoto.src = rep.photo;
-            detailLocation.innerText = rep.location;
-            detailTimestamp.innerText = rep.timestamp;
-            detailComment.value = rep.comment || "";
-        }
-
-        // Approve / Flag
-        approveBtn.onclick = () => { alert("Approved!"); reportDetail.style.display = "none"; };
-        flagBtn.onclick = () => { alert("Flagged!"); reportDetail.style.display = "none"; };
-
-
-        const settingsBtn = document.getElementById('settingsBtn');
-        const settingsModal = document.getElementById('settingsModal');
-        const settingsClose = settingsModal.querySelector('.close');
-        const saveSettings = document.getElementById('saveSettings');
-
-        settingsBtn.onclick = () => {
-            settingsModal.style.display = 'flex';
-        };
-
-        settingsClose.onclick = () => {
-            settingsModal.style.display = 'none';
-        };
-
-        window.addEventListener('click', e => {
-            if (e.target === settingsModal) settingsModal.style.display = 'none';
-        });
-
-        window.addEventListener('keydown', e => {
-            if (e.key === "Escape") settingsModal.style.display = 'none';
-        });
-
-        saveSettings.onclick = () => {
-            const theme = document.getElementById('themeSelect').value;
-            const notifications = document.getElementById('notifToggle').checked;
-
-            // Save theme by toggling body class
-            if (theme === 'dark') {
-                document.body.classList.add('dark');
-            } else {
-                document.body.classList.remove('dark');
-            }
-
-            settingsModal.style.display = 'none';
-        };
-
-
-    </script>
+    <script type="module" src="../js/leader.js"></script>
 </body>
 
 </html>
