@@ -101,8 +101,13 @@ async function handleAddCampaign(e) {
     createdAt: new Date()
   };
 
-  await addDoc(collection(db, "campaigns"), campaign);
+  const docRef = await addDoc(collection(db, "campaigns"), campaign);
 
+  // Save the document ID to Firestore
+  await updateDoc(doc(db, "campaigns", docRef.id), {
+    id: docRef.id
+  });
+  
   alert("Campaign Added ✔");
 
   e.target.reset();
@@ -155,8 +160,9 @@ async function loadLeaders() {
     const user = u.data();
 
     if (user.role === "leader") {
+      // store user ID as value so we can assign by ID
       select.innerHTML += `
-        <option value="${user.name}">
+        <option value="${u.id}" data-name="${user.name}">
           ${user.name}
         </option>
       `;
@@ -171,15 +177,21 @@ async function loadLeaders() {
 window.confirmLeaderAssign = async () => {
 
   const campaignId = leaderAssignCampaignId.value;
-  const leaderName = leaderSelect.value;
 
-  if (!leaderName) {
+  const leaderId = leaderSelect.value;
+  if (!leaderId) {
     alert("Select leader first");
     return;
   }
 
+  // get display name from selected option
+  const opt = leaderSelect.querySelector(`option[value="${leaderId}"]`);
+  const leaderName = opt ? opt.getAttribute('data-name') || opt.textContent : leaderId;
+
+  // Update campaign with both a human-readable assignedLeader and an array of leader IDs
   await updateDoc(doc(db, "campaigns", campaignId), {
-    assignedLeader: leaderName
+    assignedLeader: leaderName,
+    assigned_leaders: [leaderId]
   });
 
   closeModal("leaderAssignModal");

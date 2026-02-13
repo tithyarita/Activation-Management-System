@@ -64,6 +64,7 @@
                 <li class="active" data-page="campaigns">Campaigns</li>
                 <li data-page="attendance">Attendance</li>
                 <li data-page="stafflist">Staff List</li>
+                <li data-page="balist">BA List</li>
                 <li data-page="reports">Reports</li>
             </ul>
         </nav>
@@ -146,26 +147,43 @@
                         </table>
                     </div>
 
-                    <div class="card table-card">
-                        <div class="card-header">
-                            <h3>Staff List</h3>
-                            <div class="search-box">
-                                <i class="fa-solid fa-magnifying-glass"></i>
-                                <input type="text" placeholder="Search staff...">
-                            </div>
-                        </div>
-                        <table class="pro-table">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Role</th>
-                                    <th>Campaign</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="campaignsStaffTableBody"></tbody>
-                        </table>
-                    </div>
+<div class="card table-card">
+
+    <div class="card-header">
+        <h3>Brand Ambassadors</h3>
+
+        <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input
+                type="text"
+                id="baSearch"
+                placeholder="Search BA..."
+            >
+        </div>
+    </div>
+
+    <table class="pro-table">
+
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Role</th>
+                <th>Campaign</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+
+        <!-- ⭐ IMPORTANT ID -->
+        <tbody id="baTableBody">
+            <tr>
+                <td colspan="4">Loading...</td>
+            </tr>
+        </tbody>
+
+    </table>
+
+</div>
+
                 </div>
 
                 <div class="right-col">
@@ -378,9 +396,26 @@
                 </div>
             </div>
         </section>
+
+        <!-- BA List Page -->
+        <section class="page" id="balist">
+            <div class="card table-card">
+                <div class="card-header">
+                    <h3>Brand Ambassadors</h3>
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="baSearchInput" placeholder="Search brand ambassadors...">
+                    </div>
+                </div>
+                <div id="baListContainer" style="display: grid; gap: 12px;">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+        </section>
     </main>
 
     <script type="module" src="../js/leader.js"></script>
+
 </body>
 
 </html>

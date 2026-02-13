@@ -7,6 +7,7 @@ import {
     doc,
     updateDoc
 } from "../js/firebase.js";
+import bcrypt from "https://cdn.jsdelivr.net/npm/bcryptjs@2.4.3/+esm";
 
 let users = [];
 let editingUserId = null;
@@ -43,12 +44,12 @@ async function loadUsers(){
 function updateStats(){
 
     const total = users.length;
-    const staff = users.filter(u=>u.role==="staff").length;
+    const ba = users.filter(u=>u.role==="ba" || u.role==="staff").length;
     const leaders = users.filter(u=>u.role==="leader").length;
     const admins = users.filter(u=>u.role==="admin").length;
 
     setText("statTotalUsers", total);
-    setText("statStaffMembers", staff);
+    setText("statStaffMembers", ba);
     setText("statLeaders", leaders);
     setText("statAdmins", admins);
 }
@@ -105,7 +106,7 @@ function renderUsers(list){
 }
 
 function formatRole(r){
-    if(r==="staff") return "Brand Ambassador";
+    if(r==="ba" || r==="staff") return "Brand Ambassador";
     if(r==="leader") return "Leader";
     if(r==="admin") return "Admin";
     return r;
@@ -133,7 +134,8 @@ function applyFilters(){
             u.name?.toLowerCase().includes(text) ||
             u.email?.toLowerCase().includes(text);
 
-        const matchRole = !role || u.role===role;
+        // treat legacy "staff" as equivalent to "ba"
+        const matchRole = !role || u.role===role || (role==="ba" && u.role==="staff");
 
         return matchText && matchRole;
     });
@@ -166,14 +168,23 @@ document.getElementById("userForm")
         alert("Passwords do not match");
         return;
     }
+     // 🔐 Hash the password
+        const salt = bcrypt.genSaltSync(10);
+        const hashedPass = bcrypt.hashSync(pass, salt);
 
-    await addDoc(collection(db,"users"),{
+    const docRef = await addDoc(collection(db,"users"),{
         name,
         email,
-        password: pass,   // ⚠️ dev-only — use Firebase Auth in production
-        role
+        password: hashedPass,   // hashed password
+        role,
+        createdAt: new Date()
     });
-
+    
+    // Save the document ID to Firestore
+    await updateDoc(doc(db, "users", docRef.id), {
+        id: docRef.id
+    });
+    
     closeUserModal();
     e.target.reset();
     loadUsers();
@@ -201,7 +212,8 @@ window.openEditRole = id=>{
     editingUserId = id;
 
     document.getElementById("editRoleUserName").textContent = user.name;
-    document.getElementById("editRoleSelect").value = user.role;
+    // normalize legacy "staff" -> "ba" so select shows Brand Ambassador
+    document.getElementById("editRoleSelect").value = (user.role === 'staff') ? 'ba' : user.role;
     document.getElementById("editRoleModal").style.display="flex";
 };
 
