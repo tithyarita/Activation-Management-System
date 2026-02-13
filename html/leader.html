@@ -11,55 +11,56 @@
 
 <body>
     <header class="main-header">
-                        <div class="user-profile">
-                                <img id="leaderAvatar" src="../asset/e8509f8003b9dc24c37ba8d92a9a069b.jpg" alt="Leader" class="avatar">
-                                <div class="user-meta">
-                                        <h2 id="leaderName">Loading...</h2>
-                                        <span class="badge-role" id="leaderRole">Leader</span>
-                                </div>
-                        </div>
-
-            <div class="header-actions">
-                <!-- RED DOT HIDDEN -->
-                <span class="icon" onclick="logout()">Logout</span>
-
-                <div class="icon-btn"><i class="fa-solid fa-bell"></i><span class="dot" style="display:none;"></span>
-                </div>
-
-                <div class="icon-btn" id="settingsBtn">
-                    <i class="fa-solid fa-gear"></i>
-                </div>
-
-                
-
-                <div id="settingsModal" class="modal">
-                    <div class="modal-content">
-                        <span class="close">&times;</span>
-                        <h2>Settings</h2>
-                        <div class="settings-options">
-                            <label>
-                                Theme:
-                                <select id="themeSelect">
-                                    <option value="light">Light</option>
-                                    <option value="dark">Dark</option>
-                                </select>
-                            </label>
-                            <label>
-                                Notifications:
-                                <input type="checkbox" id="notifToggle" checked>
-                            </label>
-                            <button id="saveSettings" class="btn-primary">Save Settings</button>
-                        </div>
-                    </div>
-                </div>
-
-
+        <div class="user-profile">
+            <img id="leaderAvatar" src="../asset/e8509f8003b9dc24c37ba8d92a9a069b.jpg" alt="Leader" class="avatar">
+            <div class="user-meta">
+                <h2 id="leaderName">Loading...</h2>
+                <span class="badge-role" id="leaderRole">Leader</span>
             </div>
         </div>
-    
+
+        <div class="header-actions">
+            <!-- RED DOT HIDDEN -->
+            <span class="icon" onclick="logout()">Logout</span>
+
+            <div class="icon-btn"><i class="fa-solid fa-bell"></i><span class="dot" style="display:none;"></span>
+            </div>
+
+            <div class="icon-btn" id="settingsBtn">
+                <i class="fa-solid fa-gear"></i>
+            </div>
+
+
+
+            <div id="settingsModal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <h2>Settings</h2>
+                    <div class="settings-options">
+                        <label>
+                            Theme:
+                            <select id="themeSelect">
+                                <option value="light">Light</option>
+                                <option value="dark">Dark</option>
+                            </select>
+                        </label>
+                        <label>
+                            Notifications:
+                            <input type="checkbox" id="notifToggle" checked>
+                        </label>
+                        <button id="saveSettings" class="btn-primary">Save Settings</button>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+        </div>
+
     </header>
 
     <nav class="main-nav">
+<<<<<<< HEAD
             <ul>
                 <li class="active" data-page="campaigns">Campaigns</li>
                 <li data-page="attendance">Attendance</li>
@@ -68,6 +69,15 @@
                 <li data-page="reports">Reports</li>
             </ul>
         </nav>
+=======
+        <ul>
+            <li class="active" data-page="campaigns">Campaigns</li>
+            <li data-page="attendance">Attendance</li>
+            <li data-page="stafflist">Staff List</li>
+            <li data-page="reports">Reports</li>
+        </ul>
+    </nav>
+>>>>>>> 781a5a1f5f4f802bd94d209b6cef77801d7942a9
 
     <main class="dashboard-content">
         <!-- Campaigns Page -->
@@ -91,16 +101,16 @@
                                 <select id="campaignSelect">
                                     <option value="">-- Choose Campaign --</option>
                                 </select>
-                                
+
                                 <label>Search & Select Users/BA:</label>
                                 <input type="text" id="userSearch" placeholder="Search by name..." />
                                 <div id="userList" class="user-selection-list"></div>
-                                
+
                                 <button id="confirmAssign" class="btn-primary">Assign Selected Users</button>
                             </div>
                         </div>
                     </div>
-                    
+
                     <div id="notification" class="notification" style="background:none;"></div>
                 </div>
             </div>
