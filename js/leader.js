@@ -15,6 +15,7 @@ const leaderState = {
     campaigns: [],
     assignedStaff: [],
     clockRecords: [],
+    brandAmbassadors: [],
     currentCampaignFilter: null,
     selectedStaff: new Set()
 };
@@ -33,6 +34,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function initializeDashboard() {
     console.log('✓ Initializing Leader Dashboard');
+    
+    // Try to load saved leader profile FIRST before data loads
+    try {
+        const lp = localStorage.getItem('leaderProfile');
+        if (lp) {
+            const profile = JSON.parse(lp);
+            // Set state WITHOUT calling loadLeaderData yet (it will be called below)
+            leaderState.leaderId = profile.id || leaderState.leaderId;
+            leaderState.leaderName = profile.name || leaderState.leaderName;
+            leaderState.leaderRole = profile.role || leaderState.leaderRole;
+            leaderState.leaderPhoto = profile.photo || leaderState.leaderPhoto;
+            updateHeader();
+            console.log(`✓ Loaded profile for leader: ${profile.name}`);
+        }
+    } catch (e) {
+        console.warn('Could not parse saved leader profile', e);
+    }
     
     // Initialize modals
     initializeModals();
@@ -67,9 +85,13 @@ async function loadLeaderData() {
         // Load clock records
         await loadClockRecords();
         
+        // Load brand ambassadors
+        await loadBrandAmbassadors();
+        
         // Render initial UI
         renderCampaignsList();
         renderStaffList();
+        renderBrandAmbassadorsList();
         updateDashboardStats();
             // Update header with leader info
             updateHeader();
@@ -96,6 +118,8 @@ function updateHeader() {
 
 async function loadLeaderCampaigns() {
     try {
+        console.log(`Loading campaigns for leader ID: ${leaderState.leaderId}`);
+        
         // Query campaigns where leader is assigned
         const campaignsRef = collection(db, 'campaigns');
         const q = query(
@@ -109,10 +133,15 @@ async function loadLeaderCampaigns() {
             ...doc.data()
         }));
         
-        console.log(`✓ Loaded ${leaderState.campaigns.length} campaigns`);
+        console.log(`✓ Loaded ${leaderState.campaigns.length} campaigns from Firestore`);
+        
+        // If no campaigns found, log a note
+        if (leaderState.campaigns.length === 0) {
+            console.log('No campaigns assigned to this leader in Firestore');
+        }
     } catch (error) {
-        console.error('Error loading campaigns:', error);
-        // For demo: Create sample campaigns
+        console.error('Error loading campaigns from Firestore:', error);
+        // For demo: Create sample campaigns with actual leader ID
         leaderState.campaigns = [
             {
                 id: 'camp_001',
@@ -120,7 +149,7 @@ async function loadLeaderCampaigns() {
                 status: 'Active',
                 start_date: '2026-02-01',
                 end_date: '2026-03-01',
-                assigned_leaders: ['leader_001'],
+                assigned_leaders: [leaderState.leaderId],
                 budget: 50000
             },
             {
@@ -129,10 +158,11 @@ async function loadLeaderCampaigns() {
                 status: 'Active',
                 start_date: '2026-02-10',
                 end_date: '2026-02-28',
-                assigned_leaders: ['leader_001'],
+                assigned_leaders: [leaderState.leaderId],
                 budget: 30000
             }
         ];
+        console.log(`Using demo campaigns (error: ${error.message})`);
     }
 }
 
@@ -251,6 +281,54 @@ function generateSampleClockRecords() {
     
     return records;
 }
+// GLOBAL STATE
+let brandAmbassadors = [];
+
+// =====================================
+// LOAD BRAND AMBASSADORS (WORKING)
+// =====================================
+async function loadBrandAmbassadors() {
+
+    const tbody = document.getElementById("baTableBody");
+
+    if (!tbody) {
+        console.error("❌ baTableBody not found in HTML");
+        return;
+    }
+
+    tbody.innerHTML = "<tr><td colspan='4'>Loading...</td></tr>";
+
+    try {
+
+        const snapshot = await getDocs(collection(db, "users"));
+
+        console.log("Firestore users count:", snapshot.size);
+
+        brandAmbassadors = snapshot.docs
+            .map(d => ({ id: d.id, ...d.data() }))
+            .filter(u => {
+                const role = (u.role || "").toLowerCase();
+
+                return (
+                    role === "staff" ||
+                    role === "brand ambassador" ||
+                    role === "brand_ambassador" ||
+                    role === "ba" ||
+                    role === "BA"
+                );
+            });
+
+        renderBrandAmbassadors();
+
+    } catch (err) {
+
+        console.error("🔥 Firebase error:", err);
+        tbody.innerHTML = "<tr><td colspan='4'>Error loading data</td></tr>";
+    }
+}
+
+
+
 
 // ===============================
 // 4. RENDER UI COMPONENTS
@@ -284,6 +362,71 @@ function renderCampaignsList() {
     if (leaderState.campaigns.length === 0) {
         tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#6b7280;">No campaigns assigned</td></tr>';
     }
+}
+
+// ===============================
+// RENDER BRAND AMBASSADORS TABLE
+// ===============================
+function renderBrandAmbassadors() {
+    const tbody = document.getElementById("baTableBody");
+    if (!tbody) {
+        console.error("❌ baTableBody not found in HTML");
+        return;
+    }
+
+    tbody.innerHTML = '';
+
+    if (brandAmbassadors.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#6b7280;">No brand ambassadors found</td></tr>';
+        return;
+    }
+
+    brandAmbassadors.forEach(ba => {
+        const campaignNames = (ba.assigned_campaigns || [])
+            .map(cid => leaderState.campaigns.find(c => c.id === cid)?.name || 'Unknown')
+            .join(', ');
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${ba.name}</td>
+            <td>${ba.role || 'Brand Ambassador'}</td>
+            <td>${campaignNames || 'N/A'}</td>
+            <td><span class="badge-status ${(ba.status || 'active').toLowerCase()}">${ba.status || 'active'}</span></td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+// ===============================
+// RENDER BRAND AMBASSADORS LIST
+// ===============================
+function renderBrandAmbassadorsList() {
+    const container = document.getElementById('baListContainer');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    if (leaderState.brandAmbassadors.length === 0) {
+        container.innerHTML = '<p style="text-align:center;color:#6b7280;padding:20px;">No brand ambassadors found</p>';
+        return;
+    }
+    
+    leaderState.brandAmbassadors.forEach(ba => {
+        const card = document.createElement('div');
+        card.className = 'ba-card';
+        card.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 16px; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb;">
+                <img src="${ba.photo || '../asset/e8509f8003b9dc24c37ba8d92a9a069b.jpg'}" alt="${ba.name}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;">
+                <div style="flex: 1;">
+                    <h4 style="margin: 0; font-weight: 600; color: #1f2937;">${ba.name} <span style=\"font-size:0.8rem;color:#6b7280;font-weight:400;margin-left:8px;\">${ba.role || 'Brand Ambassador'}</span></h4>
+                    <p style="margin: 4px 0 0 0; font-size: 0.875rem; color: #6b7280;">${ba.email || 'No email'}</p>
+                    <p style="margin: 4px 0 0 0; font-size: 0.75rem; color: #9ca3af;">${ba.phone || 'No phone'}</p>
+                </div>
+                <span style="padding: 6px 12px; background: #dbeafe; color: #1e40af; border-radius: 6px; font-size: 0.75rem; font-weight: 600; white-space: nowrap;">${ba.role || 'Brand Ambassador'}</span>
+            </div>
+        `;
+        container.appendChild(card);
+    });
 }
 
 function renderStaffList() {
@@ -720,6 +863,14 @@ function setupEventListeners() {
         });
     }
     
+    // BA Search
+    const baSearchInput = document.getElementById('baSearchInput');
+    if (baSearchInput) {
+        baSearchInput.addEventListener('keyup', (e) => {
+            filterBAList(e.target.value);
+        });
+    }
+    
     // Attendance Date Filter
     const attendanceDateFilter = document.getElementById('attendanceDateFilter');
     if (attendanceDateFilter) {
@@ -912,6 +1063,17 @@ function filterStaffTable(query) {
     rows.forEach(row => {
         const text = row.textContent.toLowerCase();
         row.style.display = text.includes(query.toLowerCase()) ? '' : 'none';
+    });
+}
+
+function filterBAList(query) {
+    const container = document.getElementById('baListContainer');
+    if (!container) return;
+    
+    const cards = container.querySelectorAll('.ba-card');
+    cards.forEach(card => {
+        const text = card.textContent.toLowerCase();
+        card.style.display = text.includes(query.toLowerCase()) ? '' : 'none';
     });
 }
 

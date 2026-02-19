@@ -61,6 +61,16 @@
     </header>
 
     <nav class="main-nav">
+<<<<<<< HEAD
+            <ul>
+                <li class="active" data-page="campaigns">Campaigns</li>
+                <li data-page="attendance">Attendance</li>
+                <li data-page="stafflist">Staff List</li>
+                <li data-page="balist">BA List</li>
+                <li data-page="reports">Reports</li>
+            </ul>
+        </nav>
+=======
         <ul>
             <li class="active" data-page="campaigns">Campaigns</li>
             <li data-page="attendance">Attendance</li>
@@ -68,6 +78,7 @@
             <li data-page="reports">Reports</li>
         </ul>
     </nav>
+>>>>>>> 781a5a1f5f4f802bd94d209b6cef77801d7942a9
 
     <main class="dashboard-content">
         <!-- Campaigns Page -->
@@ -147,26 +158,43 @@
                         </table>
                     </div>
 
-                    <div class="card table-card">
-                        <div class="card-header">
-                            <h3>Staff List</h3>
-                            <div class="search-box">
-                                <i class="fa-solid fa-magnifying-glass"></i>
-                                <input type="text" placeholder="Search staff...">
-                            </div>
-                        </div>
-                        <table class="pro-table">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Role</th>
-                                    <th>Campaign</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="campaignsStaffTableBody"></tbody>
-                        </table>
-                    </div>
+<div class="card table-card">
+
+    <div class="card-header">
+        <h3>Brand Ambassadors</h3>
+
+        <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input
+                type="text"
+                id="baSearch"
+                placeholder="Search BA..."
+            >
+        </div>
+    </div>
+
+    <table class="pro-table">
+
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Role</th>
+                <th>Campaign</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+
+        <!-- ⭐ IMPORTANT ID -->
+        <tbody id="baTableBody">
+            <tr>
+                <td colspan="4">Loading...</td>
+            </tr>
+        </tbody>
+
+    </table>
+
+</div>
+
                 </div>
 
                 <div class="right-col">
@@ -376,6 +404,22 @@
                             <div class="bar-fill" style="height:0%;"></div><span class="bar-label">Fri</span>
                         </div>
                     </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- BA List Page -->
+        <section class="page" id="balist">
+            <div class="card table-card">
+                <div class="card-header">
+                    <h3>Brand Ambassadors</h3>
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="baSearchInput" placeholder="Search brand ambassadors...">
+                    </div>
+                </div>
+                <div id="baListContainer" style="display: grid; gap: 12px;">
+                    <!-- Populated by JavaScript -->
                 </div>
             </div>
         </section>
