@@ -28,6 +28,7 @@ body.dark {
   --warning: #f59e0b;
 }
 
+
 /* Example: change body background */
 body.dark {
   background: var(--bg);
