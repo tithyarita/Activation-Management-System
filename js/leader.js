@@ -16,10 +16,21 @@ const leaderState = {
     assignedStaff: [],
     clockRecords: [],
     brandAmbassadors: [],
+    campaignBAAssignments: [], // Track which BA handles which campaign
     currentCampaignFilter: null,
     selectedStaff: new Set()
 };
 
+// Helper: resolve a display name for a BA with sensible fallbacks
+function getBAName(ba) {
+    if (!ba) return 'Unknown';
+    if (ba.name && ba.name.trim()) return ba.name;
+    if (ba.fullName && ba.fullName.trim()) return ba.fullName;
+    if (ba.displayName && ba.displayName.trim()) return ba.displayName;
+    if (ba.firstName || ba.lastName) return `${(ba.firstName||'').trim()} ${(ba.lastName||'').trim()}`.trim();
+    if (ba.email) return ba.email.split('@')[0];
+    return 'Unknown';
+}
 const LATE_ARRIVAL_THRESHOLD = 30; // minutes
 const SHIFT_START_TIME = '09:00';
 
@@ -88,10 +99,15 @@ async function loadLeaderData() {
         // Load brand ambassadors
         await loadBrandAmbassadors();
 
+        // Load BA assignments for this leader's campaigns
+        await loadCampaignBAAssignments();
+
         // Render initial UI
         renderCampaignsList();
         renderStaffList();
         renderBrandAmbassadorsList();
+        // Ensure BA table (in campaigns page) is populated as well
+        renderBrandAmbassadors();
         updateDashboardStats();
         // Update header with leader info
         updateHeader();
@@ -281,54 +297,55 @@ function generateSampleClockRecords() {
 
     return records;
 }
-// GLOBAL STATE
-let brandAmbassadors = [];
 
-// =====================================
-// LOAD BRAND AMBASSADORS (WORKING)
-// =====================================
+// ===============================
+// LOAD BRAND AMBASSADORS
+// ===============================
 async function loadBrandAmbassadors() {
-
-    const tbody = document.getElementById("baTableBody");
-
-    if (!tbody) {
-        console.error("❌ baTableBody not found in HTML");
-        return;
-    }
-
-    tbody.innerHTML = "<tr><td colspan='4'>Loading...</td></tr>";
-
     try {
-
-        const snapshot = await getDocs(collection(db, "users"));
-
-        console.log("Firestore users count:", snapshot.size);
-
-        brandAmbassadors = snapshot.docs
+        const snapshot = await getDocs(collection(db, 'users'));
+        
+        leaderState.brandAmbassadors = snapshot.docs
             .map(d => ({ id: d.id, ...d.data() }))
             .filter(u => {
                 const role = (u.role || "").toLowerCase();
-
                 return (
                     role === "staff" ||
                     role === "brand ambassador" ||
                     role === "brand_ambassador" ||
-                    role === "ba" ||
-                    role === "BA"
+                    role === "ba"
                 );
             });
-
-        renderBrandAmbassadors();
-
-    } catch (err) {
-
-        console.error("🔥 Firebase error:", err);
-        tbody.innerHTML = "<tr><td colspan='4'>Error loading data</td></tr>";
+        
+        console.log(`✓ Loaded ${leaderState.brandAmbassadors.length} brand ambassadors`);
+    } catch (error) {
+        console.error('Error loading brand ambassadors:', error);
+        leaderState.brandAmbassadors = [];
     }
 }
 
+// Load BA assignments for campaigns
+async function loadCampaignBAAssignments() {
+    try {
+        // Load all assignments for this leader
+        const assignmentsRef = collection(db, 'campaign_ba_assignments');
+        const q = query(
+            assignmentsRef,
+            where('leaderId', '==', leaderState.leaderId)
+        );
+        
+        const snapshot = await getDocs(q);
+        leaderState.campaignBAAssignments = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
 
-
+        console.log(`✓ Loaded ${leaderState.campaignBAAssignments.length} campaign BA assignments`);
+    } catch (error) {
+        console.warn('Note: campaign_ba_assignments collection not found yet', error.message);
+        leaderState.campaignBAAssignments = [];
+    }
+}
 
 // ===============================
 // 4. RENDER UI COMPONENTS
@@ -345,14 +362,29 @@ function renderCampaignsList() {
             s => s.assigned_campaigns.includes(campaign.id)
         ).length;
 
+        // Get BAs assigned to this campaign
+        const assignedBAs = leaderState.campaignBAAssignments
+            .filter(a => a.campaignId === campaign.id)
+            .map(a => {
+                const ba = leaderState.brandAmbassadors.find(b => b.id === a.baId);
+                return getBAName(ba) || 'Unknown';
+            })
+            .join(', ');
+
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td>${campaign.name}</td>
+            <td>
+                <div><strong>${campaign.name}</strong></div>
+                ${assignedBAs ? `<small style="color:#6b7280;">📌 BA: ${assignedBAs}</small>` : '<small style="color:#d1d5db;">⚠️ No BA assigned yet</small>'}
+            </td>
             <td><span class="badge-status active">${campaign.status}</span></td>
             <td>${staffCount}</td>
             <td>
                 <button class="btn-secondary btn-sm" onclick="viewCampaignDetails('${campaign.id}')">
                     <i class="fa-solid fa-eye"></i> View
+                </button>
+                <button class="btn-secondary btn-sm" onclick="openAssignBAModal('${campaign.id}', '${campaign.name}')" style="margin-left:5px;">
+                    <i class="fa-solid fa-user-tie"></i> Assign BA
                 </button>
             </td>
         `;
@@ -367,32 +399,26 @@ function renderCampaignsList() {
 // ===============================
 // RENDER BRAND AMBASSADORS TABLE
 // ===============================
-function renderBrandAmbassadors(data = brandAmbassadors) {
-
-    const tbody = document.getElementById("baTableBody");
+function renderBrandAmbassadors(data = leaderState.brandAmbassadors) {
+    const tbody = document.getElementById('baTableBody');
     if (!tbody) return;
 
     tbody.innerHTML = '';
 
-    if (!data.length) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="4" style="text-align:center;color:#6b7280;">
-                    No brand ambassadors found
-                </td>
-            </tr>`;
+    if (!data || data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#6b7280;">No brand ambassadors found</td></tr>';
         return;
     }
 
     data.forEach(ba => {
-
+        const displayName = getBAName(ba);
         const campaignNames = (ba.assigned_campaigns || [])
             .map(cid => leaderState.campaigns.find(c => c.id === cid)?.name || 'Unknown')
             .join(', ');
 
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td>${ba.name}</td>
+            <td>${displayName}</td>
             <td>${ba.role || 'Brand Ambassador'}</td>
             <td>${campaignNames || 'N/A'}</td>
             <td>
@@ -406,22 +432,22 @@ function renderBrandAmbassadors(data = brandAmbassadors) {
     });
 }
 
-// ===== SEARCH + SUGGESTION =====
+// ===============================
+// BA SEARCH & FILTER
+// ===============================
 (function initBrandAmbassadorSearch() {
-
-    const input = document.getElementById("baSearch");
-    const suggestionBox = document.getElementById("baSuggestions");
+    const input = document.getElementById('baSearch');
+    const suggestionBox = document.getElementById('baSuggestions');
 
     if (!input || !suggestionBox) return;
 
     function filterData(keyword) {
-        return brandAmbassadors.filter(ba =>
-            ba.name.toLowerCase().includes(keyword)
+        return leaderState.brandAmbassadors.filter(ba =>
+            getBAName(ba).toLowerCase().includes(keyword)
         );
     }
 
     function showSuggestions(data) {
-
         suggestionBox.innerHTML = '';
 
         if (!data.length) {
@@ -430,13 +456,13 @@ function renderBrandAmbassadors(data = brandAmbassadors) {
         }
 
         data.forEach(ba => {
-
             const div = document.createElement('div');
             div.className = 'search-item';
-            div.textContent = ba.name;
+            const displayName = getBAName(ba);
+            div.textContent = displayName;
 
             div.addEventListener('click', () => {
-                input.value = ba.name;
+                input.value = displayName;
                 suggestionBox.style.display = 'none';
                 renderBrandAmbassadors([ba]);
             });
@@ -447,8 +473,7 @@ function renderBrandAmbassadors(data = brandAmbassadors) {
         suggestionBox.style.display = 'block';
     }
 
-    input.addEventListener("input", function () {
-
+    input.addEventListener('input', function () {
         const keyword = this.value.trim().toLowerCase();
 
         if (!keyword) {
@@ -458,21 +483,19 @@ function renderBrandAmbassadors(data = brandAmbassadors) {
         }
 
         const filtered = filterData(keyword);
-
         renderBrandAmbassadors(filtered);
         showSuggestions(filtered);
     });
 
-    document.addEventListener("click", function (e) {
-        if (!e.target.closest(".search-box")) {
-            suggestionBox.style.display = "none";
+    document.addEventListener('click', function (e) {
+        if (!e.target.closest('.search-box')) {
+            suggestionBox.style.display = 'none';
         }
     });
-
 })();
 
 // ===============================
-// RENDER BRAND AMBASSADORS LIST
+// RENDER BRAND AMBASSADORS CARD LIST
 // ===============================
 function renderBrandAmbassadorsList() {
     const container = document.getElementById('baListContainer');
@@ -486,13 +509,14 @@ function renderBrandAmbassadorsList() {
     }
 
     leaderState.brandAmbassadors.forEach(ba => {
+        const displayName = getBAName(ba);
         const card = document.createElement('div');
         card.className = 'ba-card';
         card.innerHTML = `
             <div style="display: flex; align-items: center; gap: 16px; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb;">
-                <img src="${ba.photo || '../asset/e8509f8003b9dc24c37ba8d92a9a069b.jpg'}" alt="${ba.name}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;">
+                <img src="${ba.photo || '../asset/e8509f8003b9dc24c37ba8d92a9a069b.jpg'}" alt="${displayName}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;">
                 <div style="flex: 1;">
-                    <h4 style="margin: 0; font-weight: 600; color: #1f2937;">${ba.name} <span style=\"font-size:0.8rem;color:#6b7280;font-weight:400;margin-left:8px;\">${ba.role || 'Brand Ambassador'}</span></h4>
+                    <h4 style="margin: 0; font-weight: 600; color: #1f2937;">${displayName} <span style="font-size:0.8rem;color:#6b7280;font-weight:400;margin-left:8px;">${ba.role || 'Brand Ambassador'}</span></h4>
                     <p style="margin: 4px 0 0 0; font-size: 0.875rem; color: #6b7280;">${ba.email || 'No email'}</p>
                     <p style="margin: 4px 0 0 0; font-size: 0.75rem; color: #9ca3af;">${ba.phone || 'No phone'}</p>
                 </div>
@@ -820,15 +844,18 @@ function initializeModals() {
 
     // Settings Modal
     setupModal('settingsBtn', 'settingsModal');
+    
+    // Assign BA Modal
+    setupModal(null, 'assignBAModal');
 }
 
 function setupModal(openBtnId, modalId) {
     const modal = document.getElementById(modalId);
     if (!modal) return;
-
+    
     const closeBtn = modal.querySelector('.close');
     const openBtn = openBtnId ? document.getElementById(openBtnId) : null;
-
+    
     if (openBtn) {
         openBtn.addEventListener('click', () => {
             modal.style.display = 'flex';
@@ -861,13 +888,23 @@ function populateAssignModal() {
 
     if (campaignSelect) {
         campaignSelect.innerHTML = '<option value="">-- Select Campaign --</option>';
-        leaderState.campaigns.forEach(campaign => {
-            const option = document.createElement('option');
-            option.value = campaign.id;
-            option.textContent = campaign.name;
-            campaignSelect.appendChild(option);
-        });
+        if (leaderState.campaigns.length === 0) {
+            const emptyOption = document.createElement('option');
+            emptyOption.textContent = 'No campaigns assigned';
+            emptyOption.disabled = true;
+            campaignSelect.appendChild(emptyOption);
+        } else {
+            leaderState.campaigns.forEach(campaign => {
+                const option = document.createElement('option');
+                option.value = campaign.id;
+                option.textContent = campaign.name;
+                campaignSelect.appendChild(option);
+            });
+        }
     }
+
+    // Clear previous selection
+    leaderState.selectedStaff.clear();
 
     if (userList) {
         renderUserSelectionList('');
@@ -914,6 +951,15 @@ function setupEventListeners() {
             switchPage(pageId);
         });
     });
+
+    // Campaign Selection Change - Update user list
+    const campaignSelect = document.getElementById('campaignSelect');
+    if (campaignSelect) {
+        campaignSelect.addEventListener('change', () => {
+            leaderState.selectedStaff.clear(); // Clear previous selection
+            renderUserSelectionList(''); // Show all staff for this campaign
+        });
+    }
 
     // Assign Staff Confirm
     const confirmAssignBtn = document.getElementById('confirmAssign');
@@ -1022,6 +1068,8 @@ function switchPage(pageId) {
 
 async function handleAssignStaff() {
     const campaignId = document.getElementById('campaignSelect').value;
+    const campaignSelect = document.getElementById('campaignSelect');
+    const campaignName = campaignSelect?.options[campaignSelect.selectedIndex]?.text || 'Unknown';
 
     if (!campaignId) {
         showNotification('Please select a campaign', 'warning');
@@ -1034,6 +1082,8 @@ async function handleAssignStaff() {
     }
 
     try {
+        const staffCount = leaderState.selectedStaff.size;
+
         // Update Firebase for each selected staff
         for (const staffId of leaderState.selectedStaff) {
             const staffRef = doc(db, 'staff', staffId);
@@ -1051,7 +1101,7 @@ async function handleAssignStaff() {
         // Clear selection and show success
         leaderState.selectedStaff.clear();
         document.getElementById('assignStaffModal').style.display = 'none';
-        showNotification(`Assigned ${leaderState.selectedStaff.size} staff to campaign`, 'success');
+        showNotification(`✓ Successfully assigned ${staffCount} staff to "${campaignName}"`, 'success');
 
         // Refresh UI
         renderStaffList();
@@ -1151,15 +1201,121 @@ function filterBAList(query) {
     });
 }
 
+// ===============================
+// ASSIGN BA TO CAMPAIGN
+// ===============================
+function openAssignBAModal(campaignId, campaignName) {
+    const modal = document.getElementById('assignBAModal');
+    if (!modal) {
+        showNotification('Modal not found', 'error');
+        return;
+    }
+    
+    // Set campaign info
+    document.getElementById('assignBATitle').textContent = `Assign BA to: ${campaignName}`;
+    document.getElementById('assignBACampaignId').value = campaignId;
+    
+    // Populate BA selection list
+    const baSelectionList = document.getElementById('baSelectionList');
+    if (baSelectionList) {
+        baSelectionList.innerHTML = '';
+        
+        // Get already assigned BAs for this campaign from the new collection
+        const assignedBAIds = leaderState.campaignBAAssignments
+            .filter(a => a.campaignId === campaignId)
+            .map(a => a.baId);
+        
+        leaderState.brandAmbassadors.forEach(ba => {
+            const isAssigned = assignedBAIds.includes(ba.id);
+            const div = document.createElement('div');
+            div.className = 'ba-selection-item';
+            const displayName = getBAName(ba);
+            div.innerHTML = `
+                <input type="checkbox" value="${ba.id}" ${isAssigned ? 'checked' : ''} class="ba-checkbox">
+                <label>${displayName} (${ba.role || 'Brand Ambassador'})</label>
+            `;
+            baSelectionList.appendChild(div);
+        });
+    }
+    
+    modal.style.display = 'flex';
+}
+
+async function handleConfirmAssignBA() {
+    const campaignId = document.getElementById('assignBACampaignId').value;
+    const baCheckboxes = document.querySelectorAll('.ba-checkbox');
+    
+    const selectedBAs = [];
+    baCheckboxes.forEach(checkbox => {
+        if (checkbox.checked) {
+            selectedBAs.push(checkbox.value);
+        }
+    });
+    
+    if (selectedBAs.length === 0) {
+        showNotification('Please select at least one Brand Ambassador', 'warning');
+        return;
+    }
+    
+    try {
+        // First, delete old assignments for this campaign by this leader
+        const assignmentsRef = collection(db, 'campaign_ba_assignments');
+        const q = query(
+            assignmentsRef,
+            where('campaignId', '==', campaignId),
+            where('leaderId', '==', leaderState.leaderId)
+        );
+        const oldAssignments = await getDocs(q);
+        for (const oldDoc of oldAssignments.docs) {
+            await deleteDoc(doc(db, 'campaign_ba_assignments', oldDoc.id));
+        }
+
+        // Create new assignments for each selected BA
+        const campaignName = leaderState.campaigns.find(c => c.id === campaignId)?.name || 'Campaign';
+        for (const baId of selectedBAs) {
+            const baName = getBAName(leaderState.brandAmbassadors.find(b => b.id === baId)) || 'Unknown';
+            await addDoc(collection(db, 'campaign_ba_assignments'), {
+                campaignId: campaignId,
+                leaderId: leaderState.leaderId,
+                leaderName: leaderState.leaderName,
+                baId: baId,
+                baName: baName,
+                campaignName: campaignName,
+                timestamp: new Date().toISOString(),
+                createdAt: new Date()
+            });
+        }
+        
+        // Update old campaign document (for backwards compatibility)
+        const campaignRef = doc(db, 'campaigns', campaignId);
+        await updateDoc(campaignRef, {
+            assigned_bas: selectedBAs
+        });
+        
+        // Reload assignments from Firebase
+        await loadCampaignBAAssignments();
+        
+        showNotification(`✓ Assigned ${selectedBAs.length} Brand Ambassador(s) to "${campaignName}"`, 'success');
+        document.getElementById('assignBAModal').style.display = 'none';
+        
+        // Refresh displays
+        renderCampaignsList();
+        renderBrandAmbassadors(leaderState.brandAmbassadors);
+    } catch (error) {
+        console.error('Error assigning BA to campaign:', error);
+        showNotification('Error assigning BA: ' + error.message, 'error');
+    }
+}
+
 function exportReport() {
     const startDate = document.getElementById('reportStartDate')?.value;
     const endDate = document.getElementById('reportEndDate')?.value;
-
+    
     if (!startDate || !endDate) {
         showNotification('Please select date range', 'warning');
         return;
     }
-
+    
     // Generate CSV
     let csv = 'Staff,Campaign,Check-In,Check-Out,Hours Worked,Status\n';
 
@@ -1316,6 +1472,8 @@ window.viewCampaignDetails = viewCampaignDetails;
 window.viewStaffDetails = viewStaffDetails;
 window.showClockDetail = showClockDetail;
 window.reviewAnomaly = reviewAnomaly;
+window.openAssignBAModal = openAssignBAModal;
+window.handleConfirmAssignBA = handleConfirmAssignBA;
 
 // Public API: allow login flow to set the leader profile
 function setLeaderProfile(profile) {
