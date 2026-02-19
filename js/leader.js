@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function initializeDashboard() {
     console.log('✓ Initializing Leader Dashboard');
-    
+
     // Try to load saved leader profile FIRST before data loads
     try {
         const lp = localStorage.getItem('leaderProfile');
@@ -51,20 +51,20 @@ async function initializeDashboard() {
     } catch (e) {
         console.warn('Could not parse saved leader profile', e);
     }
-    
+
     // Initialize modals
     initializeModals();
-    
+
     // Set default dates for reports
     const today = new Date().toISOString().split('T')[0];
     const yesterday = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-    
+
     if (document.getElementById('reportStartDate')) {
         document.getElementById('reportStartDate').value = yesterday;
         document.getElementById('reportEndDate').value = today;
         document.getElementById('attendanceDateFilter').value = today;
     }
-    
+
     // Set attendance date filter to today
     if (document.getElementById('attendanceDateFilter')) {
         document.getElementById('attendanceDateFilter').value = today;
@@ -78,24 +78,24 @@ async function loadLeaderData() {
     try {
         // Load campaigns assigned to this leader
         await loadLeaderCampaigns();
-        
+
         // Load staff assigned to leader's campaigns
         await loadAssignedStaff();
-        
+
         // Load clock records
         await loadClockRecords();
-        
+
         // Load brand ambassadors
         await loadBrandAmbassadors();
-        
+
         // Render initial UI
         renderCampaignsList();
         renderStaffList();
         renderBrandAmbassadorsList();
         updateDashboardStats();
-            // Update header with leader info
-            updateHeader();
-        
+        // Update header with leader info
+        updateHeader();
+
         console.log('✓ Leader data loaded successfully');
     } catch (error) {
         console.error('Error loading leader data:', error);
@@ -119,22 +119,22 @@ function updateHeader() {
 async function loadLeaderCampaigns() {
     try {
         console.log(`Loading campaigns for leader ID: ${leaderState.leaderId}`);
-        
+
         // Query campaigns where leader is assigned
         const campaignsRef = collection(db, 'campaigns');
         const q = query(
             campaignsRef,
             where('assigned_leaders', 'array-contains', leaderState.leaderId)
         );
-        
+
         const snapshot = await getDocs(q);
         leaderState.campaigns = snapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
         }));
-        
+
         console.log(`✓ Loaded ${leaderState.campaigns.length} campaigns from Firestore`);
-        
+
         // If no campaigns found, log a note
         if (leaderState.campaigns.length === 0) {
             console.log('No campaigns assigned to this leader in Firestore');
@@ -169,11 +169,11 @@ async function loadLeaderCampaigns() {
 async function loadAssignedStaff() {
     try {
         const campaignIds = leaderState.campaigns.map(c => c.id);
-        
+
         // Get all staff assigned to these campaigns
         const staffRef = collection(db, 'staff');
         const staffData = [];
-        
+
         for (const campaignId of campaignIds) {
             const q = query(staffRef, where('assigned_campaigns', 'array-contains', campaignId));
             const snapshot = await getDocs(q);
@@ -183,7 +183,7 @@ async function loadAssignedStaff() {
                 }
             });
         }
-        
+
         leaderState.assignedStaff = staffData;
         console.log(`✓ Loaded ${leaderState.assignedStaff.length} staff members`);
     } catch (error) {
@@ -229,7 +229,7 @@ async function loadClockRecords() {
         const staffIds = leaderState.assignedStaff.map(s => s.id);
         const clockRef = collection(db, 'clock_records');
         const allRecords = [];
-        
+
         for (const staffId of staffIds) {
             const q = query(clockRef, where('staff_id', '==', staffId));
             const snapshot = await getDocs(q);
@@ -237,7 +237,7 @@ async function loadClockRecords() {
                 allRecords.push({ id: doc.id, ...doc.data() });
             });
         }
-        
+
         leaderState.clockRecords = allRecords;
         console.log(`✓ Loaded ${leaderState.clockRecords.length} clock records`);
     } catch (error) {
@@ -250,7 +250,7 @@ async function loadClockRecords() {
 function generateSampleClockRecords() {
     const today = new Date().toISOString().split('T')[0];
     const records = [];
-    
+
     leaderState.assignedStaff.forEach((staff, index) => {
         // Clock in
         records.push({
@@ -264,7 +264,7 @@ function generateSampleClockRecords() {
             gps_verified: true,
             campaign_id: staff.assigned_campaigns[0]
         });
-        
+
         // Clock out
         records.push({
             id: `clock_${staff.id}_out`,
@@ -278,7 +278,7 @@ function generateSampleClockRecords() {
             campaign_id: staff.assigned_campaigns[0]
         });
     });
-    
+
     return records;
 }
 // GLOBAL STATE
@@ -337,14 +337,14 @@ async function loadBrandAmbassadors() {
 function renderCampaignsList() {
     const tbody = document.getElementById('campaignsTableBody');
     if (!tbody) return;
-    
+
     tbody.innerHTML = '';
-    
+
     leaderState.campaigns.forEach(campaign => {
         const staffCount = leaderState.assignedStaff.filter(
             s => s.assigned_campaigns.includes(campaign.id)
         ).length;
-        
+
         const row = document.createElement('tr');
         row.innerHTML = `
             <td>${campaign.name}</td>
@@ -358,7 +358,7 @@ function renderCampaignsList() {
         `;
         tbody.appendChild(row);
     });
-    
+
     if (leaderState.campaigns.length === 0) {
         tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#6b7280;">No campaigns assigned</td></tr>';
     }
@@ -367,21 +367,25 @@ function renderCampaignsList() {
 // ===============================
 // RENDER BRAND AMBASSADORS TABLE
 // ===============================
-function renderBrandAmbassadors() {
+function renderBrandAmbassadors(data = brandAmbassadors) {
+
     const tbody = document.getElementById("baTableBody");
-    if (!tbody) {
-        console.error("❌ baTableBody not found in HTML");
-        return;
-    }
+    if (!tbody) return;
 
     tbody.innerHTML = '';
 
-    if (brandAmbassadors.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#6b7280;">No brand ambassadors found</td></tr>';
+    if (!data.length) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="4" style="text-align:center;color:#6b7280;">
+                    No brand ambassadors found
+                </td>
+            </tr>`;
         return;
     }
 
-    brandAmbassadors.forEach(ba => {
+    data.forEach(ba => {
+
         const campaignNames = (ba.assigned_campaigns || [])
             .map(cid => leaderState.campaigns.find(c => c.id === cid)?.name || 'Unknown')
             .join(', ');
@@ -391,11 +395,81 @@ function renderBrandAmbassadors() {
             <td>${ba.name}</td>
             <td>${ba.role || 'Brand Ambassador'}</td>
             <td>${campaignNames || 'N/A'}</td>
-            <td><span class="badge-status ${(ba.status || 'active').toLowerCase()}">${ba.status || 'active'}</span></td>
+            <td>
+                <span class="badge-status ${(ba.status || 'active').toLowerCase()}">
+                    ${ba.status || 'active'}
+                </span>
+            </td>
         `;
+
         tbody.appendChild(row);
     });
 }
+
+// ===== SEARCH + SUGGESTION =====
+(function initBrandAmbassadorSearch() {
+
+    const input = document.getElementById("baSearch");
+    const suggestionBox = document.getElementById("baSuggestions");
+
+    if (!input || !suggestionBox) return;
+
+    function filterData(keyword) {
+        return brandAmbassadors.filter(ba =>
+            ba.name.toLowerCase().includes(keyword)
+        );
+    }
+
+    function showSuggestions(data) {
+
+        suggestionBox.innerHTML = '';
+
+        if (!data.length) {
+            suggestionBox.style.display = 'none';
+            return;
+        }
+
+        data.forEach(ba => {
+
+            const div = document.createElement('div');
+            div.className = 'search-item';
+            div.textContent = ba.name;
+
+            div.addEventListener('click', () => {
+                input.value = ba.name;
+                suggestionBox.style.display = 'none';
+                renderBrandAmbassadors([ba]);
+            });
+
+            suggestionBox.appendChild(div);
+        });
+
+        suggestionBox.style.display = 'block';
+    }
+
+    input.addEventListener("input", function () {
+
+        const keyword = this.value.trim().toLowerCase();
+
+        if (!keyword) {
+            suggestionBox.style.display = 'none';
+            renderBrandAmbassadors();
+            return;
+        }
+
+        const filtered = filterData(keyword);
+
+        renderBrandAmbassadors(filtered);
+        showSuggestions(filtered);
+    });
+
+    document.addEventListener("click", function (e) {
+        if (!e.target.closest(".search-box")) {
+            suggestionBox.style.display = "none";
+        }
+    });
+
+})();
 
 // ===============================
 // RENDER BRAND AMBASSADORS LIST
@@ -403,14 +477,14 @@ function renderBrandAmbassadors() {
 function renderBrandAmbassadorsList() {
     const container = document.getElementById('baListContainer');
     if (!container) return;
-    
+
     container.innerHTML = '';
-    
+
     if (leaderState.brandAmbassadors.length === 0) {
         container.innerHTML = '<p style="text-align:center;color:#6b7280;padding:20px;">No brand ambassadors found</p>';
         return;
     }
-    
+
     leaderState.brandAmbassadors.forEach(ba => {
         const card = document.createElement('div');
         card.className = 'ba-card';
@@ -430,17 +504,17 @@ function renderBrandAmbassadorsList() {
 }
 
 function renderStaffList() {
-    const tbody = document.getElementById('campaignsStaffTableBody') || 
-                 document.getElementById('staffTableBody');
+    const tbody = document.getElementById('campaignsStaffTableBody') ||
+        document.getElementById('staffTableBody');
     if (!tbody) return;
-    
+
     tbody.innerHTML = '';
-    
+
     leaderState.assignedStaff.forEach(staff => {
         const campaignNames = staff.assigned_campaigns
             .map(cid => leaderState.campaigns.find(c => c.id === cid)?.name || 'Unknown')
             .join(', ');
-        
+
         const row = document.createElement('tr');
         row.innerHTML = `
             <td>${staff.name}</td>
@@ -461,7 +535,7 @@ function renderStaffList() {
         `;
         tbody.appendChild(row);
     });
-    
+
     if (leaderState.assignedStaff.length === 0) {
         tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#6b7280;">No staff assigned</td></tr>';
     }
@@ -470,13 +544,13 @@ function renderStaffList() {
 function renderAttendanceTable() {
     const tbody = document.getElementById('attendanceTableBody');
     if (!tbody) return;
-    
+
     tbody.innerHTML = '';
     const dateFilter = document.getElementById('attendanceDateFilter')?.value || new Date().toISOString().split('T')[0];
-    
+
     // Group records by staff
     const staffAttendance = {};
-    
+
     leaderState.assignedStaff.forEach(staff => {
         staffAttendance[staff.id] = {
             staff,
@@ -484,7 +558,7 @@ function renderAttendanceTable() {
             outRecord: null
         };
     });
-    
+
     // Find in/out records for the date
     leaderState.clockRecords.forEach(record => {
         const recordDate = record.timestamp.split('T')[0];
@@ -496,7 +570,7 @@ function renderAttendanceTable() {
             }
         }
     });
-    
+
     // Render rows
     Object.values(staffAttendance).forEach(att => {
         const staff = att.staff;
@@ -504,11 +578,11 @@ function renderAttendanceTable() {
         const outTime = att.outRecord ? new Date(att.outRecord.timestamp).toLocaleTimeString() : '-';
         const status = att.inRecord ? 'Checked In' : 'Absent';
         const photoUrl = att.inRecord?.photo || staff.photo;
-        
+
         // Check for late arrival
         const isLate = att.inRecord && isLateArrival(att.inRecord.timestamp);
         const statusClass = isLate ? 'late' : (att.inRecord ? 'present' : 'absent');
-        
+
         const row = document.createElement('tr');
         row.innerHTML = `
             <td>${staff.name}</td>
@@ -530,26 +604,26 @@ function renderAttendanceTable() {
 function renderReportsTable() {
     const tbody = document.getElementById('reportTableBody');
     if (!tbody) return;
-    
+
     tbody.innerHTML = '';
     const startDate = document.getElementById('reportStartDate')?.value;
     const endDate = document.getElementById('reportEndDate')?.value;
-    
+
     if (!startDate || !endDate) return;
-    
+
     // Filter records within date range
     const filteredRecords = leaderState.clockRecords.filter(record => {
         const recordDate = record.timestamp.split('T')[0];
         return recordDate >= startDate && recordDate <= endDate;
     });
-    
+
     // Group in/out pairs to calculate hours
     const staffDays = {};
-    
+
     filteredRecords.forEach(record => {
         const date = record.timestamp.split('T')[0];
         const key = `${record.staff_id}_${date}`;
-        
+
         if (!staffDays[key]) {
             staffDays[key] = {
                 staff_id: record.staff_id,
@@ -560,28 +634,28 @@ function renderReportsTable() {
                 campaign_id: record.campaign_id
             };
         }
-        
+
         if (record.type === 'in') {
             staffDays[key].in_time = record.timestamp;
         } else {
             staffDays[key].out_time = record.timestamp;
         }
     });
-    
+
     // Render table
     Object.values(staffDays).forEach(day => {
         const inTime = day.in_time ? new Date(day.in_time).toLocaleTimeString() : '-';
         const outTime = day.out_time ? new Date(day.out_time).toLocaleTimeString() : '-';
-        
+
         let hoursWorked = '-';
         if (day.in_time && day.out_time) {
             const inMs = new Date(day.in_time).getTime();
             const outMs = new Date(day.out_time).getTime();
             hoursWorked = ((outMs - inMs) / (1000 * 60 * 60)).toFixed(2) + ' hrs';
         }
-        
+
         const campaignName = leaderState.campaigns.find(c => c.id === day.campaign_id)?.name || 'Unknown';
-        
+
         const row = document.createElement('tr');
         row.innerHTML = `
             <td>${day.staff_name}</td>
@@ -595,7 +669,7 @@ function renderReportsTable() {
         `;
         tbody.appendChild(row);
     });
-    
+
     if (Object.keys(staffDays).length === 0) {
         tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#6b7280;">No records in date range</td></tr>';
     }
@@ -604,10 +678,10 @@ function renderReportsTable() {
 function renderAnomaliesTable() {
     const tbody = document.getElementById('anomaliesTableBody');
     if (!tbody) return;
-    
+
     tbody.innerHTML = '';
     const anomalies = detectAnomalies();
-    
+
     anomalies.forEach(anomaly => {
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -623,7 +697,7 @@ function renderAnomaliesTable() {
         `;
         tbody.appendChild(row);
     });
-    
+
     if (anomalies.length === 0) {
         tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#6b7280;">No anomalies detected</td></tr>';
     }
@@ -636,17 +710,17 @@ function renderAnomaliesTable() {
 function detectAnomalies() {
     const anomalies = [];
     const today = new Date().toISOString().split('T')[0];
-    
+
     leaderState.assignedStaff.forEach(staff => {
         // Find today's records
-        const todayRecords = leaderState.clockRecords.filter(r => 
-            r.staff_id === staff.id && 
+        const todayRecords = leaderState.clockRecords.filter(r =>
+            r.staff_id === staff.id &&
             r.timestamp.split('T')[0] === today
         );
-        
+
         const inRecord = todayRecords.find(r => r.type === 'in');
         const outRecord = todayRecords.find(r => r.type === 'out');
-        
+
         // Check for late arrival
         if (inRecord && isLateArrival(inRecord.timestamp)) {
             anomalies.push({
@@ -658,7 +732,7 @@ function detectAnomalies() {
                 severity: 'warning'
             });
         }
-        
+
         // Check for missing check-out
         if (inRecord && !outRecord) {
             anomalies.push({
@@ -670,7 +744,7 @@ function detectAnomalies() {
                 severity: 'alert'
             });
         }
-        
+
         // Check for GPS not verified
         if (inRecord && !inRecord.gps_verified) {
             anomalies.push({
@@ -683,7 +757,7 @@ function detectAnomalies() {
             });
         }
     });
-    
+
     return anomalies;
 }
 
@@ -693,20 +767,20 @@ function isLateArrival(timestamp) {
     const minutes = time.getMinutes();
     const totalMinutes = hours * 60 + minutes;
     const shiftStart = 9 * 60; // 9:00 AM
-    
+
     return (totalMinutes - shiftStart) > LATE_ARRIVAL_THRESHOLD;
 }
 
 function updateDashboardStats() {
     const today = new Date().toISOString().split('T')[0];
-    const todayRecords = leaderState.clockRecords.filter(r => 
+    const todayRecords = leaderState.clockRecords.filter(r =>
         r.timestamp.split('T')[0] === today && r.type === 'in'
     );
-    
+
     const totalStaff = leaderState.assignedStaff.length;
     const checkedIn = todayRecords.length;
     const attendanceRate = totalStaff > 0 ? Math.round((checkedIn / totalStaff) * 100) : 0;
-    
+
     // Update stat cards
     const statCards = document.querySelectorAll('.stat-value');
     if (statCards.length > 0) {
@@ -721,7 +795,7 @@ function updateDashboardStats() {
             highlights[0].textContent = attendanceRate + '%';
         }
     }
-    
+
     // Update report stats
     if (document.getElementById('reportAttendanceRate')) {
         document.getElementById('reportAttendanceRate').textContent = attendanceRate + '%';
@@ -737,13 +811,13 @@ function updateDashboardStats() {
 function initializeModals() {
     // Assign Staff Modal
     setupModal('assignStaffBtn', 'assignStaffModal');
-    
+
     // Clock Detail Modal
     setupModal(null, 'clockDetailModal');
-    
+
     // Staff Detail Modal
     setupModal(null, 'staffDetailModal');
-    
+
     // Settings Modal
     setupModal('settingsBtn', 'settingsModal');
 }
@@ -751,10 +825,10 @@ function initializeModals() {
 function setupModal(openBtnId, modalId) {
     const modal = document.getElementById(modalId);
     if (!modal) return;
-    
+
     const closeBtn = modal.querySelector('.close');
     const openBtn = openBtnId ? document.getElementById(openBtnId) : null;
-    
+
     if (openBtn) {
         openBtn.addEventListener('click', () => {
             modal.style.display = 'flex';
@@ -763,17 +837,17 @@ function setupModal(openBtnId, modalId) {
             }
         });
     }
-    
+
     closeBtn?.addEventListener('click', () => {
         modal.style.display = 'none';
     });
-    
+
     modal.addEventListener('click', (e) => {
         if (e.target === modal) {
             modal.style.display = 'none';
         }
     });
-    
+
     window.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             modal.style.display = 'none';
@@ -784,7 +858,7 @@ function setupModal(openBtnId, modalId) {
 function populateAssignModal() {
     const campaignSelect = document.getElementById('campaignSelect');
     const userList = document.getElementById('userList');
-    
+
     if (campaignSelect) {
         campaignSelect.innerHTML = '<option value="">-- Select Campaign --</option>';
         leaderState.campaigns.forEach(campaign => {
@@ -794,7 +868,7 @@ function populateAssignModal() {
             campaignSelect.appendChild(option);
         });
     }
-    
+
     if (userList) {
         renderUserSelectionList('');
     }
@@ -803,12 +877,12 @@ function populateAssignModal() {
 function renderUserSelectionList(searchQuery) {
     const userList = document.getElementById('userList');
     if (!userList) return;
-    
-    const filtered = leaderState.assignedStaff.filter(staff => 
+
+    const filtered = leaderState.assignedStaff.filter(staff =>
         staff.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         staff.email.toLowerCase().includes(searchQuery.toLowerCase())
     );
-    
+
     userList.innerHTML = '';
     filtered.forEach(staff => {
         const div = document.createElement('div');
@@ -840,13 +914,13 @@ function setupEventListeners() {
             switchPage(pageId);
         });
     });
-    
+
     // Assign Staff Confirm
     const confirmAssignBtn = document.getElementById('confirmAssign');
     if (confirmAssignBtn) {
         confirmAssignBtn.addEventListener('click', handleAssignStaff);
     }
-    
+
     // User Search
     const userSearchInput = document.getElementById('userSearch');
     if (userSearchInput) {
@@ -854,7 +928,7 @@ function setupEventListeners() {
             renderUserSelectionList(e.target.value);
         });
     }
-    
+
     // Staff Search
     const staffSearchInput = document.getElementById('staffSearchInput');
     if (staffSearchInput) {
@@ -862,7 +936,7 @@ function setupEventListeners() {
             filterStaffTable(e.target.value);
         });
     }
-    
+
     // BA Search
     const baSearchInput = document.getElementById('baSearchInput');
     if (baSearchInput) {
@@ -870,37 +944,37 @@ function setupEventListeners() {
             filterBAList(e.target.value);
         });
     }
-    
+
     // Attendance Date Filter
     const attendanceDateFilter = document.getElementById('attendanceDateFilter');
     if (attendanceDateFilter) {
         attendanceDateFilter.addEventListener('change', renderAttendanceTable);
     }
-    
+
     // Reports Filters
     const reportStartDate = document.getElementById('reportStartDate');
     const reportEndDate = document.getElementById('reportEndDate');
     const applyReportFilterBtn = document.getElementById('applyReportFilter');
-    
+
     if (applyReportFilterBtn) {
         applyReportFilterBtn.addEventListener('click', () => {
             renderReportsTable();
             updateReportStats();
         });
     }
-    
+
     // Generate Report
     const generateReportBtn = document.getElementById('generateReportBtn');
     if (generateReportBtn) {
         generateReportBtn.addEventListener('click', exportReport);
     }
-    
+
     // Settings
     const saveSettingsBtn = document.getElementById('saveSettings');
     if (saveSettingsBtn) {
         saveSettingsBtn.addEventListener('click', saveSettings);
     }
-    
+
     // Bell notification
     const bellBtn = document.querySelector('.fa-bell')?.parentElement;
     if (bellBtn) {
@@ -915,20 +989,20 @@ function switchPage(pageId) {
     document.querySelectorAll('.page').forEach(page => {
         page.classList.remove('active');
     });
-    
+
     // Remove active from nav
     document.querySelectorAll('.main-nav li').forEach(li => {
         li.classList.remove('active');
     });
-    
+
     // Show selected page
     const page = document.getElementById(pageId);
     if (page) {
         page.classList.add('active');
-        
+
         // Highlight nav item
         document.querySelector(`[data-page="${pageId}"]`)?.classList.add('active');
-        
+
         // Refresh data for the page
         if (pageId === 'attendance') {
             renderAttendanceTable();
@@ -948,37 +1022,37 @@ function switchPage(pageId) {
 
 async function handleAssignStaff() {
     const campaignId = document.getElementById('campaignSelect').value;
-    
+
     if (!campaignId) {
         showNotification('Please select a campaign', 'warning');
         return;
     }
-    
+
     if (leaderState.selectedStaff.size === 0) {
         showNotification('Please select at least one staff member', 'warning');
         return;
     }
-    
+
     try {
         // Update Firebase for each selected staff
         for (const staffId of leaderState.selectedStaff) {
             const staffRef = doc(db, 'staff', staffId);
             const staff = leaderState.assignedStaff.find(s => s.id === staffId);
             const campaignIds = staff.assigned_campaigns || [];
-            
+
             if (!campaignIds.includes(campaignId)) {
                 campaignIds.push(campaignId);
             }
-            
+
             // In production, this would update Firebase
             // await updateDoc(staffRef, { assigned_campaigns: campaignIds });
         }
-        
+
         // Clear selection and show success
         leaderState.selectedStaff.clear();
         document.getElementById('assignStaffModal').style.display = 'none';
         showNotification(`Assigned ${leaderState.selectedStaff.size} staff to campaign`, 'success');
-        
+
         // Refresh UI
         renderStaffList();
     } catch (error) {
@@ -997,57 +1071,57 @@ function viewCampaignDetails(campaignId) {
 function viewStaffDetails(staffId) {
     const staff = leaderState.assignedStaff.find(s => s.id === staffId);
     if (!staff) return;
-    
+
     const modal = document.getElementById('staffDetailModal');
     if (!modal) return;
-    
+
     document.getElementById('staffDetailName').textContent = staff.name;
     document.getElementById('staffDetailRole').textContent = staff.role;
     document.getElementById('staffDetailContact').textContent = staff.email;
     document.getElementById('staffDetailPhoto').src = staff.photo;
     document.getElementById('staffDetailStatus').textContent = staff.status;
-    
+
     const campaigns = staff.assigned_campaigns
         .map(cid => leaderState.campaigns.find(c => c.id === cid)?.name || 'Unknown')
         .join(', ');
     document.getElementById('staffDetailCampaign').textContent = campaigns || 'None';
-    
+
     // Calculate hours worked today
     const today = new Date().toISOString().split('T')[0];
-    const todayRecords = leaderState.clockRecords.filter(r => 
-        r.staff_id === staffId && 
+    const todayRecords = leaderState.clockRecords.filter(r =>
+        r.staff_id === staffId &&
         r.timestamp.split('T')[0] === today
     );
-    
+
     const inRecord = todayRecords.find(r => r.type === 'in');
     const outRecord = todayRecords.find(r => r.type === 'out');
-    
+
     let hours = '0 hrs';
     if (inRecord && outRecord) {
         const inMs = new Date(inRecord.timestamp).getTime();
         const outMs = new Date(outRecord.timestamp).getTime();
         hours = ((outMs - inMs) / (1000 * 60 * 60)).toFixed(2) + ' hrs';
     }
-    
+
     document.getElementById('staffDetailHours').textContent = hours;
-    
+
     modal.style.display = 'flex';
 }
 
 function showClockDetail(clockId) {
     const record = leaderState.clockRecords.find(r => r.id === clockId);
     if (!record) return;
-    
+
     const modal = document.getElementById('clockDetailModal');
     if (!modal) return;
-    
+
     document.getElementById('clockDetailName').textContent = record.staff_name;
     document.getElementById('clockDetailTime').textContent = new Date(record.timestamp).toLocaleString();
     document.getElementById('clockDetailLocation').textContent = record.location;
     document.getElementById('clockDetailGPS').textContent = record.gps_verified ? 'Yes' : 'No';
     document.getElementById('clockDetailPhoto').src = record.photo;
     document.getElementById('clockDetailNotes').textContent = record.notes || 'No notes';
-    
+
     modal.style.display = 'flex';
 }
 
@@ -1058,7 +1132,7 @@ function reviewAnomaly(anomalyId) {
 function filterStaffTable(query) {
     const tbody = document.getElementById('staffTableBody');
     if (!tbody) return;
-    
+
     const rows = tbody.querySelectorAll('tr');
     rows.forEach(row => {
         const text = row.textContent.toLowerCase();
@@ -1069,7 +1143,7 @@ function filterStaffTable(query) {
 function filterBAList(query) {
     const container = document.getElementById('baListContainer');
     if (!container) return;
-    
+
     const cards = container.querySelectorAll('.ba-card');
     cards.forEach(card => {
         const text = card.textContent.toLowerCase();
@@ -1080,28 +1154,28 @@ function filterBAList(query) {
 function exportReport() {
     const startDate = document.getElementById('reportStartDate')?.value;
     const endDate = document.getElementById('reportEndDate')?.value;
-    
+
     if (!startDate || !endDate) {
         showNotification('Please select date range', 'warning');
         return;
     }
-    
+
     // Generate CSV
     let csv = 'Staff,Campaign,Check-In,Check-Out,Hours Worked,Status\n';
-    
+
     const startDate_ = new Date(startDate);
     const endDate_ = new Date(endDate);
-    
+
     const filteredRecords = leaderState.clockRecords.filter(record => {
         const recordDate = new Date(record.timestamp.split('T')[0]);
         return recordDate >= startDate_ && recordDate <= endDate_;
     });
-    
+
     const staffDays = {};
     filteredRecords.forEach(record => {
         const date = record.timestamp.split('T')[0];
         const key = `${record.staff_id}_${date}`;
-        
+
         if (!staffDays[key]) {
             staffDays[key] = {
                 staff_id: record.staff_id,
@@ -1112,14 +1186,14 @@ function exportReport() {
                 campaign_id: record.campaign_id
             };
         }
-        
+
         if (record.type === 'in') {
             staffDays[key].in_time = record.timestamp;
         } else {
             staffDays[key].out_time = record.timestamp;
         }
     });
-    
+
     Object.values(staffDays).forEach(day => {
         const campaignName = leaderState.campaigns.find(c => c.id === day.campaign_id)?.name || 'Unknown';
         const inTime = day.in_time ? new Date(day.in_time).toLocaleTimeString() : '-';
@@ -1133,7 +1207,7 @@ function exportReport() {
         const status = day.in_time ? 'Present' : 'Absent';
         csv += `${day.staff_name},${campaignName},"${inTime}","${outTime}",${hours},${status}\n`;
     });
-    
+
     // Download
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
@@ -1142,25 +1216,25 @@ function exportReport() {
     a.download = `leader_report_${startDate}_to_${endDate}.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
-    
+
     showNotification('Report exported successfully', 'success');
 }
 
 function saveSettings() {
     const theme = document.getElementById('themeSelect')?.value || 'light';
     const notifications = document.getElementById('notifToggle')?.checked ?? true;
-    
+
     // Apply theme
     if (theme === 'dark') {
         document.body.classList.add('dark');
     } else {
         document.body.classList.remove('dark');
     }
-    
+
     // Save to localStorage
     localStorage.setItem('leaderTheme', theme);
     localStorage.setItem('leaderNotifications', notifications);
-    
+
     document.getElementById('settingsModal').style.display = 'none';
     showNotification('Settings saved successfully', 'success');
 }
@@ -1168,21 +1242,21 @@ function saveSettings() {
 function updateReportStats() {
     const startDate = document.getElementById('reportStartDate')?.value;
     const endDate = document.getElementById('reportEndDate')?.value;
-    
+
     if (!startDate || !endDate) return;
-    
+
     const filteredRecords = leaderState.clockRecords.filter(record => {
         const recordDate = record.timestamp.split('T')[0];
         return recordDate >= startDate && recordDate <= endDate;
     });
-    
+
     const presentCount = new Set(
         filteredRecords.filter(r => r.type === 'in').map(r => r.staff_id)
     ).size;
-    
+
     const totalStaff = leaderState.assignedStaff.length;
     const rate = totalStaff > 0 ? Math.round((presentCount / totalStaff) * 100) : 0;
-    
+
     if (document.getElementById('reportAttendanceRate')) {
         document.getElementById('reportAttendanceRate').textContent = rate + '%';
         document.getElementById('reportActiveStaff').textContent = presentCount;
@@ -1196,23 +1270,23 @@ function updateReportStats() {
 function showNotification(message, type = 'info') {
     const notif = document.getElementById('notification');
     if (!notif) return;
-    
+
     notif.textContent = message;
     notif.style.display = 'block';
-    
+
     const colors = {
         success: '#16a34a',
         error: '#dc2626',
         warning: '#f59e0b',
         info: '#2563eb'
     };
-    
+
     notif.style.background = colors[type] || colors.info;
     notif.style.color = '#fff';
     notif.style.padding = '10px 15px';
     notif.style.borderRadius = '4px';
     notif.style.marginTop = '10px';
-    
+
     setTimeout(() => {
         notif.style.display = 'none';
     }, 3000);
@@ -1250,7 +1324,7 @@ function setLeaderProfile(profile) {
     leaderState.leaderName = profile.name || leaderState.leaderName;
     leaderState.leaderRole = profile.role || leaderState.leaderRole;
     leaderState.leaderPhoto = profile.photo || leaderState.leaderPhoto;
-    try { localStorage.setItem('leaderProfile', JSON.stringify(profile)); } catch (e) {}
+    try { localStorage.setItem('leaderProfile', JSON.stringify(profile)); } catch (e) { }
     updateHeader();
     // Reload leader-specific data now that identity changed
     loadLeaderData();
@@ -1259,8 +1333,8 @@ function setLeaderProfile(profile) {
 window.setLeaderProfile = setLeaderProfile;
 
 function logout() {
-    try { localStorage.removeItem('leaderProfile'); } catch (e) {}
-    try { sessionStorage.removeItem('user'); } catch (e) {}
+    try { localStorage.removeItem('leaderProfile'); } catch (e) { }
+    try { sessionStorage.removeItem('user'); } catch (e) { }
     window.location.href = 'login.html';
 }
 

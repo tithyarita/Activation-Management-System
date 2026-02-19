@@ -28,7 +28,6 @@ body.dark {
   --warning: #f59e0b;
 }
 
-
 /* Example: change body background */
 body.dark {
   background: var(--bg);
@@ -228,7 +227,6 @@ body {
 .header-actions .icon:hover {
   color: var(--text);
 }
-
 
 .dot {
   position: absolute;
@@ -1074,6 +1072,44 @@ li.selected {
   font-size: 13px;
 }
 
+.search-box {
+  position: relative;
+  width: 260px;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 8px 12px 8px 35px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.search-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-top: none;
+  max-height: 220px;
+  overflow-y: auto;
+  z-index: 999;
+  display: none;
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+}
+
+.search-item {
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.search-item:hover {
+  background: #f3f4f6;
+}
+
 /* =========================
    RESPONSIVE
 ========================= */
@@ -1096,5 +1132,3 @@ li.selected {
     padding: 20px;
   }
 }
-
-
