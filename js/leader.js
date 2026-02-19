@@ -380,10 +380,10 @@ function renderCampaignsList() {
             <td><span class="badge-status active">${campaign.status}</span></td>
             <td>${staffCount}</td>
             <td>
-                <button class="btn-secondary btn-sm" onclick="viewCampaignDetails('${campaign.id}')">
+                <button class="btn-secondary btn-sm" onclick="viewCampaignDetails('${campaign.id}')" style="margin-bottom: 8px;">
                     <i class="fa-solid fa-eye"></i> View
                 </button>
-                <button class="btn-secondary btn-sm" onclick="openAssignBAModal('${campaign.id}', '${campaign.name}')" style="margin-left:5px;">
+                <button class="btn-secondary btn-sm" onclick="openAssignBAModal('${campaign.id}', '${campaign.name}')">
                     <i class="fa-solid fa-user-tie"></i> Assign BA
                 </button>
             </td>
