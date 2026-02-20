@@ -14,7 +14,7 @@
   --text: #0f172a;
   --border: #e6edf8;
   --surface-02: #f1f5f9;
-  --shadow-1: 0 6px 18px rgba(15,23,42,0.06);
+  --shadow-1: 0 6px 18px rgba(15, 23, 42, 0.06);
 }
 
 /* DARK THEME */
@@ -36,8 +36,6 @@ body.dark {
   background: var(--bg);
   color: var(--text);
 }
-
-
 
 /* Dark mode cards */
 body.dark .card,
@@ -102,7 +100,13 @@ body.dark .pro-table tr:hover {
 }
 
 body {
-  font-family: Inter, "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial;
+  font-family:
+    Inter,
+    "Segoe UI",
+    system-ui,
+    -apple-system,
+    "Helvetica Neue",
+    Arial;
   background: var(--bg);
   color: var(--text);
   -webkit-font-smoothing: antialiased;
@@ -345,7 +349,7 @@ body {
 }
 
 .btn-primary {
-  background: linear-gradient(180deg,var(--primary-600),var(--primary-700));
+  background: linear-gradient(180deg, var(--primary-600), var(--primary-700));
   color: white;
   box-shadow: var(--shadow-1);
 }
@@ -354,7 +358,9 @@ body {
   background: var(--surface-02);
 }
 
-.btn-secondary:hover { transform: translateY(-1px); }
+.btn-secondary:hover {
+  transform: translateY(-1px);
+}
 
 /* =========================
    STATS GRID
@@ -487,20 +493,48 @@ body {
   font-size: 13px;
 }
 
-.pro-table tbody tr:hover { background: #fbfdff; }
+.pro-table tbody tr:hover {
+  background: #fbfdff;
+}
 
-.pro-table tbody td { vertical-align: middle; }
+.pro-table tbody td {
+  vertical-align: middle;
+}
 
 /* Small button variants */
-.btn-sm { padding: 6px 8px; font-size: 0.9rem; border-radius: 8px; }
-.btn-icon { display:inline-flex; align-items:center; gap:8px; padding:8px 10px; }
+.btn-sm {
+  padding: 6px 8px;
+  font-size: 0.9rem;
+  border-radius: 8px;
+}
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+}
 
-.action-group { display:flex; gap:8px; align-items:center; }
-.action-group .btn-secondary { background: transparent; border:1px solid var(--surface-02); padding:6px 8px; }
-.action-group .btn-secondary:hover { background: #ffffff; transform: translateY(-1px); }
+.action-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.action-group .btn-secondary {
+  background: transparent;
+  border: 1px solid var(--surface-02);
+  padding: 6px 8px;
+}
+.action-group .btn-secondary:hover {
+  background: #ffffff;
+  transform: translateY(-1px);
+}
 
-.campaign-row td:first-child { vertical-align: top; }
-.campaign-detail-row td { background: rgba(37,99,235,0.03); }
+.campaign-row td:first-child {
+  vertical-align: top;
+}
+.campaign-detail-row td {
+  background: rgba(37, 99, 235, 0.03);
+}
 
 /* Campaign detail row showing staff list */
 .campaign-detail-row td {
@@ -522,7 +556,10 @@ body {
   font-weight: 600;
 }
 
-.muted { color: var(--muted); font-size: 0.95rem; }
+.muted {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
 
 .status-pill {
   padding: 5px 12px;
@@ -881,7 +918,10 @@ li.selected {
   display: none;
   opacity: 0;
   transform: translateY(-8px);
-  transition: opacity 0.25s ease, transform 0.25s ease, background-color 0.2s;
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease,
+    background-color 0.2s;
   background-color: #f0f0f0;
   color: #111827;
   z-index: 2000;
