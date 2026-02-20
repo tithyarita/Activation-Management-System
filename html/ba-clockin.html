@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>BA Dashboard</title>
-  <link rel="stylesheet" href="ba-clockin.css">
-  
+  <link rel="stylesheet" href="ba-clockin.css"> 
 </head>
 <body>
 
@@ -15,76 +14,219 @@
     <div>Welcome, BA</div>
   </div>
 
-  <!-- 1️⃣ Zone Warning -->
   <div id="zone-warning" class="page active">
-    <button class="btn btn-blue" onclick="showPage('zone-map')">← Back</button>
-    <h2>It's not the zone for Clocked In</h2>
-    <img src="https://cdn-icons-png.flaticon.com/512/684/684908.png" alt="Location">
-    <br>
-    <button class="btn btn-blue" onclick="showPage('zone-map')">Directions</button>
+    <h2>Clock-In Check</h2>
+    
+    <div id="location-modal" class="modal-overlay">
+      <div class="modal-content">
+        <h3 id="modal-title">Confirm Location</h3>
+        <p id="modal-text">We need to verify your current GPS coordinates to clock you in.</p>
+        
+        <div id="modal-status">Ready to verify...</div>
+
+        <div class="modal-buttons">
+           <div id="primary-btns">
+              <button class="btn btn-blue" onclick="processLocation()">Confirm Now</button>
+              <button class="btn btn-red" onclick="handleCancel()">Cancel</button>
+           </div>
+           
+           <div id="back-btn-area" style="display: none;">
+              <button class="btn btn-blue" onclick="resetModal()">⬅ Go Back</button>
+           </div>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <!-- 2️⃣ Map Page -->
   <div id="zone-map" class="page">
     <h2>Zone Map</h2>
-    <img src="https://upload.wikimedia.org/wikipedia/commons/e/ec/Phnom_Penh_City_Map.png" alt="Map">
-    <br>
-    <button class="btn btn-blue" onclick="showPage('permission-camera')">
-      Continue
-    </button>
+    <img src="https://upload.wikimedia.org/wikipedia/commons/e/ec/Phnom_Penh_City_Map.png" alt="Map" style="width:100%;">
+    <br><br>
+    <button class="btn btn-blue" onclick="showPage('permission-camera')">Continue</button>
   </div>
 
-  <!-- 3️⃣ Take Photo -->
-<div id="permission-camera" class="page">
+ <div id="permission-camera" class="page">
   <h2>Clocked In</h2>
   <p>Please take a photo to confirm your clock-in</p>
-
   <div class="photo-box">
-    <!-- JS camera preview will go here later -->
+    <video id="webcam" autoplay playsinline width="100%"></video>
   </div>
-
-  <button class="btn btn-blue" onclick="showPage('permission-confirm')">
-    📷 Take a photo
-  </button>
+  <button class="btn btn-blue" onclick="takeSnapshot()">📷 Take a photo</button>
 </div>
 
-  <!-- 4️⃣ Confirm -->
 <div id="permission-confirm" class="page">
   <h2>Clocked In</h2>
   <p>Is this photo okay for clocking in?</p>
-
   <div class="photo-box">
-    <!-- Captured image will show here later -->
+    <canvas id="photo-canvas" style="width:100%; height:auto;"></canvas>
+  </div>
+  <div class="button-group">
+    <button class="btn btn-red" onclick="retakePhoto()">Retake</button>
+    <button class="btn btn-green" onclick="showPage('permission-success')">Confirm</button>
+  </div>
+</div>
+
+  <div id="permission-success" class="page">
+    <h2>Clocked In Successfully!</h2>
+    <img src="https://cdn-icons-png.flaticon.com/512/190/190411.png" width="120" alt="Success">
+    <br><br>
+    <button class="btn btn-blue" onclick="showPage('thanks-you')">OK</button>
   </div>
 
-  <button class="btn btn-red" onclick="showPage('permission-camera')">
-    Retake
-  </button>
-  <button class="btn btn-green" onclick="showPage('permission-success')">
-    Confirm
-  </button>
-</div>
+  <div id="thanks-you" class="page">
+    <h2>Thank you for clocking in!</h2>
+    <p>You can now start your shift.</p>
+  </div>
 
-    <!-- 5️⃣ Success -->
-<div id="permission-success" class="page">
-  <h2>Clocked In Successfully!</h2>
-    <img src="https://cdn-icons-png.flaticon.com/512/190/190411.png" alt="Success">
-    <br>
-    <button class="btn btn-blue" onclick="showPage('thanks-you')">
-      okay
-    </button>
-</div>
-
-<!-- 6️⃣ thanks you -->
-<div id="thanks-you" class="page">
-  <h2>Thank you for clocking in!</h2>
 </div>
 
 <script>
+// --- PAGE NAVIGATION ---
 function showPage(pageId) {
   const pages = document.querySelectorAll(".page");
   pages.forEach(page => page.classList.remove("active"));
   document.getElementById(pageId).classList.add("active");
+}
+
+// --- LOCATION LOGIC ---
+
+// What happens when user clicks "Cancel"
+function handleCancel() {
+  document.getElementById("modal-title").textContent = "Location Permission Required";
+  document.getElementById("modal-text").textContent = "Access to your location is mandatory to verify you are at the correct zone.";
+  document.getElementById("modal-status").textContent = "❌ Permission Denied";
+  document.getElementById("modal-status").style.color = "red";
+
+  // Swap buttons
+  document.getElementById("primary-btns").style.display = "none";
+  document.getElementById("back-btn-area").style.display = "block";
+}
+
+// What happens when user clicks "Back"
+function resetModal() {
+  document.getElementById("modal-title").textContent = "Confirm Location";
+  document.getElementById("modal-text").textContent = "We need to verify your current GPS coordinates to clock you in.";
+  document.getElementById("modal-status").textContent = "Ready to verify...";
+  document.getElementById("modal-status").style.color = "#666";
+
+  // Swap buttons back
+  document.getElementById("primary-btns").style.display = "block";
+  document.getElementById("back-btn-area").style.display = "none";
+}
+
+// Main processing logic
+function processLocation() {
+  // 1. Browser Pop-up Confirmation
+  const userAgreed = confirm("Do you agree to share your current location for clock-in verification?");
+
+  if (userAgreed) {
+    const modalStatus = document.getElementById("modal-status");
+    modalStatus.innerHTML = "📡 Accessing GPS...";
+    modalStatus.style.color = "orange";
+
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser.");
+      return;
+    }
+
+    // 2. Request Actual GPS coordinates
+    navigator.geolocation.getCurrentPosition(
+      function(position) {
+        modalStatus.innerHTML = "✅ Location Verified!";
+        modalStatus.style.color = "green";
+        
+        console.log("Lat:", position.coords.latitude, "Lon:", position.coords.longitude);
+
+        // Success: Move to map page
+        setTimeout(() => {
+          document.getElementById("location-modal").style.display = "none";
+          showPage("zone-map");
+        }, 1200);
+      },
+      function(error) {
+        // If they block it in browser settings
+        modalStatus.innerHTML = "❌ GPS Error / Denied";
+        modalStatus.style.color = "red";
+        alert("Please enable location services in your device settings.");
+      },
+      { enableHighAccuracy: true, timeout: 5000 }
+    );
+  } else {
+    // If they hit 'Cancel' on the confirm() pop-up
+    handleCancel();
+  }
+}
+
+let stream = null;
+
+function showPage(pageId) {
+  const pages = document.querySelectorAll(".page");
+  pages.forEach(page => page.classList.remove("active"));
+  document.getElementById(pageId).classList.add("active");
+
+  // Logic: Always kill existing streams first to reset hardware state
+  stopCamera();
+
+  if (pageId === 'permission-camera') {
+    // Delay slightly to allow hardware to fully release before re-asking
+    setTimeout(startCamera, 100);
+  }
+}
+
+// Modified showPage to trigger camera only when needed
+function showPage(pageId) {
+  const pages = document.querySelectorAll(".page");
+  pages.forEach(page => page.classList.remove("active"));
+  document.getElementById(pageId).classList.add("active");
+
+  // If we land on the camera page, start the webcam
+  if (pageId === 'permission-camera') {
+    startCamera();
+  } else {
+    stopCamera(); // Stop camera if we move to any other page
+  }
+}
+
+async function startCamera() {
+  const video = document.getElementById('webcam');
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ 
+      video: { facingMode: "user" }, 
+      audio: false 
+    });
+    video.srcObject = stream;
+  } catch (err) {
+    console.error("Error accessing camera: ", err);
+    alert("Could not access camera. Please ensure you have given permission.");
+  }
+}
+
+function stopCamera() {
+  if (stream) {
+    stream.getTracks().forEach(track => track.stop());
+    stream = null;
+  }
+}
+
+function takeSnapshot() {
+  const video = document.getElementById('webcam');
+  const canvas = document.getElementById('photo-canvas');
+  const context = canvas.getContext('2d');
+
+  // Set canvas size to match video stream
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+
+  // Draw the current video frame onto the canvas
+  context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+  // Stop the camera and move to confirmation
+  stopCamera();
+  showPage('permission-confirm');
+}
+
+function retakePhoto() {
+  showPage('permission-camera');
 }
 </script>
 
