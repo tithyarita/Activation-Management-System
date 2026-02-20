@@ -30,9 +30,9 @@
             <div class="icon-btn" id="settingsBtn">
                 <i class="fa-solid fa-gear"></i>
             </div>
+        <div class="header-actions" role="banner">
 
-
-
+            <button class="icon btn-ghost" onclick="logout()" aria-label="Logout">Logout</button>
             <div id="settingsModal" class="modal">
                 <div class="modal-content">
                     <span class="close">&times;</span>
@@ -41,10 +41,10 @@
                         <label>
                             Theme:
                             <select id="themeSelect">
-                                <option value="light">Light</option>
+            <div id="settingsModal" class="modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="settingsTitle">
                                 <option value="dark">Dark</option>
                             </select>
-                        </label>
+                    <h2 id="settingsTitle">Settings</h2>
                         <label>
                             Notifications:
                             <input type="checkbox" id="notifToggle" checked>
@@ -64,11 +64,9 @@
             <ul>
                 <li class="active" data-page="campaigns">Campaigns</li>
                 <li data-page="attendance">Attendance</li>
-                <li data-page="stafflist">Staff List</li>
                 <li data-page="balist">BA List</li>
                 <li data-page="reports">Reports</li>
             </ul>
-        </nav>
 
     <main class="dashboard-content">
         <!-- Campaigns Page -->
@@ -150,7 +148,12 @@
                     <div class="card table-card">
                         <div class="card-header">
                             <h3>Assigned Campaigns</h3>
+                            <div class="search-box" style="margin-left:12px;">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                                <input type="text" id="campaignSearch" placeholder="Search campaigns..." autocomplete="off">
+                            </div>
                         </div>
+                        <div class="pro-table-wrapper">
                         <table class="pro-table">
                             <thead>
                                 <tr>
@@ -162,6 +165,7 @@
                             </thead>
                             <tbody id="campaignsTableBody"></tbody>
                         </table>
+                        </div>
                     </div>
 
                     <div class="card table-card">
@@ -411,6 +415,17 @@
                 </div>
             </div>
         </section>
+
+        <!-- Campaign Detail Modal -->
+        <div id="campaignDetailModal" class="modal">
+            <div class="modal-content" style="width: 700px; max-width: 96%;">
+                <span class="close">&times;</span>
+                <h2>Campaign Details</h2>
+                <div id="campaignDetailContent" style="display: grid; gap: 20px;">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+        </div>
 
         <!-- BA List Page -->
         <section class="page" id="balist">

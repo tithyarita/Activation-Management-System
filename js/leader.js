@@ -31,6 +31,37 @@ function getBAName(ba) {
     if (ba.email) return ba.email.split('@')[0];
     return 'Unknown';
 }
+
+// Helper: Safely escape HTML text
+function safeText(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = String(text);
+    return div.innerHTML;
+}
+
+// Helper: Format date string to readable format
+function formatDate(dateString) {
+    if (!dateString) return 'N/A';
+    try {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    } catch (e) {
+        return dateString;
+    }
+}
+
+// Helper: Format time string
+function formatTime(timeString) {
+    if (!timeString) return 'N/A';
+    try {
+        const date = new Date(timeString);
+        return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    } catch (e) {
+        return timeString;
+    }
+}
+
 const LATE_ARRIVAL_THRESHOLD = 30; // minutes
 const SHIFT_START_TIME = '09:00';
 
@@ -165,8 +196,12 @@ async function loadLeaderCampaigns() {
                 status: 'Active',
                 start_date: '2026-02-01',
                 end_date: '2026-03-01',
+                startTime: '09:00',
+                endTime: '17:00',
+                location: 'Downtown District',
                 assigned_leaders: [leaderState.leaderId],
-                budget: 50000
+                budget: 50000,
+                description: 'Major product launch campaign in urban centers'
             },
             {
                 id: 'camp_002',
@@ -174,8 +209,12 @@ async function loadLeaderCampaigns() {
                 status: 'Active',
                 start_date: '2026-02-10',
                 end_date: '2026-02-28',
+                startTime: '10:00',
+                endTime: '18:00',
+                location: 'North Mall',
                 assigned_leaders: [leaderState.leaderId],
-                budget: 30000
+                budget: 30000,
+                description: 'Regional brand awareness campaign'
             }
         ];
         console.log(`Using demo campaigns (error: ${error.message})`);
@@ -357,43 +396,46 @@ function renderCampaignsList() {
 
     tbody.innerHTML = '';
 
-    leaderState.campaigns.forEach(campaign => {
-        const staffCount = leaderState.assignedStaff.filter(
-            s => s.assigned_campaigns.includes(campaign.id)
-        ).length;
+    if (!leaderState.campaigns.length) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#6b7280;">No campaigns assigned</td></tr>';
+        return;
+    }
 
-        // Get BAs assigned to this campaign
+    leaderState.campaigns.forEach(campaign => {
+        // Get assigned BAs for this campaign
         const assignedBAs = leaderState.campaignBAAssignments
             .filter(a => a.campaignId === campaign.id)
-            .map(a => {
-                const ba = leaderState.brandAmbassadors.find(b => b.id === a.baId);
-                return getBAName(ba) || 'Unknown';
-            })
+            .map(a => leaderState.brandAmbassadors.find(b => b.id === a.baId))
+            .filter(Boolean)
+            .map(getBAName)
             .join(', ');
 
         const row = document.createElement('tr');
         row.innerHTML = `
             <td>
-                <div><strong>${campaign.name}</strong></div>
-                ${assignedBAs ? `<small style="color:#6b7280;">📌 BA: ${assignedBAs}</small>` : '<small style="color:#d1d5db;">⚠️ No BA assigned yet</small>'}
+                <div style="display:flex;flex-direction:column;gap:4px;">
+                    <strong>${campaign.name}</strong>
+                    ${assignedBAs 
+                        ? `<small style="color:#6b7280;">📌 BA: ${assignedBAs}</small>` 
+                        : `<small style="color:#d1d5db;">⚠️ No BA assigned yet</small>`
+                    }
+                </div>
             </td>
-            <td><span class="badge-status active">${campaign.status}</span></td>
-            <td>${staffCount}</td>
+            <td><span class="badge-status active" style="padding:2px 6px;border-radius:4px;font-size:0.85rem;">${campaign.status}</span></td>
             <td>
-                <button class="btn-secondary btn-sm" onclick="viewCampaignDetails('${campaign.id}')" style="margin-bottom: 8px;">
+                ${leaderState.assignedStaff.filter(s => s.assigned_campaigns.includes(campaign.id)).length}
+            </td>
+            <td style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button class="btn-secondary btn-sm" onclick="openCampaignDetailModal('${campaign.id}')">
                     <i class="fa-solid fa-eye"></i> View
                 </button>
-                <button class="btn-secondary btn-sm" onclick="openAssignBAModal('${campaign.id}', '${campaign.name}')">
+                <button class="btn-secondary btn-sm" onclick="openAssignBAModal('${campaign.id}', '${campaign.name.replace(/'/g, "\\'")}')">
                     <i class="fa-solid fa-user-tie"></i> Assign BA
                 </button>
             </td>
         `;
         tbody.appendChild(row);
     });
-
-    if (leaderState.campaigns.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#6b7280;">No campaigns assigned</td></tr>';
-    }
 }
 
 // ===============================
@@ -405,7 +447,7 @@ function renderBrandAmbassadors(data = leaderState.brandAmbassadors) {
 
     tbody.innerHTML = '';
 
-    if (!data || data.length === 0) {
+    if (!data.length) {
         tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#6b7280;">No brand ambassadors found</td></tr>';
         return;
     }
@@ -418,16 +460,15 @@ function renderBrandAmbassadors(data = leaderState.brandAmbassadors) {
 
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td>${displayName}</td>
+            <td><strong>${displayName}</strong></td>
             <td>${ba.role || 'Brand Ambassador'}</td>
             <td>${campaignNames || 'N/A'}</td>
             <td>
-                <span class="badge-status ${(ba.status || 'active').toLowerCase()}">
+                <span class="badge-status ${((ba.status || 'active').toLowerCase())}" style="padding:2px 6px;border-radius:4px;font-size:0.85rem;">
                     ${ba.status || 'active'}
                 </span>
             </td>
         `;
-
         tbody.appendChild(row);
     });
 }
@@ -438,7 +479,6 @@ function renderBrandAmbassadors(data = leaderState.brandAmbassadors) {
 (function initBrandAmbassadorSearch() {
     const input = document.getElementById('baSearch');
     const suggestionBox = document.getElementById('baSuggestions');
-
     if (!input || !suggestionBox) return;
 
     function filterData(keyword) {
@@ -449,7 +489,6 @@ function renderBrandAmbassadors(data = leaderState.brandAmbassadors) {
 
     function showSuggestions(data) {
         suggestionBox.innerHTML = '';
-
         if (!data.length) {
             suggestionBox.style.display = 'none';
             return;
@@ -458,11 +497,10 @@ function renderBrandAmbassadors(data = leaderState.brandAmbassadors) {
         data.forEach(ba => {
             const div = document.createElement('div');
             div.className = 'search-item';
-            const displayName = getBAName(ba);
-            div.textContent = displayName;
+            div.textContent = getBAName(ba);
 
             div.addEventListener('click', () => {
-                input.value = displayName;
+                input.value = getBAName(ba);
                 suggestionBox.style.display = 'none';
                 renderBrandAmbassadors([ba]);
             });
@@ -475,13 +513,11 @@ function renderBrandAmbassadors(data = leaderState.brandAmbassadors) {
 
     input.addEventListener('input', function () {
         const keyword = this.value.trim().toLowerCase();
-
         if (!keyword) {
             suggestionBox.style.display = 'none';
             renderBrandAmbassadors();
             return;
         }
-
         const filtered = filterData(keyword);
         renderBrandAmbassadors(filtered);
         showSuggestions(filtered);
@@ -492,7 +528,7 @@ function renderBrandAmbassadors(data = leaderState.brandAmbassadors) {
             suggestionBox.style.display = 'none';
         }
     });
-})();
+})();;
 
 // ===============================
 // RENDER BRAND AMBASSADORS CARD LIST
@@ -847,6 +883,9 @@ function initializeModals() {
     
     // Assign BA Modal
     setupModal(null, 'assignBAModal');
+
+    // Campaign Detail Modal
+    setupModal(null, 'campaignDetailModal');
 }
 
 function setupModal(openBtnId, modalId) {
@@ -991,6 +1030,14 @@ function setupEventListeners() {
         });
     }
 
+    // Campaign Search
+    const campaignSearchInput = document.getElementById('campaignSearch');
+    if (campaignSearchInput) {
+        campaignSearchInput.addEventListener('keyup', (e) => {
+            filterCampaignsList(e.target.value);
+        });
+    }
+
     // Attendance Date Filter
     const attendanceDateFilter = document.getElementById('attendanceDateFilter');
     if (attendanceDateFilter) {
@@ -1117,6 +1164,91 @@ function viewCampaignDetails(campaignId) {
     switchPage('stafflist');
     showNotification(`Viewing campaign: ${leaderState.campaigns.find(c => c.id === campaignId)?.name}`, 'info');
 }
+async function openCampaignDetailModal(campaignId) {
+    const campaign = leaderState.campaigns.find(c => c.id === campaignId);
+    if (!campaign) {
+        showNotification('Campaign not found', 'error');
+        return;
+    }
+
+    const modal = document.getElementById('campaignDetailModal');
+    const contentDiv = document.getElementById('campaignDetailContent');
+    if (!modal || !contentDiv) return;
+
+    // Get assigned Brand Ambassadors
+    const assignedBAs = leaderState.campaignBAAssignments
+        .filter(a => a.campaignId === campaignId)
+        .map(a => leaderState.brandAmbassadors.find(b => b.id === a.baId))
+        .filter(Boolean);
+
+    // Build HTML for campaign details
+    const baList = assignedBAs.length
+        ? assignedBAs.map(b => `<li>${safeText(getBAName(b))} - ${safeText(b.email)}</li>`).join('')
+        : '<li style="color:#6b7280;">No BAs assigned</li>';
+
+    contentDiv.innerHTML = `
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div>
+                <h4 style="margin: 0 0 8px 0; color:#0f172a; font-weight:600;">Campaign Name</h4>
+                <p style="margin: 0; color:#1f2937;">${safeText(campaign.name)}</p>
+            </div>
+            <div>
+                <h4 style="margin: 0 0 8px 0; color:#0f172a; font-weight:600;">Status</h4>
+                <p style="margin: 0;"><span class="badge-status active">${safeText(campaign.status || 'Unknown')}</span></p>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 12px;">
+            <div>
+                <h4 style="margin: 0 0 8px 0; color:#0f172a; font-weight:600;">Start Date</h4>
+                <p style="margin: 0; color:#1f2937;">${formatDate(campaign.start_date)}</p>
+            </div>
+            <div>
+                <h4 style="margin: 0 0 8px 0; color:#0f172a; font-weight:600;">End Date</h4>
+                <p style="margin: 0; color:#1f2937;">${formatDate(campaign.end_date)}</p>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 12px;">
+            <div>
+                <h4 style="margin: 0 0 8px 0; color:#0f172a; font-weight:600;">Start Time</h4>
+                <p style="margin: 0; color:#1f2937;">${safeText(campaign.startTime || 'N/A')}</p>
+            </div>
+            <div>
+                <h4 style="margin: 0 0 8px 0; color:#0f172a; font-weight:600;">End Time</h4>
+                <p style="margin: 0; color:#1f2937;">${safeText(campaign.endTime || 'N/A')}</p>
+            </div>
+        </div>
+
+        <div style="margin-top: 12px;">
+            <h4 style="margin: 0 0 8px 0; color:#0f172a; font-weight:600;">Location</h4>
+            <p style="margin: 0; color:#1f2937;">${safeText(campaign.location || 'N/A')}</p>
+        </div>
+
+        <div style="margin-top: 12px;">
+            <h4 style="margin: 0 0 8px 0; color:#0f172a; font-weight:600;">Description</h4>
+            <p style="margin: 0; color:#1f2937; line-height:1.5;">${safeText(campaign.description || 'No description provided')}</p>
+        </div>
+
+        <div style="margin-top: 12px;">
+            <h4 style="margin: 0 0 8px 0; color:#0f172a; font-weight:600;">Budget</h4>
+            <p style="margin: 0; color:#1f2937;">$${campaign.budget ? campaign.budget.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}</p>
+        </div>
+
+        <div style="margin-top: 12px;">
+            <h4 style="margin: 0 0 8px 0; color:#0f172a; font-weight:600;">Assigned Brand Ambassadors (${assignedBAs.length})</h4>
+            <ul style="margin: 0; padding-left: 18px; color:#1f2937;">${baList}</ul>
+        </div>
+
+        <div style="display: flex; gap: 10px; padding-top: 12px; border-top: 1px solid #e6edf8;">
+            <button class="btn-secondary" onclick="openAssignBAModal('${campaignId}', '${campaign.name.replace(/'/g, "\\'")}'); document.getElementById('campaignDetailModal').style.display='none';">
+                <i class="fa-solid fa-user-tie"></i> Assign BA
+            </button>
+        </div>
+    `;
+
+    modal.style.display = 'flex';
+}
 
 function viewStaffDetails(staffId) {
     const staff = leaderState.assignedStaff.find(s => s.id === staffId);
@@ -1198,6 +1330,17 @@ function filterBAList(query) {
     cards.forEach(card => {
         const text = card.textContent.toLowerCase();
         card.style.display = text.includes(query.toLowerCase()) ? '' : 'none';
+    });
+}
+
+function filterCampaignsList(query) {
+    const tbody = document.getElementById('campaignsTableBody');
+    if (!tbody) return;
+
+    const rows = tbody.querySelectorAll('tr');
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(query.toLowerCase()) ? '' : 'none';
     });
 }
 
@@ -1469,6 +1612,7 @@ window.addEventListener('load', () => {
 
 // Global functions for onclick handlers
 window.viewCampaignDetails = viewCampaignDetails;
+window.openCampaignDetailModal = openCampaignDetailModal;
 window.viewStaffDetails = viewStaffDetails;
 window.showClockDetail = showClockDetail;
 window.reviewAnomaly = reviewAnomaly;

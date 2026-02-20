@@ -47,6 +47,11 @@ async function loadCampaigns() {
     const data = c.data();
     dataArr.push(data);
 
+    // Format dates
+    const startDate = data.start_date ? new Date(data.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A';
+    const endDate = data.end_date ? new Date(data.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A';
+    const budget = data.budget ? `$${data.budget.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 'N/A';
+
     html += `
       <div class="campaign-card">
 
@@ -56,8 +61,10 @@ async function loadCampaigns() {
         </div>
 
         <div class="campaign-info">
-          <p><b>Date:</b> ${data.date}</p>
+          <p><b>Dates:</b> ${startDate} to ${endDate}</p>
+          <p><b>Time:</b> ${data.startTime || 'N/A'} - ${data.endTime || 'N/A'}</p>
           <p><b>Location:</b> ${data.location}</p>
+          <p><b>Budget:</b> ${budget}</p>
           <p><b>Leader:</b> ${data.assignedLeader || "Unassigned"}</p>
         </div>
 
@@ -90,15 +97,19 @@ async function handleAddCampaign(e) {
   e.preventDefault();
 
   const campaign = {
-    name: campaignName.value,
-    date: campaignDate.value,
-    startTime: campaignStartTime.value,
-    endTime: campaignEndTime.value,
-    location: campaignLocation.value,
+    name: document.getElementById('campaignName').value,
+    start_date: document.getElementById('campaignStartDate').value,
+    end_date: document.getElementById('campaignEndDate').value,
+    startTime: document.getElementById('campaignStartTime').value,
+    endTime: document.getElementById('campaignEndTime').value,
+    location: document.getElementById('campaignLocation').value,
+    budget: parseFloat(document.getElementById('campaignBudget').value) || 0,
     status: "upcoming",
     progress: 0,
     assignedLeader: "",
-    createdAt: new Date()
+    assigned_leaders: [],
+    description: "",
+    createdAt: new Date().toISOString()
   };
 
   const docRef = await addDoc(collection(db, "campaigns"), campaign);
