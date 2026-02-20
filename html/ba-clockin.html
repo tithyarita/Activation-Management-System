@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>BA Dashboard</title>
+  <link rel="stylesheet" href="ba-clockin.css">
+  
+</head>
+<body>
+
+<div class="container">
+
+  <div class="header">
+    <div>BA Dashboard</div>
+    <div>Welcome, BA</div>
+  </div>
+
+  <!-- 1️⃣ Zone Warning -->
+  <div id="zone-warning" class="page active">
+    <button class="btn btn-blue" onclick="showPage('zone-map')">← Back</button>
+    <h2>It's not the zone for Clocked In</h2>
+    <img src="https://cdn-icons-png.flaticon.com/512/684/684908.png" alt="Location">
+    <br>
+    <button class="btn btn-blue" onclick="showPage('zone-map')">Directions</button>
+  </div>
+
+  <!-- 2️⃣ Map Page -->
+  <div id="zone-map" class="page">
+    <h2>Zone Map</h2>
+    <img src="https://upload.wikimedia.org/wikipedia/commons/e/ec/Phnom_Penh_City_Map.png" alt="Map">
+    <br>
+    <button class="btn btn-blue" onclick="showPage('permission-camera')">
+      Continue
+    </button>
+  </div>
+
+  <!-- 3️⃣ Take Photo -->
+<div id="permission-camera" class="page">
+  <h2>Clocked In</h2>
+  <p>Please take a photo to confirm your clock-in</p>
+
+  <div class="photo-box">
+    <!-- JS camera preview will go here later -->
+  </div>
+
+  <button class="btn btn-blue" onclick="showPage('permission-confirm')">
+    📷 Take a photo
+  </button>
+</div>
+
+  <!-- 4️⃣ Confirm -->
+<div id="permission-confirm" class="page">
+  <h2>Clocked In</h2>
+  <p>Is this photo okay for clocking in?</p>
+
+  <div class="photo-box">
+    <!-- Captured image will show here later -->
+  </div>
+
+  <button class="btn btn-red" onclick="showPage('permission-camera')">
+    Retake
+  </button>
+  <button class="btn btn-green" onclick="showPage('permission-success')">
+    Confirm
+  </button>
+</div>
+
+    <!-- 5️⃣ Success -->
+<div id="permission-success" class="page">
+  <h2>Clocked In Successfully!</h2>
+    <img src="https://cdn-icons-png.flaticon.com/512/190/190411.png" alt="Success">
+    <br>
+    <button class="btn btn-blue" onclick="showPage('thanks-you')">
+      okay
+    </button>
+</div>
+
+<!-- 6️⃣ thanks you -->
+<div id="thanks-you" class="page">
+  <h2>Thank you for clocking in!</h2>
+</div>
+
+<script>
+function showPage(pageId) {
+  const pages = document.querySelectorAll(".page");
+  pages.forEach(page => page.classList.remove("active"));
+  document.getElementById(pageId).classList.add("active");
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,91 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+  background: #6f6767;
+  display: flex;
+  justify-content: center;
+  padding: 40px 0;
+}
+
+.container {
+  width: 800px;
+  background: #f2f2f2;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.header {
+  background: #3f5bd8;
+  color: white;
+  padding: 12px 20px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+}
+
+.page {
+  display: none;
+  padding: 40px;
+  text-align: center;
+}
+
+.page.active {
+  display: block;
+}
+
+h2 {
+  margin-bottom: 20px;
+}
+
+.photo-box {
+  width: 100%;
+  height: 30rem;
+  border: 2px dashed #3f5bd8;
+  border-radius: 8px;
+  background: #ffffff;
+  margin: 20px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #999;
+  font-size: 14px;
+}
+
+.photo-box::after {
+  content: "Camera Preview";
+}
+.btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  margin: 5px;
+}
+
+.btn-blue {
+  background: #3f5bd8;
+  color: white;
+}
+
+.btn-green {
+  background: #28a745;
+  color: white;
+}
+
+.btn-red {
+  background: #dc3545;
+  color: white;
+}
+
+.success-icon {
+  font-size: 24px;
+  color: #28a745;
+  margin-bottom: 15px;
+}
