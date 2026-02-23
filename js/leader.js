@@ -3,6 +3,7 @@
 // ===============================
 
 import { db, collection, getDocs, addDoc, updateDoc, doc, query, where, deleteDoc } from '../js/firebase.js';
+import { clearAllCache, getCachedData, isCacheValid } from '../js/localStorage.js';
 
 // ===============================
 // 1. GLOBAL STATE & CONFIGURATION
@@ -167,7 +168,21 @@ async function loadLeaderCampaigns() {
     try {
         console.log(`Loading campaigns for leader ID: ${leaderState.leaderId}`);
 
-        // Query campaigns where leader is assigned
+        let campaigns = [];
+
+        // Try to use cached data first
+        if (isCacheValid()) {
+            const cached = getCachedData('CAMPAIGNS');
+            if (cached) {
+                console.log('✓ Using cached campaigns');
+                campaigns = cached.filter(c => c.assigned_leaders && c.assigned_leaders.includes(leaderState.leaderId));
+                leaderState.campaigns = campaigns;
+                return;
+            }
+        }
+
+        // Otherwise fetch from Firebase
+        console.log('📡 Fetching campaigns from Firebase');
         const campaignsRef = collection(db, 'campaigns');
         const q = query(
             campaignsRef,
@@ -225,9 +240,26 @@ async function loadAssignedStaff() {
     try {
         const campaignIds = leaderState.campaigns.map(c => c.id);
 
-        // Get all staff assigned to these campaigns
+        let staffData = [];
+
+        // Try to use cached data first
+        if (isCacheValid()) {
+            const cached = getCachedData('STAFF');
+            if (cached) {
+                console.log('✓ Using cached staff');
+                staffData = cached.filter(s => 
+                    s.assigned_campaigns && 
+                    s.assigned_campaigns.some(cid => campaignIds.includes(cid))
+                );
+                leaderState.assignedStaff = staffData;
+                console.log(`✓ Loaded ${staffData.length} staff members from cache`);
+                return;
+            }
+        }
+
+        // Otherwise fetch from Firebase
+        console.log('📡 Fetching staff from Firebase');
         const staffRef = collection(db, 'staff');
-        const staffData = [];
 
         for (const campaignId of campaignIds) {
             const q = query(staffRef, where('assigned_campaigns', 'array-contains', campaignId));
@@ -1200,29 +1232,13 @@ async function openCampaignDetailModal(campaignId) {
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 12px;">
             <div>
-                <h4 style="margin: 0 0 8px 0; color:#0f172a; font-weight:600;">Start Date</h4>
-                <p style="margin: 0; color:#1f2937;">${formatDate(campaign.start_date)}</p>
-            </div>
-            <div>
-                <h4 style="margin: 0 0 8px 0; color:#0f172a; font-weight:600;">End Date</h4>
-                <p style="margin: 0; color:#1f2937;">${formatDate(campaign.end_date)}</p>
-            </div>
-        </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 12px;">
-            <div>
                 <h4 style="margin: 0 0 8px 0; color:#0f172a; font-weight:600;">Start Time</h4>
-                <p style="margin: 0; color:#1f2937;">${safeText(campaign.startTime || 'N/A')}</p>
+                <p style="margin: 0; color:#1f2937;">${formatTime(campaign.start_time)}</p>
             </div>
             <div>
                 <h4 style="margin: 0 0 8px 0; color:#0f172a; font-weight:600;">End Time</h4>
-                <p style="margin: 0; color:#1f2937;">${safeText(campaign.endTime || 'N/A')}</p>
+                <p style="margin: 0; color:#1f2937;">${formatTime(campaign.end_time)}</p>
             </div>
-        </div>
-
-        <div style="margin-top: 12px;">
-            <h4 style="margin: 0 0 8px 0; color:#0f172a; font-weight:600;">Location</h4>
-            <p style="margin: 0; color:#1f2937;">${safeText(campaign.location || 'N/A')}</p>
         </div>
 
         <div style="margin-top: 12px;">
@@ -1232,7 +1248,7 @@ async function openCampaignDetailModal(campaignId) {
 
         <div style="margin-top: 12px;">
             <h4 style="margin: 0 0 8px 0; color:#0f172a; font-weight:600;">Budget</h4>
-            <p style="margin: 0; color:#1f2937;">$${campaign.budget ? campaign.budget.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}</p>
+            <p style="margin: 0; color:#1f2937;">$${safeText(campaign.budget || '0')}</p>
         </div>
 
         <div style="margin-top: 12px;">
@@ -1241,7 +1257,7 @@ async function openCampaignDetailModal(campaignId) {
         </div>
 
         <div style="display: flex; gap: 10px; padding-top: 12px; border-top: 1px solid #e6edf8;">
-            <button class="btn-secondary" onclick="openAssignBAModal('${campaignId}', '${campaign.name.replace(/'/g, "\\'")}'); document.getElementById('campaignDetailModal').style.display='none';">
+            <button class="btn-secondary" onclick="openAssignBAModal('${campaignId}', '${campaign.name.replace(/'/g, "\\'")}'); modal.style.display='none';">
                 <i class="fa-solid fa-user-tie"></i> Assign BA
             </button>
         </div>
@@ -1635,6 +1651,7 @@ function setLeaderProfile(profile) {
 window.setLeaderProfile = setLeaderProfile;
 
 function logout() {
+    clearAllCache();
     try { localStorage.removeItem('leaderProfile'); } catch (e) { }
     try { sessionStorage.removeItem('user'); } catch (e) { }
     window.location.href = 'login.html';

@@ -8,6 +8,7 @@ import {
     where,
     doc
 } from "./firebase.js";
+import { clearAllCache } from "./localStorage.js";
 
 
 // =======================
@@ -218,6 +219,7 @@ function renderBrandAmbassadors(ambassadors) {
 // LOGOUT
 // =======================
 window.logout = function(){
+    clearAllCache();
     sessionStorage.clear();
     window.location.href="../html/login.html";
 }

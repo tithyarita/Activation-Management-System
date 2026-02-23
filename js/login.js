@@ -1,4 +1,5 @@
 import { db, collection, getDocs, query, where } from "../js/firebase.js";
+import { saveUserToCache, cacheAllData, clearAllCache } from "../js/localStorage.js";
 
 
 // Hash helper
@@ -59,6 +60,19 @@ async function handleLogin(event) {
             role: userData.role,
             name: userData.name
         }));
+
+        // ✅ Save user to localStorage cache
+        saveUserToCache({
+            id: userDoc.id,
+            role: userData.role,
+            name: userData.name,
+            email: userData.email,
+            photo: userData.photo || '../asset/e8509f8003b9dc24c37ba8d92a9a069b.jpg'
+        });
+
+        // ✅ Cache all Firebase data
+        console.log('Caching all data for offline use...');
+        await cacheAllData(db, collection, getDocs);
 
         // If leader, persist a leaderProfile for dashboard header
         if (userData.role === 'leader') {

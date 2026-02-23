@@ -1,152 +1,154 @@
-import { db, collection, getDocs } from "../js/firebase.js";
+ import { db, collection, getDocs } from "./firebase.js";
 
-// Initialize leaders page
-export async function initLeaders() {
-    try {
-        await loadLeadersData();
-    } catch (err) {
-        console.error('Error initializing leaders:', err);
-    }
-}
+    async function loadLeaders() {
+        try {
+            // Load all required collections
+            const usersSnap = await getDocs(collection(db, 'users'));
+            const clockRecordsSnap = await getDocs(collection(db, 'clock_records'));
+            const campaignsSnap = await getDocs(collection(db, 'campaigns'));
+            const staffSnap = await getDocs(collection(db, 'staff'));
 
-// Load leaders performance data
-async function loadLeadersData() {
-    try {
-        const usersSnap = await getDocs(collection(db, 'users'));
-        const campaignsSnap = await getDocs(collection(db, 'campaigns'));
-        const attendanceSnap = await getDocs(collection(db, 'attendance'));
+            // Filter leaders
+            const leaders = [];
+            usersSnap.forEach(doc => {
+                const user = doc.data();
+                if (user.role === 'leader') {
+                    leaders.push({ id: doc.id, ...user });
+                }
+            });
 
-        const leaders = [];
+            // Calculate stats for each leader
+            leaders.forEach(leader => {
+                let campaigns = 0;
+                let staffManaged = new Set();
+                let checkIns = 0;
+                let checkedInToday = 0;
 
-        usersSnap.forEach(userDoc => {
-            const user = userDoc.data();
-            if (user.role === 'leader') {
-                const leaderId = userDoc.id;
-                const leaderCampaigns = Array.from(campaignsSnap.docs).filter(c => (c.data().leaderId || c.data().leader) === leaderId).length;
-                const leaderAttendance = Array.from(attendanceSnap.docs).filter(a => (a.data().leaderId || a.data().leader) === leaderId).length;
-
-                // staffManaged: number of unique staff who checked in under this leader
-                const staffSet = new Set(Array.from(attendanceSnap.docs)
-                    .filter(a => (a.data().leaderId || a.data().leader) === leaderId)
-                    .map(a => a.data().userId)
-                );
-
-                const staffManaged = staffSet.size;
-
-                const attendanceRate = leaderCampaigns > 0 ? Math.round((leaderAttendance / (leaderCampaigns * 10)) * 100) : 0;
-
-                leaders.push({
-                    id: leaderId,
-                    name: user.name || 'Unnamed',
-                    email: user.email || '',
-                    campaigns: leaderCampaigns,
-                    staffManaged,
-                    attendance: leaderAttendance,
-                    attendanceRate,
-                    rating: (leaderAttendance > 0 ? Math.min(5, 3 + leaderAttendance / 10) : 3).toFixed(1)
+                // Count campaigns assigned to this leader
+                campaignsSnap.forEach(doc => {
+                    const campaign = doc.data();
+                    if (campaign.assigned_leaders && campaign.assigned_leaders.includes(leader.id)) {
+                        campaigns++;
+                        
+                        // Count staff assigned to these campaigns
+                        staffSnap.forEach(staffDoc => {
+                            const staff = staffDoc.data();
+                            if (staff.assigned_campaigns && staff.assigned_campaigns.includes(campaign.id)) {
+                                staffManaged.add(staffDoc.id);
+                            }
+                        });
+                    }
                 });
-            }
-        });
 
-        // Sort by attendanceRate then rating
-        leaders.sort((a, b) => b.attendanceRate - a.attendanceRate || b.rating - a.rating);
+                // Count check-ins for this leader's staff
+                const today = new Date().toISOString().split('T')[0];
+                clockRecordsSnap.forEach(doc => {
+                    const record = doc.data();
+                    if (staffManaged.has(record.staff_id)) {
+                        if (record.type === 'in') {
+                            checkIns++;
+                            if (record.timestamp && record.timestamp.split('T')[0] === today) {
+                                checkedInToday++;
+                            }
+                        }
+                    }
+                });
 
-        // Update performance cards (leaderPerformance)
-        const perfEl = document.getElementById('leaderPerformance');
-        if (perfEl) {
-            if (leaders.length === 0) {
-                perfEl.innerHTML = '<p class="loading-text">No leaders found.</p>';
-            } else {
-                let html = '';
-                leaders.slice(0, 3).forEach((leader, idx) => {
-                    html += `
-                        <div class="performance-card">
-                            <div class="performance-rank">#${idx + 1}</div>
-                            <h4>${leader.name}</h4>
-                            <p class="email">${leader.email}</p>
-                            <div class="performance-stats">
-                                <div class="stat"><span class="stat-label">Campaigns</span><span class="stat-value">${leader.campaigns}</span></div>
-                                <div class="stat"><span class="stat-label">Staff Managed</span><span class="stat-value">${leader.staffManaged}</span></div>
-                                <div class="stat"><span class="stat-label">Check-ins</span><span class="stat-value">${leader.attendance}</span></div>
-                                <div class="stat"><span class="stat-label">Attendance Rate</span><span class="stat-value">${leader.attendanceRate}%</span></div>
-                            </div>
+                leader.campaigns = campaigns;
+                leader.staff = staffManaged.size;
+                leader.checkIns = checkIns;
+                leader.checkedInToday = checkedInToday;
+                leader.rate = staffManaged.size > 0 ? Math.round((checkedInToday / staffManaged.size) * 100) : 0;
+            });
+
+            // Sort by attendance rate
+            leaders.sort((a, b) => b.rate - a.rate);
+
+            // Display performance cards (top 3)
+            const perfDiv = document.getElementById('leaderPerformance');
+            if (leaders.length > 0) {
+                perfDiv.innerHTML = leaders.slice(0, 3).map((l, i) => `
+                    <div class="performance-card">
+                        <div class="rank-badge">#${i + 1}</div>
+                        <h4>${l.name}</h4>
+                        <p>${l.email}</p>
+                        <div class="stat-row">
+                            <span>Campaigns: ${l.campaigns}</span>
+                            <span>Staff: ${l.staff}</span>
+                            <span>Check-ins: ${l.checkIns}</span>
                         </div>
-                    `;
-                });
-                perfEl.innerHTML = html;
-            }
-        }
-
-        // Update ranking table (leaderRankingTable)
-        const rankingTable = document.getElementById('leaderRankingTable');
-        if (rankingTable) {
-            if (leaders.length === 0) {
-                rankingTable.innerHTML = '<tr><td colspan="8" class="loading-text">No leaders found.</td></tr>';
+                    </div>
+                `).join('');
             } else {
-                let html = '';
-                leaders.forEach((leader, idx) => {
-                    html += `
-                        <tr>
-                            <td>#${idx + 1}</td>
-                            <td>${leader.name}</td>
-                            <td>${leader.email}</td>
-                            <td>${leader.campaigns}</td>
-                            <td>${leader.staffManaged}</td>
-                            <td>${leader.attendanceRate}%</td>
-                            <td>${leader.attendance}</td>
-                            <td><button class="btn btn-small" onclick="viewLeader('${leader.id}')">View</button></td>
-                        </tr>
-                    `;
-                });
-                rankingTable.innerHTML = html;
+                perfDiv.innerHTML = '<p class="loading-text">No leaders found</p>';
             }
-        }
 
-        // Activity timeline (leaderActivityTimeline)
-        const activityEl = document.getElementById('leaderActivityTimeline');
-        if (activityEl) {
+            // Display ranking table
+            const rankTable = document.getElementById('leaderRankingTable');
+            if (leaders.length > 0) {
+                rankTable.innerHTML = leaders.map((l, i) => `
+                    <tr>
+                        <td>${i + 1}</td>
+                        <td>${l.name}</td>
+                        <td>${l.email}</td>
+                        <td>${l.campaigns}</td>
+                        <td>${l.staff}</td>
+                        <td>${l.rate}%</td>
+                        <td>${l.checkIns}</td>
+                    </tr>
+                `).join('');
+            } else {
+                rankTable.innerHTML = '<tr><td colspan="7" class="loading-text">No leaders found</td></tr>';
+            }
+
+            // Build activity timeline
             const activities = [];
-
-            attendanceSnap.forEach(aDoc => {
-                const a = aDoc.data();
-                if (a.timestamp) {
+            clockRecordsSnap.forEach(doc => {
+                const record = doc.data();
+                // Only show activities for staff managed by leaders
+                let isManaged = false;
+                leaders.forEach(leader => {
+                    campaignsSnap.forEach(campaign => {
+                        if (campaign.assigned_leaders && campaign.assigned_leaders.includes(leader.id)) {
+                            staffSnap.forEach(staff => {
+                                if (staff.assigned_campaigns && staff.assigned_campaigns.includes(campaign.id) && staff.id === record.staff_id) {
+                                    isManaged = true;
+                                }
+                            });
+                        }
+                    });
+                });
+                
+                if (isManaged && record.timestamp) {
                     activities.push({
-                        time: new Date(a.timestamp),
-                        message: `${a.userName || 'User'} checked in at ${a.location || 'Unknown'}`
+                        time: new Date(record.timestamp),
+                        msg: `${record.staff_name || 'Staff'} ${record.type === 'in' ? 'clocked in' : 'clocked out'}`,
+                        staffName: record.staff_name
                     });
                 }
             });
 
-            campaignsSnap.forEach(cDoc => {
-                const c = cDoc.data();
-                if (c.createdAt) activities.push({ time: new Date(c.createdAt), message: `Campaign "${c.name}" created` });
-            });
-
-            activities.sort((x, y) => y.time - x.time);
-            const recent = activities.slice(0, 12);
-
-            if (recent.length === 0) {
-                activityEl.innerHTML = '<p class="loading-text">No recent activities</p>';
-            } else {
-                let html = '';
-                recent.forEach(act => {
-                    html += `
-                        <div class="timeline-item">
-                            <div class="timeline-time">${act.time.toLocaleString()}</div>
-                            <div class="timeline-message">${act.message}</div>
+            // Sort and display recent activities
+            activities.sort((a, b) => b.time - a.time);
+            const timelineDiv = document.getElementById('leaderActivityTimeline');
+            if (activities.length > 0) {
+                timelineDiv.innerHTML = activities.slice(0, 15).map(a => `
+                    <div class="timeline-item">
+                        <div class="timeline-time">${a.time.toLocaleString()}</div>
+                        <div class="timeline-content">
+                            <p>${a.msg}</p>
                         </div>
-                    `;
-                });
-                activityEl.innerHTML = html;
+                    </div>
+                `).join('');
+            } else {
+                timelineDiv.innerHTML = '<p class="loading-text">No recent activity</p>';
             }
+
+        } catch (err) {
+            console.error('Error loading leaders:', err);
+            document.getElementById('leaderPerformance').innerHTML = '<p class="loading-text">Error loading data</p>';
+            document.getElementById('leaderRankingTable').innerHTML = '<tr><td colspan="7" class="loading-text">Error loading data</td></tr>';
         }
-
-    } catch (err) {
-        console.error('Error loading leaders data:', err);
     }
-}
 
-// Simple view action
-window.viewLeader = function(leaderId) {
-    alert('View leader details: ' + leaderId);
-};
+    loadLeaders();
