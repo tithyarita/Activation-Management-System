@@ -221,6 +221,24 @@ window.closeReportModal=()=>{
 window.handleLogout=()=>{
     if(confirm("Logout?")){
         sessionStorage.clear();
-        location.href="login.html";
+        // Replace history entry so Back can't return to protected pages
+        location.replace('login.html');
     }
 };
+
+// =======================
+// AUTH GUARD (protected pages)
+// =======================
+(function(){
+    function _loginRedirect(){
+        const p = location.pathname || '';
+        const loginPath = p.includes('/admin/') ? '../login.html' : 'login.html';
+        location.replace(loginPath);
+    }
+    let cu = null;
+    try { cu = JSON.parse(sessionStorage.getItem('user')); } catch(e) { cu = null; }
+    if (!cu) {
+        try { sessionStorage.clear(); } catch(e){}
+        _loginRedirect();
+    }
+})();

@@ -79,6 +79,55 @@ main {
     gap: 8px;
 }
 
+/* Larger, high-visibility button for quick actions */
+.btn-big {
+    padding: 14px 24px;
+    font-size: 16px;
+    font-weight: 700;
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+}
+
+/* Location suggestion styles */
+#locationSuggestions {
+    box-shadow: var(--shadow-lg);
+    border-radius: 6px;
+    overflow: auto;
+}
+.location-suggestion {
+    padding: 10px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 15px;
+    line-height: 1.3;
+}
+.location-suggestion:hover { background:#f8fafc; }
+
+/* Larger location input for admin visibility */
+#campaignLocation {
+    font-size: 18px;
+    padding: 12px 14px;
+    height: 46px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--white);
+    color: var(--text-dark);
+}
+
+#campaignLocation::placeholder { color: #9ca3af; font-size: 16px; }
+
+/* Increase suggestion font to match input */
+#locationSuggestions .location-suggestion { font-size: 15px; }
+
+/* Strong large input for admin (override any other rules) */
+.large-input {
+    font-size: 18px !important;
+    padding: 12px 14px !important;
+    height: 48px !important;
+    border-radius: 8px !important;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06) !important;
+}
+
 .btn-primary {
     background: var(--primary);
     color: var(--white);

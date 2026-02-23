@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="../../css/style.css">
     <link rel="stylesheet" href="../../css/admin.css">
     <link rel="stylesheet" href="../../css/admin-layout.css">
+    <!-- Leaflet map for location preview -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-sA+e2Y4b1h6kXgk7o0v2jFQp1bQv6s3bYhZ8aA6KQ0M=" crossorigin=""/>
 </head>
 
 <body>
@@ -134,7 +136,16 @@
             <div class="form-row">
                 <div class="form-group">
                     <label>Location *</label>
-                    <input type="text" id="campaignLocation" required>
+                    <div style="display:flex;gap:8px;align-items:center;">
+                        <input type="text" id="campaignLocation" class="large-input" required style="flex:1;" placeholder="Enter address or use location"> 
+                        <button type="button" class="btn" id="useLocationBtn">Use My Location</button>
+                        <button type="button" class="btn" id="searchLocationBtn">Find</button>
+                    </div>
+                    <div id="locationSuggestions" style="margin-top:6px; display:none; border:1px solid #e5e7eb; border-radius:6px; background:#fff; max-height:180px; overflow:auto;"></div>
+                    <div id="locationMap" style="height:220px; margin-top:8px; display:none; border-radius:6px; overflow:hidden;"></div>
+
+                    <input type="hidden" id="campaignLat">
+                    <input type="hidden" id="campaignLng">
                 </div>
                 <div class="form-group">
                     <label>Budget ($) *</label>
@@ -174,6 +185,9 @@
 </div>
 
 <script type="module" src="../../js/campaigns-new.js"></script>
+<script src="../../js/localStorage.js"></script>
+<!-- Leaflet JS (loaded after local scripts to ensure global L is available when needed) -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-o9N1j8gkQYgYkq1+QbGQ4f5jvM6Qb0p+YJk2eH0zY+M=" crossorigin=""></script>
 </body>
 
 </html>
