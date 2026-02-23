@@ -4,10 +4,19 @@ import { saveUserToCache, cacheAllData, clearAllCache } from "../js/localStorage
 
 // Hash helper
 async function hashPassword(password) {
+
     const enc = new TextEncoder();
+   
+
     const data = enc.encode(password);
+    
+
     const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    
+
     const hashArray = Array.from(new Uint8Array(hashBuffer));
+   
+
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
@@ -28,6 +37,7 @@ async function handleLogin(event) {
     try {
 
         const enteredHash = await hashPassword(password);
+        
 
         // 🔥 Query ONLY matching email
         const q = query(
@@ -35,7 +45,10 @@ async function handleLogin(event) {
             where("email", "==", email)
         );
 
+        console.log("q:", q);
+
         const snapshot = await getDocs(q);
+        
 
         if (snapshot.empty) {
             alert("Invalid email or password");
@@ -43,11 +56,16 @@ async function handleLogin(event) {
         }
 
         const userDoc = snapshot.docs[0];
+        
+
         const userData = userDoc.data();
+        
 
         const passwordMatches =
             (userData.passwordHash === enteredHash) ||
             (userData.password === password);
+        
+       
 
         if (!passwordMatches) {
             alert("Invalid email or password");
@@ -60,6 +78,7 @@ async function handleLogin(event) {
             role: userData.role,
             name: userData.name
         }));
+        
 
         // ✅ Save user to localStorage cache
         saveUserToCache({
@@ -82,7 +101,7 @@ async function handleLogin(event) {
                 role: 'Leader',
                 photo: userData.photo || '../asset/e8509f8003b9dc24c37ba8d92a9a069b.jpg'
             };
-            try { localStorage.setItem('leaderProfile', JSON.stringify(profile)); } catch (e) {}
+            try { localStorage.setItem('leaderProfile', JSON.stringify(profile)); } catch (e) { }
         }
 
         // Redirect by role
