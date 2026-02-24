@@ -75,169 +75,15 @@
             <!-- Campaigns Page -->
             <section class="page active" id="campaigns">
 
-            <div class="section-header">
-                <div>
-                    <h1>My Campaigns</h1>
-                    <p class="subtitle">Manage assigned campaigns and staff</p>
-                </div>
-                <div class="header-buttons">
-                    <!-- <button class="btn-secondary" id="assignStaffBtn">
-                        <i class="fa-solid fa-user-plus"></i> Assign Staff to Campaign
-                    </button> -->
-                    <div id="assignStaffModal" class="modal">
-                        <div class="modal-content">
-                            <span class="close">&times;</span>
-                            <h2>Assign Staff to Campaign</h2>
-                            <div class="modal-form">
-                                <label>Select Campaign:</label>
-                                <select id="campaignSelect">
-                                    <option value="">-- Choose Campaign --</option>
-                                </select>
-
-                                <label>Search & Select Users/BA:</label>
-                                <input type="text" id="userSearch" placeholder="Search by name..." />
-                                <div id="userList" class="user-selection-list"></div>
-
-                                <button id="confirmAssign" class="btn-primary">Assign Selected Users</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Assign BA to Campaign Modal -->
-                    <div id="assignBAModal" class="modal">
-                        <div class="modal-content">
-                            <span class="close">&times;</span>
-                            <h2 id="assignBATitle">Assign BA to Campaign</h2>
-                            <input type="hidden" id="assignBACampaignId">
-                            <div class="modal-form">
-                                <label>Select Brand Ambassadors:</label>
-                                <div id="baSelectionList" class="ba-selection-list" style="max-height: 300px; overflow-y: auto; padding: 10px; border: 1px solid #e5e7eb; border-radius: 6px; background: #f9fafb;">
-                                    <!-- Populated by JavaScript -->
-                                </div>
-                                <button id="confirmAssignBA" class="btn-primary" style="margin-top: 15px;" onclick="handleConfirmAssignBA()">Confirm Assignment</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="notification" class="notification" style="background:none;"></div>
-                </div>
-            </div>
-
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <span class="stat-label">Planned</span>
-                    <div class="stat-value">0</div>
-                    <span class="stat-change positive">Total Required</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-label">Clocked-In</span>
-                    <div class="stat-value">0</div>
-                    <span class="stat-change">Active Now</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-label">Attendance</span>
-                    <div class="stat-value highlight">0%</div>
-                    <span class="stat-change negative"></span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-label">Avg Hours</span>
-                    <div class="stat-value">0</div>
-                    <span class="stat-change">Per Shift</span>
-                </div>
-            </div>
-
-            <div class="dashboard-grid">
-                <div class="left-col">
-                    <div class="card table-card">
-                        <div class="card-header">
-                            <h3>Assigned Campaigns</h3>
-                            <div class="search-box" style="margin-left:12px;">
-                                <i class="fa-solid fa-magnifying-glass"></i>
-                                <input type="text" id="campaignSearch" placeholder="Search campaigns..." autocomplete="off">
-                            </div>
-                        </div>
-                        <div class="pro-table-wrapper">
-                        <table class="pro-table">
-                            <thead>
-                                <tr>
-                                    <th>Campaign Name</th>
-                                    <th>Status</th>
-                                    <th>Staff Count</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="campaignsTableBody"></tbody>
-                        </table>
-                        </div>
-                    </div>
-
-                    <div class="card table-card">
-
-                        <div class="card-header">
-                            <h3>Brand Ambassadors</h3>
-
-                            <div class="search-box">
-                                <i class="fa-solid fa-magnifying-glass"></i>
-                                <input type="text" id="baSearch" placeholder="Search BA..." autocomplete="off">
-                                <div id="baSuggestions" class="search-suggestions"></div>
-                            </div>
-
-                        </div>
-
-                        <table class="pro-table">
-
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Role</th>
-                                    <th>Campaign</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-
-                            <!-- ⭐ IMPORTANT ID -->
-                            <tbody id="baTableBody">
-                                <tr>
-                                    <td colspan="4">Loading...</td>
-                                </tr>
-                            </tbody>
-
-                        </table>
-
-                    </div>
-
-                </div>
-
-                <div class="right-col">
-                    <div class="card activity-card">
-                        <h3>Real-Time Activity</h3>
-                        <div class="activity-feed" id="activityFeed"></div>
-                    </div>
-
-                    <div class="card map-card">
-                        <h3>Current Locations</h3>
-                        <div class="mini-map" id="mapContainer">
-                            <i class="fa-solid fa-map-location-dot"></i>
-                            <p id="mapText">Select campaign to view locations</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Attendance Page -->
-        <section class="page" id="attendance">
-            <div class="card table-card">
-                <div class="card-header">
-                    <h3>Daily Attendance Monitoring</h3>
+                <div class="section-header">
                     <div>
                         <h1>My Campaigns</h1>
                         <p class="subtitle">Manage assigned campaigns and staff</p>
                     </div>
                     <div class="header-buttons">
-                        <button class="btn-secondary" id="assignStaffBtn">
-                            <i class="fa-solid fa-user-plus"></i> Assign Staff to Campaign
-                        </button>
+                        <!-- <button class="btn-secondary" id="assignStaffBtn">
+                        <i class="fa-solid fa-user-plus"></i> Assign Staff to Campaign
+                    </button> -->
                         <div id="assignStaffModal" class="modal">
                             <div class="modal-content">
                                 <span class="close">&times;</span>
@@ -307,10 +153,11 @@
                         <div class="card table-card">
                             <div class="card-header">
                                 <h3>Assigned Campaigns</h3>
-                                <div class="search-box" style="margin-left:12px;">
+                                <div class="search-box">
                                     <i class="fa-solid fa-magnifying-glass"></i>
                                     <input type="text" id="campaignSearch" placeholder="Search campaigns..."
                                         autocomplete="off">
+                                    <div id="campaignSuggestions" class="search-suggestions"></div>
                                 </div>
                             </div>
                             <div class="pro-table-wrapper">
@@ -344,14 +191,12 @@
                             <table class="pro-table">
 
                                 <thead>
-
                                     <tr>
                                         <th>Name</th>
                                         <th>Role</th>
                                         <th>Campaign</th>
                                         <th>Status</th>
                                     </tr>
-
                                 </thead>
 
                                 <!-- ⭐ IMPORTANT ID -->
@@ -382,6 +227,165 @@
                         </div>
                     </div>
                 </div>
+            </section>
+
+            <!-- Attendance Page -->
+            <section class="page" id="attendance">
+                <div class="card table-card">
+                    <div class="card-header">
+                        <h3>Daily Attendance Monitoring</h3>
+                        <div>
+                            <h1>My Campaigns</h1>
+                            <p class="subtitle">Manage assigned campaigns and staff</p>
+                        </div>
+                        <div class="header-buttons">
+                            <button class="btn-secondary" id="assignStaffBtn">
+                                <i class="fa-solid fa-user-plus"></i> Assign Staff to Campaign
+                            </button>
+                            <div id="assignStaffModal" class="modal">
+                                <div class="modal-content">
+                                    <span class="close">&times;</span>
+                                    <h2>Assign Staff to Campaign</h2>
+                                    <div class="modal-form">
+                                        <label>Select Campaign:</label>
+                                        <select id="campaignSelect">
+                                            <option value="">-- Choose Campaign --</option>
+                                        </select>
+
+                                        <label>Search & Select Users/BA:</label>
+                                        <input type="text" id="userSearch" placeholder="Search by name..." />
+                                        <div id="userList" class="user-selection-list"></div>
+
+                                        <button id="confirmAssign" class="btn-primary">Assign Selected Users</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Assign BA to Campaign Modal -->
+                            <div id="assignBAModal" class="modal">
+                                <div class="modal-content">
+                                    <span class="close">&times;</span>
+                                    <h2 id="assignBATitle">Assign BA to Campaign</h2>
+                                    <input type="hidden" id="assignBACampaignId">
+                                    <div class="modal-form">
+                                        <label>Select Brand Ambassadors:</label>
+                                        <div id="baSelectionList" class="ba-selection-list"
+                                            style="max-height: 300px; overflow-y: auto; padding: 10px; border: 1px solid #e5e7eb; border-radius: 6px; background: #f9fafb;">
+                                            <!-- Populated by JavaScript -->
+                                        </div>
+                                        <button id="confirmAssignBA" class="btn-primary" style="margin-top: 15px;"
+                                            onclick="handleConfirmAssignBA()">Confirm Assignment</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="notification" class="notification" style="background:none;"></div>
+                        </div>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <span class="stat-label">Planned</span>
+                            <div class="stat-value">0</div>
+                            <span class="stat-change positive">Total Required</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">Clocked-In</span>
+                            <div class="stat-value">0</div>
+                            <span class="stat-change">Active Now</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">Attendance</span>
+                            <div class="stat-value highlight">0%</div>
+                            <span class="stat-change negative"></span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">Avg Hours</span>
+                            <div class="stat-value">0</div>
+                            <span class="stat-change">Per Shift</span>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-grid">
+                        <div class="left-col">
+                            <div class="card table-card">
+                                <div class="card-header">
+                                    <h3>Assigned Campaigns</h3>
+                                    <div class="search-box" style="margin-left:12px;">
+                                        <i class="fa-solid fa-magnifying-glass"></i>
+                                        <input type="text" id="campaignSearch" placeholder="Search campaigns..."
+                                            autocomplete="off">
+                                    </div>
+                                </div>
+                                <div class="pro-table-wrapper">
+                                    <table class="pro-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Campaign Name</th>
+                                                <th>Status</th>
+                                                <th>Staff Count</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="campaignsTableBody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="card table-card">
+
+                                <div class="card-header">
+                                    <h3>Brand Ambassadors</h3>
+
+                                    <div class="search-box">
+                                        <i class="fa-solid fa-magnifying-glass"></i>
+                                        <input type="text" id="baSearch" placeholder="Search BA..." autocomplete="off">
+                                        <div id="baSuggestions" class="search-suggestions"></div>
+                                    </div>
+
+                                </div>
+
+                                <table class="pro-table">
+
+                                    <thead>
+
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Role</th>
+                                            <th>Campaign</th>
+                                            <th>Status</th>
+                                        </tr>
+
+                                    </thead>
+
+                                    <!-- ⭐ IMPORTANT ID -->
+                                    <tbody id="baTableBody">
+                                        <tr>
+                                            <td colspan="4">Loading...</td>
+                                        </tr>
+                                    </tbody>
+
+                                </table>
+
+                            </div>
+
+                        </div>
+
+                        <div class="right-col">
+                            <div class="card activity-card">
+                                <h3>Real-Time Activity</h3>
+                                <div class="activity-feed" id="activityFeed"></div>
+                            </div>
+
+                            <div class="card map-card">
+                                <h3>Current Locations</h3>
+                                <div class="mini-map" id="mapContainer">
+                                    <i class="fa-solid fa-map-location-dot"></i>
+                                    <p id="mapText">Select campaign to view locations</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
             </section>
 
             <!-- Attendance Page -->
@@ -602,35 +606,35 @@
                         </div>
                     </div>
                 </div>
-            </div>
-        </section>
-
-        <!-- Campaign Detail Modal -->
-        <div id="campaignDetailModal" class="modal">
-            <div class="modal-content" style="height:30rem ;">
-                <span class="close">&times;</span>
-                <h2>Campaign Details</h2>
-                <div id="campaignDetailContent" style="display: grid; gap: 20px;">
-                    <!-- Populated by JavaScript -->
                 </div>
-            </div>
-        </div>
+            </section>
 
-        <!-- BA List Page -->
-        <section class="page" id="balist">
-            <div class="card table-card">
-                <div class="card-header">
-                    <h3>Brand Ambassadors</h3>
-                    <div class="search-box">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" id="baSearchInput" placeholder="Search brand ambassadors...">
+            <!-- Campaign Detail Modal -->
+            <div id="campaignDetailModal" class="modal">
+                <div class="modal-content" style="height:30rem ;">
+                    <span class="close">&times;</span>
+                    <h2>Campaign Details</h2>
+                    <div id="campaignDetailContent" style="display: grid; gap: 20px;">
+                        <!-- Populated by JavaScript -->
                     </div>
                 </div>
+            </div>
+
+            <!-- BA List Page -->
+            <section class="page" id="balist">
+                <div class="card table-card">
+                    <div class="card-header">
+                        <h3>Brand Ambassadors</h3>
+                        <div class="search-box">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="baSearchInput" placeholder="Search brand ambassadors...">
+                        </div>
+                    </div>
             </section>
         </main>
 
         <script type="module" src="../js/leader.js"></script>
-        
+
 
 </body>
 

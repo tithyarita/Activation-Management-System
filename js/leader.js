@@ -19,9 +19,9 @@ const _currentUser = (() => {
 })();
 
 if (!_currentUser || _currentUser.role !== 'leader') {
-    try { clearAllCache(); } catch (e) {}
-    try { localStorage.removeItem('leaderProfile'); } catch (e) {}
-    try { sessionStorage.clear(); } catch (e) {}
+    try { clearAllCache(); } catch (e) { }
+    try { localStorage.removeItem('leaderProfile'); } catch (e) { }
+    try { sessionStorage.clear(); } catch (e) { }
     _loginRedirect();
 }
 
@@ -86,6 +86,51 @@ function formatTime(timeString) {
 const LATE_ARRIVAL_THRESHOLD = 30; // minutes
 const SHIFT_START_TIME = '09:00';
 
+// Search Campaigns
+const searchInput = document.getElementById("campaignSearch");
+const suggestionsBox = document.getElementById("campaignSuggestions");
+
+searchInput.addEventListener("input", function () {
+    const value = this.value.trim().toLowerCase();
+    suggestionsBox.innerHTML = "";
+
+    if (!value) {
+        suggestionsBox.style.display = "none";
+        return;
+    }
+
+    // 🔥 Use campaigns that are already loaded
+    const filtered = (leaderState.campaigns || []).filter(c =>
+        (c.name || "").toLowerCase().includes(value)
+    );
+
+    if (filtered.length === 0) {
+        suggestionsBox.style.display = "none";
+        return;
+    }
+
+    filtered.forEach(campaign => {
+        const div = document.createElement("div");
+        div.textContent = campaign.name;
+
+        div.addEventListener("click", function () {
+            searchInput.value = campaign.name;
+            suggestionsBox.style.display = "none";
+        });
+
+        suggestionsBox.appendChild(div);
+    });
+
+    suggestionsBox.style.display = "block";
+});
+
+// Close when clicking outside
+document.addEventListener("click", function (e) {
+    if (!e.target.closest(".search-box")) {
+        suggestionsBox.style.display = "none";
+    }
+});
+
 // ===============================
 // 2. INITIALIZATION
 // ===============================
@@ -123,7 +168,7 @@ async function initializeDashboard() {
                 leaderState.leaderId = su.id;
                 leaderState.leaderName = su.name || leaderState.leaderName;
                 // persist a minimal leaderProfile so subsequent loads are consistent
-                try { localStorage.setItem('leaderProfile', JSON.stringify({ id: su.id, name: su.name, role: 'Leader' })); } catch(e){}
+                try { localStorage.setItem('leaderProfile', JSON.stringify({ id: su.id, name: su.name, role: 'Leader' })); } catch (e) { }
                 updateHeader();
                 console.log(`✓ Using session user as leader profile: ${su.id}`);
             }
@@ -287,8 +332,8 @@ async function loadAssignedStaff() {
             const cached = getCachedData('STAFF');
             if (cached) {
                 console.log('✓ Using cached staff');
-                staffData = cached.filter(s => 
-                    s.assigned_campaigns && 
+                staffData = cached.filter(s =>
+                    s.assigned_campaigns &&
                     s.assigned_campaigns.some(cid => campaignIds.includes(cid))
                 );
                 leaderState.assignedStaff = staffData;
@@ -310,7 +355,7 @@ async function loadAssignedStaff() {
                 }
             });
         }
-        
+
 
         leaderState.assignedStaff = staffData;
         console.log(`✓ Loaded ${leaderState.assignedStaff.length} staff members`);
