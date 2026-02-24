@@ -86,51 +86,57 @@ function formatTime(timeString) {
 const LATE_ARRIVAL_THRESHOLD = 30; // minutes
 const SHIFT_START_TIME = '09:00';
 
-// Search Campaigns
-const searchInput = document.getElementById("campaignSearch");
-const suggestionsBox = document.getElementById("campaignSuggestions");
+// Campaign search input
+const campaignSearchInput = document.getElementById("campaignSearch");
+const campaignSuggestionsBox = document.getElementById("campaignSuggestions");
 
-searchInput.addEventListener("input", function () {
+campaignSearchInput.addEventListener("input", function () {
     const value = this.value.trim().toLowerCase();
-    suggestionsBox.innerHTML = "";
+    campaignSuggestionsBox.innerHTML = "";
+
+    const rows = document.querySelectorAll("#campaignsTableBody tr");
 
     if (!value) {
-        suggestionsBox.style.display = "none";
+        rows.forEach(row => row.style.display = "");
+        campaignSuggestionsBox.style.display = "none";
         return;
     }
 
-    // 🔥 Use campaigns that are already loaded
-    const filtered = (leaderState.campaigns || []).filter(c =>
+    const filtered = leaderState.campaigns.filter(c =>
         (c.name || "").toLowerCase().includes(value)
     );
 
-    if (filtered.length === 0) {
-        suggestionsBox.style.display = "none";
+    if (!filtered.length) {
+        campaignSuggestionsBox.style.display = "none";
         return;
     }
 
     filtered.forEach(campaign => {
         const div = document.createElement("div");
         div.textContent = campaign.name;
+        div.classList.add("suggestion-item");
 
         div.addEventListener("click", function () {
-            searchInput.value = campaign.name;
-            suggestionsBox.style.display = "none";
+            campaignSearchInput.value = campaign.name;
+            campaignSuggestionsBox.style.display = "none";
+
+            rows.forEach(row => {
+                if (row.dataset.campaignName === campaign.name) {
+                    row.style.display = "";
+                    row.style.backgroundColor = "#fff3cd";
+                    row.scrollIntoView({ behavior: "smooth", block: "center" });
+                    setTimeout(() => row.style.backgroundColor = "", 2000);
+                } else {
+                    row.style.display = "none";
+                }
+            });
         });
 
-        suggestionsBox.appendChild(div);
+        campaignSuggestionsBox.appendChild(div);
     });
 
-    suggestionsBox.style.display = "block";
+    campaignSuggestionsBox.style.display = "block";
 });
-
-// Close when clicking outside
-document.addEventListener("click", function (e) {
-    if (!e.target.closest(".search-box")) {
-        suggestionsBox.style.display = "none";
-    }
-});
-
 // ===============================
 // 2. INITIALIZATION
 // ===============================
@@ -529,6 +535,10 @@ function renderCampaignsList() {
             .join(', ');
 
         const row = document.createElement('tr');
+
+        // 🔹 Add data-campaign-name for search filtering
+        row.dataset.campaignName = campaign.name;
+
         row.innerHTML = `
             <td>
                 <div style="display:flex;flex-direction:column;gap:4px;">
@@ -539,7 +549,11 @@ function renderCampaignsList() {
             }
                 </div>
             </td>
-            <td><span class="badge-status active" style="padding:2px 6px;border-radius:4px;font-size:0.85rem;">${campaign.status}</span></td>
+            <td>
+                <span class="badge-status active" style="padding:2px 6px;border-radius:4px;font-size:0.85rem;">
+                    ${campaign.status}
+                </span>
+            </td>
             <td>
                 ${leaderState.assignedStaff.filter(s => s.assigned_campaigns.includes(campaign.id)).length}
             </td>
@@ -555,7 +569,6 @@ function renderCampaignsList() {
         tbody.appendChild(row);
     });
 }
-
 // ===============================
 // RENDER BRAND AMBASSADORS TABLE
 // ===============================
