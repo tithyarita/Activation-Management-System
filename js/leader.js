@@ -27,7 +27,7 @@ function getBAName(ba) {
     if (ba.name && ba.name.trim()) return ba.name;
     if (ba.fullName && ba.fullName.trim()) return ba.fullName;
     if (ba.displayName && ba.displayName.trim()) return ba.displayName;
-    if (ba.firstName || ba.lastName) return `${(ba.firstName||'').trim()} ${(ba.lastName||'').trim()}`.trim();
+    if (ba.firstName || ba.lastName) return `${(ba.firstName || '').trim()} ${(ba.lastName || '').trim()}`.trim();
     if (ba.email) return ba.email.split('@')[0];
     return 'Unknown';
 }
@@ -165,6 +165,7 @@ function updateHeader() {
     if (avatarEl && leaderState.leaderPhoto) avatarEl.src = leaderState.leaderPhoto;
 }
 
+
 async function loadLeaderCampaigns() {
     try {
         console.log(`Loading campaigns for leader ID: ${leaderState.leaderId}`);
@@ -240,6 +241,7 @@ async function loadAssignedStaff() {
                 }
             });
         }
+        
 
         leaderState.assignedStaff = staffData;
         console.log(`✓ Loaded ${leaderState.assignedStaff.length} staff members`);
@@ -345,7 +347,7 @@ function generateSampleClockRecords() {
 async function loadBrandAmbassadors() {
     try {
         const snapshot = await getDocs(collection(db, 'users'));
-        
+
         leaderState.brandAmbassadors = snapshot.docs
             .map(d => ({ id: d.id, ...d.data() }))
             .filter(u => {
@@ -357,7 +359,7 @@ async function loadBrandAmbassadors() {
                     role === "ba"
                 );
             });
-        
+
         console.log(`✓ Loaded ${leaderState.brandAmbassadors.length} brand ambassadors`);
     } catch (error) {
         console.error('Error loading brand ambassadors:', error);
@@ -374,7 +376,7 @@ async function loadCampaignBAAssignments() {
             assignmentsRef,
             where('leaderId', '==', leaderState.leaderId)
         );
-        
+
         const snapshot = await getDocs(q);
         leaderState.campaignBAAssignments = snapshot.docs.map(doc => ({
             id: doc.id,
@@ -417,10 +419,10 @@ function renderCampaignsList() {
             <td>
                 <div style="display:flex;flex-direction:column;gap:4px;">
                     <strong>${campaign.name}</strong>
-                    ${assignedBAs 
-                        ? `<small style="color:#6b7280;">📌 BA: ${assignedBAs}</small>` 
-                        : `<small style="color:#d1d5db;">⚠️ No BA assigned yet</small>`
-                    }
+                    ${assignedBAs
+                ? `<small style="color:#6b7280;">📌 BA: ${assignedBAs}</small>`
+                : `<small style="color:#d1d5db;">⚠️ No BA assigned yet</small>`
+            }
                 </div>
             </td>
             <td><span class="badge-status active" style="padding:2px 6px;border-radius:4px;font-size:0.85rem;">${campaign.status}</span></td>
@@ -882,7 +884,7 @@ function initializeModals() {
 
     // Settings Modal
     setupModal('settingsBtn', 'settingsModal');
-    
+
     // Assign BA Modal
     setupModal(null, 'assignBAModal');
 
@@ -893,10 +895,10 @@ function initializeModals() {
 function setupModal(openBtnId, modalId) {
     const modal = document.getElementById(modalId);
     if (!modal) return;
-    
+
     const closeBtn = modal.querySelector('.close');
     const openBtn = openBtnId ? document.getElementById(openBtnId) : null;
-    
+
     if (openBtn) {
         openBtn.addEventListener('click', () => {
             modal.style.display = 'flex';
@@ -1355,21 +1357,21 @@ function openAssignBAModal(campaignId, campaignName) {
         showNotification('Modal not found', 'error');
         return;
     }
-    
+
     // Set campaign info
     document.getElementById('assignBATitle').textContent = `Assign BA to: ${campaignName}`;
     document.getElementById('assignBACampaignId').value = campaignId;
-    
+
     // Populate BA selection list
     const baSelectionList = document.getElementById('baSelectionList');
     if (baSelectionList) {
         baSelectionList.innerHTML = '';
-        
+
         // Get already assigned BAs for this campaign from the new collection
         const assignedBAIds = leaderState.campaignBAAssignments
             .filter(a => a.campaignId === campaignId)
             .map(a => a.baId);
-        
+
         leaderState.brandAmbassadors.forEach(ba => {
             const isAssigned = assignedBAIds.includes(ba.id);
             const div = document.createElement('div');
@@ -1382,26 +1384,26 @@ function openAssignBAModal(campaignId, campaignName) {
             baSelectionList.appendChild(div);
         });
     }
-    
+
     modal.style.display = 'flex';
 }
 
 async function handleConfirmAssignBA() {
     const campaignId = document.getElementById('assignBACampaignId').value;
     const baCheckboxes = document.querySelectorAll('.ba-checkbox');
-    
+
     const selectedBAs = [];
     baCheckboxes.forEach(checkbox => {
         if (checkbox.checked) {
             selectedBAs.push(checkbox.value);
         }
     });
-    
+
     if (selectedBAs.length === 0) {
         showNotification('Please select at least one Brand Ambassador', 'warning');
         return;
     }
-    
+
     try {
         // First, delete old assignments for this campaign by this leader
         const assignmentsRef = collection(db, 'campaign_ba_assignments');
@@ -1430,19 +1432,19 @@ async function handleConfirmAssignBA() {
                 createdAt: new Date()
             });
         }
-        
+
         // Update old campaign document (for backwards compatibility)
         const campaignRef = doc(db, 'campaigns', campaignId);
         await updateDoc(campaignRef, {
             assigned_bas: selectedBAs
         });
-        
+
         // Reload assignments from Firebase
         await loadCampaignBAAssignments();
-        
+
         showNotification(`✓ Assigned ${selectedBAs.length} Brand Ambassador(s) to "${campaignName}"`, 'success');
         document.getElementById('assignBAModal').style.display = 'none';
-        
+
         // Refresh displays
         renderCampaignsList();
         renderBrandAmbassadors(leaderState.brandAmbassadors);
@@ -1455,12 +1457,12 @@ async function handleConfirmAssignBA() {
 function exportReport() {
     const startDate = document.getElementById('reportStartDate')?.value;
     const endDate = document.getElementById('reportEndDate')?.value;
-    
+
     if (!startDate || !endDate) {
         showNotification('Please select date range', 'warning');
         return;
     }
-    
+
     // Generate CSV
     let csv = 'Staff,Campaign,Check-In,Check-Out,Hours Worked,Status\n';
 
