@@ -87,6 +87,7 @@ const LATE_ARRIVAL_THRESHOLD = 30; // minutes
 const SHIFT_START_TIME = '09:00';
 
 // Campaign search input
+
 const campaignSearchInput = document.getElementById("campaignSearch");
 const campaignSuggestionsBox = document.getElementById("campaignSuggestions");
 
@@ -590,16 +591,21 @@ function renderBrandAmbassadors(data = leaderState.brandAmbassadors) {
             .join(', ');
 
         const row = document.createElement('tr');
+
+        // 🔹 Add data-ba-name for search filtering
+        row.dataset.baName = displayName;
+
         row.innerHTML = `
-            <td><strong>${displayName}</strong></td>
-            <td>${ba.role || 'Brand Ambassador'}</td>
-            <td>${campaignNames || 'N/A'}</td>
-            <td>
-                <span class="badge-status ${((ba.status || 'active').toLowerCase())}" style="padding:2px 6px;border-radius:4px;font-size:0.85rem;">
-                    ${ba.status || 'active'}
-                </span>
-            </td>
-        `;
+        <td><strong>${displayName}</strong></td>
+        <td>${ba.role || 'Brand Ambassador'}</td>
+        <td>${campaignNames || 'N/A'}</td>
+        <td>
+            <span class="badge-status ${((ba.status || 'active').toLowerCase())}" style="padding:2px 6px;border-radius:4px;font-size:0.85rem;">
+                ${ba.status || 'active'}
+            </span>
+        </td>
+    `;
+
         tbody.appendChild(row);
     });
 }
@@ -607,59 +613,68 @@ function renderBrandAmbassadors(data = leaderState.brandAmbassadors) {
 // ===============================
 // BA SEARCH & FILTER
 // ===============================
-(function initBrandAmbassadorSearch() {
-    const input = document.getElementById('baSearch');
-    const suggestionBox = document.getElementById('baSuggestions');
-    if (!input || !suggestionBox) return;
+// 🔹 BA search like campaign search
+const baSearchInput = document.getElementById("baSearch");
+const baSuggestionsBox = document.getElementById("baSuggestions");
 
-    function filterData(keyword) {
-        return leaderState.brandAmbassadors.filter(ba =>
-            getBAName(ba).toLowerCase().includes(keyword)
-        );
+baSearchInput.addEventListener("input", function () {
+    const value = this.value.trim().toLowerCase();
+    baSuggestionsBox.innerHTML = "";
+
+    const rows = document.querySelectorAll("#baTableBody tr");
+
+    // If input is empty → show all rows
+    if (!value) {
+        rows.forEach(row => row.style.display = "");
+        baSuggestionsBox.style.display = "none";
+        return;
     }
 
-    function showSuggestions(data) {
-        suggestionBox.innerHTML = '';
-        if (!data.length) {
-            suggestionBox.style.display = 'none';
-            return;
-        }
+    // Filter brand ambassadors for suggestions
+    const filtered = (leaderState.brandAmbassadors || []).filter(ba =>
+        (getBAName(ba) || "").toLowerCase().includes(value)
+    );
 
-        data.forEach(ba => {
-            const div = document.createElement('div');
-            div.className = 'search-item';
-            div.textContent = getBAName(ba);
+    if (!filtered.length) {
+        baSuggestionsBox.style.display = "none";
+        return;
+    }
 
-            div.addEventListener('click', () => {
-                input.value = getBAName(ba);
-                suggestionBox.style.display = 'none';
-                renderBrandAmbassadors([ba]);
+    filtered.forEach(ba => {
+        const div = document.createElement("div");
+        div.textContent = getBAName(ba);
+        div.classList.add("suggestion-item");
+
+        div.addEventListener("click", function () {
+            baSearchInput.value = getBAName(ba);
+            baSuggestionsBox.style.display = "none";
+
+            // Filter table to show only the selected BA
+            rows.forEach(row => {
+                if (row.dataset.baName === getBAName(ba)) {
+                    row.style.display = "";
+                    // Highlight row
+                    row.style.backgroundColor = "#fff3cd";
+                    row.scrollIntoView({ behavior: "smooth", block: "center" });
+                    setTimeout(() => row.style.backgroundColor = "", 2000);
+                } else {
+                    row.style.display = "none";
+                }
             });
-
-            suggestionBox.appendChild(div);
         });
 
-        suggestionBox.style.display = 'block';
+        baSuggestionsBox.appendChild(div);
+    });
+
+    baSuggestionsBox.style.display = "block";
+});
+
+// Close suggestions when clicking outside
+document.addEventListener("click", function (e) {
+    if (!e.target.closest(".search-box")) {
+        baSuggestionsBox.style.display = "none";
     }
-
-    input.addEventListener('input', function () {
-        const keyword = this.value.trim().toLowerCase();
-        if (!keyword) {
-            suggestionBox.style.display = 'none';
-            renderBrandAmbassadors();
-            return;
-        }
-        const filtered = filterData(keyword);
-        renderBrandAmbassadors(filtered);
-        showSuggestions(filtered);
-    });
-
-    document.addEventListener('click', function (e) {
-        if (!e.target.closest('.search-box')) {
-            suggestionBox.style.display = 'none';
-        }
-    });
-})();;
+});
 
 // ===============================
 // RENDER BRAND AMBASSADORS CARD LIST
