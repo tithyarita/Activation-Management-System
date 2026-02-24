@@ -3,6 +3,27 @@
 // ===============================
 
 import { db, collection, getDocs, addDoc, updateDoc, doc, query, where, deleteDoc } from '../js/firebase.js';
+import { clearAllCache, getCachedData, isCacheValid } from '../js/localStorage.js';
+
+// ===============================
+// AUTH GUARD
+// ===============================
+function _loginRedirect() {
+    const p = location.pathname || '';
+    const loginPath = p.includes('/admin/') ? '../login.html' : 'login.html';
+    location.replace(loginPath);
+}
+
+const _currentUser = (() => {
+    try { return JSON.parse(sessionStorage.getItem('user')); } catch (e) { return null; }
+})();
+
+if (!_currentUser || _currentUser.role !== 'leader') {
+    try { clearAllCache(); } catch (e) {}
+    try { localStorage.removeItem('leaderProfile'); } catch (e) {}
+    try { sessionStorage.clear(); } catch (e) {}
+    _loginRedirect();
+}
 
 // ===============================
 // 1. GLOBAL STATE & CONFIGURATION
@@ -94,6 +115,23 @@ async function initializeDashboard() {
         console.warn('Could not parse saved leader profile', e);
     }
 
+    // If leaderProfile wasn't present in localStorage, try sessionStorage user as fallback
+    if (!leaderState.leaderId || leaderState.leaderId === 'leader_001') {
+        try {
+            const su = JSON.parse(sessionStorage.getItem('user'));
+            if (su && su.role === 'leader' && su.id) {
+                leaderState.leaderId = su.id;
+                leaderState.leaderName = su.name || leaderState.leaderName;
+                // persist a minimal leaderProfile so subsequent loads are consistent
+                try { localStorage.setItem('leaderProfile', JSON.stringify({ id: su.id, name: su.name, role: 'Leader' })); } catch(e){}
+                updateHeader();
+                console.log(`✓ Using session user as leader profile: ${su.id}`);
+            }
+        } catch (e) {
+            // ignore parse errors
+        }
+    }
+
     // Initialize modals
     initializeModals();
 
@@ -170,7 +208,21 @@ async function loadLeaderCampaigns() {
     try {
         console.log(`Loading campaigns for leader ID: ${leaderState.leaderId}`);
 
-        // Query campaigns where leader is assigned
+        let campaigns = [];
+
+        // Try to use cached data first
+        if (isCacheValid()) {
+            const cached = getCachedData('CAMPAIGNS');
+            if (cached) {
+                console.log('✓ Using cached campaigns');
+                campaigns = cached.filter(c => c.assigned_leaders && c.assigned_leaders.includes(leaderState.leaderId));
+                leaderState.campaigns = campaigns;
+                return;
+            }
+        }
+
+        // Otherwise fetch from Firebase
+        console.log('📡 Fetching campaigns from Firebase');
         const campaignsRef = collection(db, 'campaigns');
         const q = query(
             campaignsRef,
@@ -228,9 +280,26 @@ async function loadAssignedStaff() {
     try {
         const campaignIds = leaderState.campaigns.map(c => c.id);
 
-        // Get all staff assigned to these campaigns
+        let staffData = [];
+
+        // Try to use cached data first
+        if (isCacheValid()) {
+            const cached = getCachedData('STAFF');
+            if (cached) {
+                console.log('✓ Using cached staff');
+                staffData = cached.filter(s => 
+                    s.assigned_campaigns && 
+                    s.assigned_campaigns.some(cid => campaignIds.includes(cid))
+                );
+                leaderState.assignedStaff = staffData;
+                console.log(`✓ Loaded ${staffData.length} staff members from cache`);
+                return;
+            }
+        }
+
+        // Otherwise fetch from Firebase
+        console.log('📡 Fetching staff from Firebase');
         const staffRef = collection(db, 'staff');
-        const staffData = [];
 
         for (const campaignId of campaignIds) {
             const q = query(staffRef, where('assigned_campaigns', 'array-contains', campaignId));
@@ -1185,67 +1254,49 @@ async function openCampaignDetailModal(campaignId) {
         .map(a => leaderState.brandAmbassadors.find(b => b.id === a.baId))
         .filter(Boolean);
 
-    // Build HTML for campaign details
+    // Build HTML for campaign details (all fields)
+    let fieldsHtml = '';
+    Object.entries(campaign).forEach(([key, value]) => {
+        if (key === 'id') return;
+        let displayValue = '';
+        // Special handling for location field with coordinates
+        if (key.toLowerCase() === 'location' && value) {
+            // If value is an object with lat/lng
+            if (typeof value === 'object' && value !== null && 'lat' in value && 'lng' in value) {
+                const lat = value.lat;
+                const lng = value.lng;
+                const label = value.label || `${lat}, ${lng}`;
+                displayValue = `<a href="https://www.google.com/maps?q=${lat},${lng}" target="_blank" style="color:#2563eb;text-decoration:underline;">${safeText(label)}</a>`;
+            } else {
+                // If value is just a string (address)
+                const address = String(value);
+                const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+                displayValue = `<a href="${mapsUrl}" target="_blank" style="color:#2563eb;text-decoration:underline;">${safeText(address)}</a>`;
+            }
+        } else if (typeof value === 'object' && value !== null) {
+            displayValue = `<pre style="font-size:13px;background:#f3f4f6;padding:6px 10px;border-radius:6px;overflow-x:auto;">${safeText(JSON.stringify(value, null, 2))}</pre>`;
+        } else {
+            displayValue = `<span style="color:#1f2937;">${safeText(String(value))}</span>`;
+        }
+        fieldsHtml += `<div style="margin-bottom:10px;"><strong style="color:#0f172a;">${safeText(key)}</strong>: ${displayValue}</div>`;
+    });
+
+    // Brand Ambassadors
     const baList = assignedBAs.length
         ? assignedBAs.map(b => `<li>${safeText(getBAName(b))} - ${safeText(b.email)}</li>`).join('')
         : '<li style="color:#6b7280;">No BAs assigned</li>';
 
     contentDiv.innerHTML = `
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-            <div>
-                <h4 style="margin: 0 0 8px 0; color:#0f172a; font-weight:600;">Campaign Name</h4>
-                <p style="margin: 0; color:#1f2937;">${safeText(campaign.name)}</p>
-            </div>
-            <div>
-                <h4 style="margin: 0 0 8px 0; color:#0f172a; font-weight:600;">Status</h4>
-                <p style="margin: 0;"><span class="badge-status active">${safeText(campaign.status || 'Unknown')}</span></p>
-            </div>
+        <div style="margin-bottom:18px;">
+            <h3 style="margin:0 0 10px 0; color:#0f172a;">All Campaign Info</h3>
+            ${fieldsHtml}
         </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 12px;">
-            <div>
-                <h4 style="margin: 0 0 8px 0; color:#0f172a; font-weight:600;">Start Date</h4>
-                <p style="margin: 0; color:#1f2937;">${formatDate(campaign.start_date)}</p>
-            </div>
-            <div>
-                <h4 style="margin: 0 0 8px 0; color:#0f172a; font-weight:600;">End Date</h4>
-                <p style="margin: 0; color:#1f2937;">${formatDate(campaign.end_date)}</p>
-            </div>
-        </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 12px;">
-            <div>
-                <h4 style="margin: 0 0 8px 0; color:#0f172a; font-weight:600;">Start Time</h4>
-                <p style="margin: 0; color:#1f2937;">${safeText(campaign.startTime || 'N/A')}</p>
-            </div>
-            <div>
-                <h4 style="margin: 0 0 8px 0; color:#0f172a; font-weight:600;">End Time</h4>
-                <p style="margin: 0; color:#1f2937;">${safeText(campaign.endTime || 'N/A')}</p>
-            </div>
-        </div>
-
-        <div style="margin-top: 12px;">
-            <h4 style="margin: 0 0 8px 0; color:#0f172a; font-weight:600;">Location</h4>
-            <p style="margin: 0; color:#1f2937;">${safeText(campaign.location || 'N/A')}</p>
-        </div>
-
-        <div style="margin-top: 12px;">
-            <h4 style="margin: 0 0 8px 0; color:#0f172a; font-weight:600;">Description</h4>
-            <p style="margin: 0; color:#1f2937; line-height:1.5;">${safeText(campaign.description || 'No description provided')}</p>
-        </div>
-
-        <div style="margin-top: 12px;">
-            <h4 style="margin: 0 0 8px 0; color:#0f172a; font-weight:600;">Budget</h4>
-            <p style="margin: 0; color:#1f2937;">$${campaign.budget ? campaign.budget.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}</p>
-        </div>
-
-        <div style="margin-top: 12px;">
+        <div style="margin-bottom:18px;">
             <h4 style="margin: 0 0 8px 0; color:#0f172a; font-weight:600;">Assigned Brand Ambassadors (${assignedBAs.length})</h4>
             <ul style="margin: 0; padding-left: 18px; color:#1f2937;">${baList}</ul>
         </div>
-
         <div style="display: flex; gap: 10px; padding-top: 12px; border-top: 1px solid #e6edf8;">
-            <button class="btn-secondary" onclick="openAssignBAModal('${campaignId}', '${campaign.name.replace(/'/g, "\\'")}'); document.getElementById('campaignDetailModal').style.display='none';">
+            <button class="btn-secondary" onclick="openAssignBAModal('${campaignId}', '${campaign.name.replace(/'/g, "\\'")}'); modal.style.display='none';">
                 <i class="fa-solid fa-user-tie"></i> Assign BA
             </button>
         </div>
@@ -1603,14 +1654,19 @@ window.addEventListener('load', () => {
         document.body.classList.add('dark');
     }
     // If a leader profile was saved (by login), load it and update header
+    let lp = null;
     try {
-        const lp = localStorage.getItem('leaderProfile');
+        lp = localStorage.getItem('leaderProfile');
         if (lp) {
             const profile = JSON.parse(lp);
             setLeaderProfile(profile);
         }
     } catch (e) {
         console.warn('Could not parse saved leader profile', e);
+    }
+    // If no profile is present, force redirect to login (replace history so Back can't return)
+    if (!lp) {
+        window.location.replace('login.html');
     }
 });
 
@@ -1639,9 +1695,11 @@ function setLeaderProfile(profile) {
 window.setLeaderProfile = setLeaderProfile;
 
 function logout() {
+    clearAllCache();
     try { localStorage.removeItem('leaderProfile'); } catch (e) { }
     try { sessionStorage.removeItem('user'); } catch (e) { }
-    window.location.href = 'login.html';
+    // Replace current history entry so Back won't return to this protected page
+    window.location.replace('login.html');
 }
 
 window.logout = logout;

@@ -9,6 +9,23 @@ import {
 } from "../js/firebase.js";
 import bcrypt from "https://cdn.jsdelivr.net/npm/bcryptjs@2.4.3/+esm";
 
+// =======================
+// AUTH GUARD (admin pages)
+// =======================
+(function(){
+    function _loginRedirect(){
+        const p = location.pathname || '';
+        const loginPath = p.includes('/admin/') ? '../login.html' : 'login.html';
+        location.replace(loginPath);
+    }
+    let cu = null;
+    try { cu = JSON.parse(sessionStorage.getItem('user')); } catch(e) { cu = null; }
+    if (!cu || cu.role !== 'admin') {
+        try { sessionStorage.clear(); } catch(e){}
+        _loginRedirect();
+    }
+})();
+
 let users = [];
 let editingUserId = null;
 
@@ -240,6 +257,7 @@ window.confirmRoleChange = async ()=>{
 window.handleLogout = ()=>{
     if(confirm("Logout?")){
         sessionStorage.clear();
-        location.href="login.html";
+        // Replace history entry so Back can't return
+        location.replace('login.html');
     }
 };

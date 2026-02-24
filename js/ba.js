@@ -8,15 +8,25 @@ import {
     where,
     doc
 } from "./firebase.js";
+import { clearAllCache } from "./localStorage.js";
 
 
 // =======================
 // AUTH SESSION CHECK
 // =======================
-const user = JSON.parse(sessionStorage.getItem("user"));
+function _loginRedirect() {
+    const p = location.pathname || '';
+    const loginPath = p.includes('/admin/') ? '../login.html' : 'login.html';
+    location.replace(loginPath);
+}
+
+const user = (() => {
+    try { return JSON.parse(sessionStorage.getItem('user')); } catch (e) { return null; }
+})();
 
 if (!user || user.role !== "staff") {
-    window.location.href = "../html/login.html";
+    try { sessionStorage.clear(); } catch (e) {}
+    _loginRedirect();
 }
 
 
@@ -218,8 +228,10 @@ function renderBrandAmbassadors(ambassadors) {
 // LOGOUT
 // =======================
 window.logout = function(){
+    clearAllCache();
     sessionStorage.clear();
-    window.location.href="../html/login.html";
+    // Replace history so Back doesn't return to protected page
+    window.location.replace('login.html');
 }
 
 
