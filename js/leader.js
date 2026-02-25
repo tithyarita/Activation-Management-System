@@ -514,6 +514,7 @@ async function loadCampaignBAAssignments() {
 // ===============================
 // 4. RENDER UI COMPONENTS
 // ===============================
+// Assign Campaign element
 
 function renderCampaignsList() {
     const tbody = document.getElementById('campaignsTableBody');
@@ -573,7 +574,7 @@ function renderCampaignsList() {
 // ===============================
 // RENDER BRAND AMBASSADORS TABLE
 // ===============================
-function renderBrandAmbassadors(data = leaderState.brandAmbassadors) {
+function renderBrandAmbassadors(data = leaderState.brandAmbassadors) {  
     const tbody = document.getElementById('baTableBody');
     if (!tbody) return;
 
@@ -674,7 +675,7 @@ document.addEventListener("click", function (e) {
     if (!e.target.closest(".search-box")) {
         baSuggestionsBox.style.display = "none";
     }
-});
+}); 
 
 // ===============================
 // RENDER BRAND AMBASSADORS CARD LIST
