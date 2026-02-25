@@ -256,19 +256,6 @@ async function loadLeaderCampaigns() {
                 assigned_leaders: [leaderState.leaderId],
                 budget: 50000,
                 description: 'Major product launch campaign in urban centers'
-            },
-            {
-                id: 'camp_002',
-                name: 'Brand Activation - North Region',
-                status: 'Active',
-                start_date: '2026-02-10',
-                end_date: '2026-02-28',
-                startTime: '10:00',
-                endTime: '18:00',
-                location: 'North Mall',
-                assigned_leaders: [leaderState.leaderId],
-                budget: 30000,
-                description: 'Regional brand awareness campaign'
             }
         ];
         console.log(`Using demo campaigns (error: ${error.message})`);
@@ -314,39 +301,6 @@ async function loadAssignedStaff() {
         console.log(`✓ Loaded ${leaderState.assignedStaff.length} staff members`);
     } catch (error) {
         console.error('Error loading staff:', error);
-        // For demo: Create sample staff
-        leaderState.assignedStaff = [
-            {
-                id: 'staff_001',
-                name: 'John Smith',
-                role: 'Brand Ambassador',
-                email: 'john@example.com',
-                phone: '555-0101',
-                photo: '../asset/e8509f8003b9dc24c37ba8d92a9a069b.jpg',
-                assigned_campaigns: ['camp_001', 'camp_002'],
-                status: 'Active'
-            },
-            {
-                id: 'staff_002',
-                name: 'Sarah Johnson',
-                role: 'Field Agent',
-                email: 'sarah@example.com',
-                phone: '555-0102',
-                photo: '../asset/e8509f8003b9dc24c37ba8d92a9a069b.jpg',
-                assigned_campaigns: ['camp_001'],
-                status: 'Active'
-            },
-            {
-                id: 'staff_003',
-                name: 'Michael Brown',
-                role: 'Brand Ambassador',
-                email: 'michael@example.com',
-                phone: '555-0103',
-                photo: '../asset/e8509f8003b9dc24c37ba8d92a9a069b.jpg',
-                assigned_campaigns: ['camp_002'],
-                status: 'Active'
-            }
-        ];
     }
 }
 
@@ -1252,31 +1206,35 @@ async function openCampaignDetailModal(campaignId) {
         .map(a => leaderState.brandAmbassadors.find(b => b.id === a.baId))
         .filter(Boolean);
 
-    // Build HTML for campaign details (all fields)
+    // Only show selected fields
     let fieldsHtml = '';
-    Object.entries(campaign).forEach(([key, value]) => {
-        if (key === 'id') return;
+    const fieldMap = [
+        { key: 'id', label: 'ID' },
+        { key: 'name', label: 'Name' },
+        { key: 'start_date', label: 'Start Date' },
+        { key: 'end_date', label: 'End Date' },
+        { key: 'startTime', label: 'Start Time' },
+        { key: 'endTime', label: 'End Time' },
+        { key: 'location', label: 'Location' }
+    ];
+    fieldMap.forEach(({ key, label }) => {
+        let value = campaign[key];
         let displayValue = '';
-        // Special handling for location field with coordinates
-        if (key.toLowerCase() === 'location' && value) {
-            // If value is an object with lat/lng
+        if (key === 'location' && value) {
             if (typeof value === 'object' && value !== null && 'lat' in value && 'lng' in value) {
                 const lat = value.lat;
                 const lng = value.lng;
-                const label = value.label || `${lat}, ${lng}`;
-                displayValue = `<a href="https://www.google.com/maps?q=${lat},${lng}" target="_blank" style="color:#2563eb;text-decoration:underline;">${safeText(label)}</a>`;
+                const locLabel = value.label || `${lat}, ${lng}`;
+                displayValue = `<a href="https://www.google.com/maps?q=${lat},${lng}" target="_blank" style="color:#2563eb;text-decoration:underline;">${safeText(locLabel)}</a>`;
             } else {
-                // If value is just a string (address)
                 const address = String(value);
                 const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
                 displayValue = `<a href="${mapsUrl}" target="_blank" style="color:#2563eb;text-decoration:underline;">${safeText(address)}</a>`;
             }
-        } else if (typeof value === 'object' && value !== null) {
-            displayValue = `<pre style="font-size:13px;background:#f3f4f6;padding:6px 10px;border-radius:6px;overflow-x:auto;">${safeText(JSON.stringify(value, null, 2))}</pre>`;
         } else {
-            displayValue = `<span style="color:#1f2937;">${safeText(String(value))}</span>`;
+            displayValue = value ? `<span style="color:#1f2937;">${safeText(String(value))}</span>` : '<span style="color:#6b7280;">N/A</span>';
         }
-        fieldsHtml += `<div style="margin-bottom:10px;"><strong style="color:#0f172a;">${safeText(key)}</strong>: ${displayValue}</div>`;
+        fieldsHtml += `<div style="margin-bottom:10px;"><strong style="color:#0f172a;">${safeText(label)}</strong>: ${displayValue}</div>`;
     });
 
     // Brand Ambassadors
@@ -1286,7 +1244,7 @@ async function openCampaignDetailModal(campaignId) {
 
     contentDiv.innerHTML = `
         <div style="margin-bottom:18px;">
-            <h3 style="margin:0 0 10px 0; color:#0f172a;">All Campaign Info</h3>
+            <h3 style="margin:0 0 10px 0; color:#0f172a;">Campaign Details</h3>
             ${fieldsHtml}
         </div>
         <div style="margin-bottom:18px;">
@@ -1294,7 +1252,7 @@ async function openCampaignDetailModal(campaignId) {
             <ul style="margin: 0; padding-left: 18px; color:#1f2937;">${baList}</ul>
         </div>
         <div style="display: flex; gap: 10px; padding-top: 12px; border-top: 1px solid #e6edf8;">
-            <button class="btn-secondary" onclick="openAssignBAModal('${campaignId}', '${campaign.name.replace(/'/g, "\\'")}'); modal.style.display='none';">
+            <button class="btn-secondary" onclick="openAssignBAModal('${campaignId}', '${campaign.name.replace(/'/g, "\\'")}); modal.style.display='none';">
                 <i class="fa-solid fa-user-tie"></i> Assign BA
             </button>
         </div>
