@@ -1303,6 +1303,42 @@ li.selected {
   background: #f3f4f6;
 }
 
+.search-box {
+  position: relative;
+  width: 250px;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 8px 10px 8px 30px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.search-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-top: none;
+  max-height: 200px;
+  overflow-y: auto;
+  display: none;
+  z-index: 1000;
+  border-radius: 0 0 6px 6px;
+}
+
+.search-suggestions div {
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+.search-suggestions div:hover {
+  background-color: #f5f5f5;
+}
+
 /* =========================
    RESPONSIVE
 ========================= */
