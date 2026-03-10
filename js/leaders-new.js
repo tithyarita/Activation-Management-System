@@ -1,4 +1,4 @@
- import { db, collection, getDocs } from "./firebase.js";
+import { db, collection, getDocs } from "../js/firebase.js";
 
     async function loadLeaders() {
         try {

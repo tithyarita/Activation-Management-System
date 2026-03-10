@@ -1,4 +1,18 @@
 // ===============================
+// LOAD BA CLOCK-IN PHOTOS
+// ===============================
+async function loadBACheckinPhotos() {
+    try {
+        const snap = await getDocs(collection(db, 'ba_clockins'));
+        leaderState.baClockins = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        console.log(`✓ Loaded ${leaderState.baClockins.length} BA clock-in records`);
+    } catch (e) {
+        console.error('Error loading BA clock-in photos:', e);
+        leaderState.baClockins = [];
+    }
+}
+
+// ===============================
 // LEADER DASHBOARD - FULL IMPLEMENTATION
 // ===============================
 
@@ -9,21 +23,14 @@ import { clearAllCache, getCachedData, isCacheValid } from '../js/localStorage.j
 // AUTH GUARD
 // ===============================
 function _loginRedirect() {
-    const p = location.pathname || '';
-    const loginPath = p.includes('/admin/') ? '../login.html' : 'login.html';
-    location.replace(loginPath);
+    location.replace('/html/login.html');
 }
 
 const _currentUser = (() => {
     try { return JSON.parse(sessionStorage.getItem('user')); } catch (e) { return null; }
 })();
 
-if (!_currentUser || _currentUser.role !== 'leader') {
-    try { clearAllCache(); } catch (e) { }
-    try { localStorage.removeItem('leaderProfile'); } catch (e) { }
-    try { sessionStorage.clear(); } catch (e) { }
-    _loginRedirect();
-}
+// Remove standalone redirect for dashboard integration
 
 // ===============================
 // 1. GLOBAL STATE & CONFIGURATION
@@ -48,7 +55,7 @@ function getBAName(ba) {
     if (ba.name && ba.name.trim()) return ba.name;
     if (ba.fullName && ba.fullName.trim()) return ba.fullName;
     if (ba.displayName && ba.displayName.trim()) return ba.displayName;
-    if (ba.firstName || ba.lastName) return `${(ba.firstName || '').trim()} ${(ba.lastName || '').trim()}`.trim();
+    if (ba.firstName || ba.lastName) return `${(ba.firstName||'').trim()} ${(ba.lastName||'').trim()}`.trim();
     if (ba.email) return ba.email.split('@')[0];
     return 'Unknown';
 }
@@ -86,66 +93,23 @@ function formatTime(timeString) {
 const LATE_ARRIVAL_THRESHOLD = 30; // minutes
 const SHIFT_START_TIME = '09:00';
 
-// Campaign search input
-
-const campaignSearchInput = document.getElementById("campaignSearch");
-const campaignSuggestionsBox = document.getElementById("campaignSuggestions");
-
-campaignSearchInput.addEventListener("input", function () {
-    const value = this.value.trim().toLowerCase();
-    campaignSuggestionsBox.innerHTML = "";
-
-    const rows = document.querySelectorAll("#campaignsTableBody tr");
-
-    if (!value) {
-        rows.forEach(row => row.style.display = "");
-        campaignSuggestionsBox.style.display = "none";
-        return;
-    }
-
-    const filtered = leaderState.campaigns.filter(c =>
-        (c.name || "").toLowerCase().includes(value)
-    );
-
-    if (!filtered.length) {
-        campaignSuggestionsBox.style.display = "none";
-        return;
-    }
-
-    filtered.forEach(campaign => {
-        const div = document.createElement("div");
-        div.textContent = campaign.name;
-        div.classList.add("suggestion-item");
-
-        div.addEventListener("click", function () {
-            campaignSearchInput.value = campaign.name;
-            campaignSuggestionsBox.style.display = "none";
-
-            rows.forEach(row => {
-                if (row.dataset.campaignName === campaign.name) {
-                    row.style.display = "";
-                    row.style.backgroundColor = "#fff3cd";
-                    row.scrollIntoView({ behavior: "smooth", block: "center" });
-                    setTimeout(() => row.style.backgroundColor = "", 2000);
-                } else {
-                    row.style.display = "none";
-                }
-            });
-        });
-
-        campaignSuggestionsBox.appendChild(div);
-    });
-
-    campaignSuggestionsBox.style.display = "block";
-});
 // ===============================
 // 2. INITIALIZATION
 // ===============================
-document.addEventListener('DOMContentLoaded', () => {
-    initializeDashboard();
-    setupEventListeners();
-    loadLeaderData();
-});
+
+
+
+// Render BA clock-in photos (simple version, can be improved for your UI)
+function renderBACheckinPhotos() {
+    const el = document.getElementById('baClockinPhotos');
+    if (!el || !leaderState.baClockins) return;
+    el.innerHTML = leaderState.baClockins.map(rec => `
+        <div style="display:inline-block;margin:8px;text-align:center;">
+            <img src="${rec.photo}" alt="Clock-in photo" style="width:80px;height:80px;border-radius:8px;object-fit:cover;border:2px solid #3b82f6;" />
+            <div style="font-size:0.85em;">${rec.userName || rec.userId}<br><small>${rec.campaignName || ''}</small></div>
+        </div>
+    `).join('');
+}
 
 async function initializeDashboard() {
     console.log('✓ Initializing Leader Dashboard');
@@ -175,7 +139,7 @@ async function initializeDashboard() {
                 leaderState.leaderId = su.id;
                 leaderState.leaderName = su.name || leaderState.leaderName;
                 // persist a minimal leaderProfile so subsequent loads are consistent
-                try { localStorage.setItem('leaderProfile', JSON.stringify({ id: su.id, name: su.name, role: 'Leader' })); } catch (e) { }
+                try { localStorage.setItem('leaderProfile', JSON.stringify({ id: su.id, name: su.name, role: 'Leader' })); } catch(e){}
                 updateHeader();
                 console.log(`✓ Using session user as leader profile: ${su.id}`);
             }
@@ -255,7 +219,6 @@ function updateHeader() {
     if (avatarEl && leaderState.leaderPhoto) avatarEl.src = leaderState.leaderPhoto;
 }
 
-
 async function loadLeaderCampaigns() {
     try {
         console.log(`Loading campaigns for leader ID: ${leaderState.leaderId}`);
@@ -326,8 +289,8 @@ async function loadAssignedStaff() {
             const cached = getCachedData('STAFF');
             if (cached) {
                 console.log('✓ Using cached staff');
-                staffData = cached.filter(s =>
-                    s.assigned_campaigns &&
+                staffData = cached.filter(s => 
+                    s.assigned_campaigns && 
                     s.assigned_campaigns.some(cid => campaignIds.includes(cid))
                 );
                 leaderState.assignedStaff = staffData;
@@ -349,7 +312,6 @@ async function loadAssignedStaff() {
                 }
             });
         }
-
 
         leaderState.assignedStaff = staffData;
         console.log(`✓ Loaded ${leaderState.assignedStaff.length} staff members`);
@@ -422,7 +384,7 @@ function generateSampleClockRecords() {
 async function loadBrandAmbassadors() {
     try {
         const snapshot = await getDocs(collection(db, 'users'));
-
+        
         leaderState.brandAmbassadors = snapshot.docs
             .map(d => ({ id: d.id, ...d.data() }))
             .filter(u => {
@@ -434,7 +396,7 @@ async function loadBrandAmbassadors() {
                     role === "ba"
                 );
             });
-
+        
         console.log(`✓ Loaded ${leaderState.brandAmbassadors.length} brand ambassadors`);
     } catch (error) {
         console.error('Error loading brand ambassadors:', error);
@@ -451,7 +413,7 @@ async function loadCampaignBAAssignments() {
             assignmentsRef,
             where('leaderId', '==', leaderState.leaderId)
         );
-
+        
         const snapshot = await getDocs(q);
         leaderState.campaignBAAssignments = snapshot.docs.map(doc => ({
             id: doc.id,
@@ -490,25 +452,17 @@ function renderCampaignsList() {
             .join(', ');
 
         const row = document.createElement('tr');
-
-        // 🔹 Add data-campaign-name for search filtering
-        row.dataset.campaignName = campaign.name;
-
         row.innerHTML = `
             <td>
                 <div style="display:flex;flex-direction:column;gap:4px;">
                     <strong>${campaign.name}</strong>
-                    ${assignedBAs
-                ? `<small style="color:#6b7280;">📌 BA: ${assignedBAs}</small>`
-                : `<small style="color:#d1d5db;">⚠️ No BA assigned yet</small>`
-            }
+                    ${assignedBAs 
+                        ? `<small style="color:#6b7280;">📌 BA: ${assignedBAs}</small>` 
+                        : `<small style="color:#d1d5db;">⚠️ No BA assigned yet</small>`
+                    }
                 </div>
             </td>
-            <td>
-                <span class="badge-status active" style="padding:2px 6px;border-radius:4px;font-size:0.85rem;">
-                    ${campaign.status}
-                </span>
-            </td>
+            <td><span class="badge-status active" style="padding:2px 6px;border-radius:4px;font-size:0.85rem;">${campaign.status}</span></td>
             <td>
                 ${leaderState.assignedStaff.filter(s => s.assigned_campaigns.includes(campaign.id)).length}
             </td>
@@ -524,6 +478,7 @@ function renderCampaignsList() {
         tbody.appendChild(row);
     });
 }
+
 // ===============================
 // RENDER BRAND AMBASSADORS TABLE
 // ===============================
@@ -545,21 +500,16 @@ function renderBrandAmbassadors(data = leaderState.brandAmbassadors) {
             .join(', ');
 
         const row = document.createElement('tr');
-
-        // 🔹 Add data-ba-name for search filtering
-        row.dataset.baName = displayName;
-
         row.innerHTML = `
-        <td><strong>${displayName}</strong></td>
-        <td>${ba.role || 'Brand Ambassador'}</td>
-        <td>${campaignNames || 'N/A'}</td>
-        <td>
-            <span class="badge-status ${((ba.status || 'active').toLowerCase())}" style="padding:2px 6px;border-radius:4px;font-size:0.85rem;">
-                ${ba.status || 'active'}
-            </span>
-        </td>
-    `;
-
+            <td><strong>${displayName}</strong></td>
+            <td>${ba.role || 'Brand Ambassador'}</td>
+            <td>${campaignNames || 'N/A'}</td>
+            <td>
+                <span class="badge-status ${((ba.status || 'active').toLowerCase())}" style="padding:2px 6px;border-radius:4px;font-size:0.85rem;">
+                    ${ba.status || 'active'}
+                </span>
+            </td>
+        `;
         tbody.appendChild(row);
     });
 }
@@ -567,68 +517,59 @@ function renderBrandAmbassadors(data = leaderState.brandAmbassadors) {
 // ===============================
 // BA SEARCH & FILTER
 // ===============================
-// 🔹 BA search like campaign search
-const baSearchInput = document.getElementById("baSearch");
-const baSuggestionsBox = document.getElementById("baSuggestions");
+(function initBrandAmbassadorSearch() {
+    const input = document.getElementById('baSearch');
+    const suggestionBox = document.getElementById('baSuggestions');
+    if (!input || !suggestionBox) return;
 
-baSearchInput.addEventListener("input", function () {
-    const value = this.value.trim().toLowerCase();
-    baSuggestionsBox.innerHTML = "";
-
-    const rows = document.querySelectorAll("#baTableBody tr");
-
-    // If input is empty → show all rows
-    if (!value) {
-        rows.forEach(row => row.style.display = "");
-        baSuggestionsBox.style.display = "none";
-        return;
+    function filterData(keyword) {
+        return leaderState.brandAmbassadors.filter(ba =>
+            getBAName(ba).toLowerCase().includes(keyword)
+        );
     }
 
-    // Filter brand ambassadors for suggestions
-    const filtered = (leaderState.brandAmbassadors || []).filter(ba =>
-        (getBAName(ba) || "").toLowerCase().includes(value)
-    );
+    function showSuggestions(data) {
+        suggestionBox.innerHTML = '';
+        if (!data.length) {
+            suggestionBox.style.display = 'none';
+            return;
+        }
 
-    if (!filtered.length) {
-        baSuggestionsBox.style.display = "none";
-        return;
-    }
+        data.forEach(ba => {
+            const div = document.createElement('div');
+            div.className = 'search-item';
+            div.textContent = getBAName(ba);
 
-    filtered.forEach(ba => {
-        const div = document.createElement("div");
-        div.textContent = getBAName(ba);
-        div.classList.add("suggestion-item");
-
-        div.addEventListener("click", function () {
-            baSearchInput.value = getBAName(ba);
-            baSuggestionsBox.style.display = "none";
-
-            // Filter table to show only the selected BA
-            rows.forEach(row => {
-                if (row.dataset.baName === getBAName(ba)) {
-                    row.style.display = "";
-                    // Highlight row
-                    row.style.backgroundColor = "#fff3cd";
-                    row.scrollIntoView({ behavior: "smooth", block: "center" });
-                    setTimeout(() => row.style.backgroundColor = "", 2000);
-                } else {
-                    row.style.display = "none";
-                }
+            div.addEventListener('click', () => {
+                input.value = getBAName(ba);
+                suggestionBox.style.display = 'none';
+                renderBrandAmbassadors([ba]);
             });
+
+            suggestionBox.appendChild(div);
         });
 
-        baSuggestionsBox.appendChild(div);
+        suggestionBox.style.display = 'block';
+    }
+
+    input.addEventListener('input', function () {
+        const keyword = this.value.trim().toLowerCase();
+        if (!keyword) {
+            suggestionBox.style.display = 'none';
+            renderBrandAmbassadors();
+            return;
+        }
+        const filtered = filterData(keyword);
+        renderBrandAmbassadors(filtered);
+        showSuggestions(filtered);
     });
 
-    baSuggestionsBox.style.display = "block";
-});
-
-// Close suggestions when clicking outside
-document.addEventListener("click", function (e) {
-    if (!e.target.closest(".search-box")) {
-        baSuggestionsBox.style.display = "none";
-    }
-});
+    document.addEventListener('click', function (e) {
+        if (!e.target.closest('.search-box')) {
+            suggestionBox.style.display = 'none';
+        }
+    });
+})();;
 
 // ===============================
 // RENDER BRAND AMBASSADORS CARD LIST
@@ -980,7 +921,7 @@ function initializeModals() {
 
     // Settings Modal
     setupModal('settingsBtn', 'settingsModal');
-
+    
     // Assign BA Modal
     setupModal(null, 'assignBAModal');
 
@@ -991,10 +932,10 @@ function initializeModals() {
 function setupModal(openBtnId, modalId) {
     const modal = document.getElementById(modalId);
     if (!modal) return;
-
+    
     const closeBtn = modal.querySelector('.close');
     const openBtn = openBtnId ? document.getElementById(openBtnId) : null;
-
+    
     if (openBtn) {
         openBtn.addEventListener('click', () => {
             modal.style.display = 'flex';
@@ -1258,7 +1199,7 @@ async function handleAssignStaff() {
     }
 }
 
-function viewCampaignDetails(campaignId) {
+function  viewCampaignDetails(campaignId) {
     // Set current campaign filter for UI
     leaderState.currentCampaignFilter = campaignId;
     switchPage('stafflist');
@@ -1439,21 +1380,21 @@ function openAssignBAModal(campaignId, campaignName) {
         showNotification('Modal not found', 'error');
         return;
     }
-
+    
     // Set campaign info
     document.getElementById('assignBATitle').textContent = `Assign BA to: ${campaignName}`;
     document.getElementById('assignBACampaignId').value = campaignId;
-
+    
     // Populate BA selection list
     const baSelectionList = document.getElementById('baSelectionList');
     if (baSelectionList) {
         baSelectionList.innerHTML = '';
-
+        
         // Get already assigned BAs for this campaign from the new collection
         const assignedBAIds = leaderState.campaignBAAssignments
             .filter(a => a.campaignId === campaignId)
             .map(a => a.baId);
-
+        
         leaderState.brandAmbassadors.forEach(ba => {
             const isAssigned = assignedBAIds.includes(ba.id);
             const div = document.createElement('div');
@@ -1466,26 +1407,26 @@ function openAssignBAModal(campaignId, campaignName) {
             baSelectionList.appendChild(div);
         });
     }
-
+    
     modal.style.display = 'flex';
 }
 
 async function handleConfirmAssignBA() {
     const campaignId = document.getElementById('assignBACampaignId').value;
     const baCheckboxes = document.querySelectorAll('.ba-checkbox');
-
+    
     const selectedBAs = [];
     baCheckboxes.forEach(checkbox => {
         if (checkbox.checked) {
             selectedBAs.push(checkbox.value);
         }
     });
-
+    
     if (selectedBAs.length === 0) {
         showNotification('Please select at least one Brand Ambassador', 'warning');
         return;
     }
-
+    
     try {
         // First, delete old assignments for this campaign by this leader
         const assignmentsRef = collection(db, 'campaign_ba_assignments');
@@ -1514,19 +1455,19 @@ async function handleConfirmAssignBA() {
                 createdAt: new Date()
             });
         }
-
+        
         // Update old campaign document (for backwards compatibility)
         const campaignRef = doc(db, 'campaigns', campaignId);
         await updateDoc(campaignRef, {
             assigned_bas: selectedBAs
         });
-
+        
         // Reload assignments from Firebase
         await loadCampaignBAAssignments();
-
+        
         showNotification(`✓ Assigned ${selectedBAs.length} Brand Ambassador(s) to "${campaignName}"`, 'success');
         document.getElementById('assignBAModal').style.display = 'none';
-
+        
         // Refresh displays
         renderCampaignsList();
         renderBrandAmbassadors(leaderState.brandAmbassadors);
@@ -1539,12 +1480,12 @@ async function handleConfirmAssignBA() {
 function exportReport() {
     const startDate = document.getElementById('reportStartDate')?.value;
     const endDate = document.getElementById('reportEndDate')?.value;
-
+    
     if (!startDate || !endDate) {
         showNotification('Please select date range', 'warning');
         return;
     }
-
+    
     // Generate CSV
     let csv = 'Staff,Campaign,Check-In,Check-Out,Hours Worked,Status\n';
 
@@ -1697,7 +1638,7 @@ window.addEventListener('load', () => {
     }
     // If no profile is present, force redirect to login (replace history so Back can't return)
     if (!lp) {
-        window.location.replace('login.html');
+        window.location.replace('../html/admin/login.html');
     }
 });
 
@@ -1730,7 +1671,7 @@ function logout() {
     try { localStorage.removeItem('leaderProfile'); } catch (e) { }
     try { sessionStorage.removeItem('user'); } catch (e) { }
     // Replace current history entry so Back won't return to this protected page
-    window.location.replace('login.html');
+    window.location.replace('../html/login.html');
 }
 
 window.logout = logout;

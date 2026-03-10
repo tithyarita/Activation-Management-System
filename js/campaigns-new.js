@@ -1,3 +1,7 @@
+// Ensure openCampaignModal is globally available for HTML button
+window.openCampaignModal = function() {
+  window.openModal('campaignModal');
+};
 // ===============================
 // IMPORT FIREBASE
 // ===============================
@@ -32,8 +36,49 @@ window.addEventListener("DOMContentLoaded", async () => {
   // also search on Enter inside input
   const locInput = document.getElementById('campaignLocation');
   if (locInput) {
-    locInput.addEventListener('keydown', (ev)=>{
-      if (ev.key === 'Enter') { ev.preventDefault(); const v=locInput.value.trim(); if (v) searchPlace(v); }
+    locInput.addEventListener('keydown', async (ev)=>{
+      if (ev.key === 'Enter') {
+        ev.preventDefault();
+        const v = locInput.value.trim();
+        if (!v) return;
+        // Search and auto-select first result
+        const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&q=${encodeURIComponent(v)}&addressdetails=1&limit=8`;
+        try {
+          const res = await fetch(url, { headers: { 'Accept-Language': 'en' } });
+          if (!res.ok) throw new Error('Search failed');
+          const list = await res.json();
+          if (list && list.length) {
+            const item = list[0];
+            const lat = item.lat, lon = item.lon, name = item.display_name;
+            document.getElementById('campaignLat').value = lat;
+            document.getElementById('campaignLng').value = lon;
+            document.getElementById('campaignLocation').value = name;
+            document.getElementById('locationSuggestions').style.display = 'none';
+            // Always update map, fallback to window.showLocationOnMap if needed
+            if (typeof showLocationOnMap === 'function') {
+              showLocationOnMap(parseFloat(lat), parseFloat(lon), name);
+            } else if (typeof window.showLocationOnMap === 'function') {
+              window.showLocationOnMap(parseFloat(lat), parseFloat(lon), name);
+            } else {
+              // fallback: try to set marker directly
+              if (window.__ams_location_map) {
+                if (window.__ams_location_marker) {
+                  window.__ams_location_marker.setLatLng([parseFloat(lat), parseFloat(lon)]);
+                  window.__ams_location_marker.bindPopup(name || '').openPopup();
+                } else {
+                  window.__ams_location_marker = L.marker([parseFloat(lat), parseFloat(lon)]).addTo(window.__ams_location_map).bindPopup(name || '');
+                  window.__ams_location_marker.openPopup();
+                }
+                window.__ams_location_map.setView([parseFloat(lat), parseFloat(lon)], 15);
+              }
+            }
+          } else {
+            searchPlace(v); // fallback to show suggestions
+          }
+        } catch (e) {
+          searchPlace(v); // fallback to show suggestions
+        }
+      }
     });
     // live autocomplete (debounced)
     locInput.addEventListener('input', ()=>{
@@ -64,64 +109,79 @@ window.addEventListener("DOMContentLoaded", async () => {
 async function loadCampaigns() {
 
   const list = document.getElementById("campaignsList");
-  list.innerHTML = "Loading campaigns...";
+  const adminList = document.getElementById("adminCampaignsList");
+  if (list) list.innerHTML = "Loading campaigns...";
+  if (adminList) adminList.innerHTML = "Loading campaigns...";
 
-  const snapshot = await getDocs(collection(db, "campaigns"));
-
-  if (snapshot.empty) {
-    list.innerHTML = "No campaigns found";
-    updateAnalytics([]);
-    return;
+  try {
+    const snapshot = await getDocs(collection(db, "campaigns"));
+    if (snapshot.empty) {
+      if (list) list.innerHTML = "No campaigns found";
+      if (adminList) adminList.innerHTML = "No campaigns found";
+      updateAnalytics([]);
+      return;
+    }
+    let html = "";
+    let dataArr = [];
+    snapshot.forEach(c => {
+      const data = c.data();
+      dataArr.push(data);
+    });
+    // Sort if requested
+    if (window.__sortCampaignsByDateDesc !== undefined) {
+      dataArr.sort((a, b) => {
+        const da = a.start_date ? new Date(a.start_date) : new Date(0);
+        const db = b.start_date ? new Date(b.start_date) : new Date(0);
+        return window.__sortCampaignsByDateDesc ? db - da : da - db;
+      });
+    }
+    dataArr.forEach(data => {
+      const startDate = data.start_date ? new Date(data.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A';
+      const endDate = data.end_date ? new Date(data.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A';
+      const budget = (typeof data.budget !== 'undefined' && data.budget !== null && data.budget !== '') ? `$${data.budget}` : 'N/A';
+      html += `
+        <div class="campaign-card">
+          <div class="campaign-header">
+            <h4>${data.name}</h4>
+            <span class="campaign-status">${data.status || "upcoming"}</span>
+          </div>
+          <div class="campaign-info">
+            <p><b>Dates:</b> ${startDate} to ${endDate}</p>
+            <p><b>Time:</b> ${data.startTime || 'N/A'} - ${data.endTime || 'N/A'}</p>
+            <p><b>Location:</b> ${data.location}</p>
+            <p><b>Budget:</b> ${budget}</p>
+            <p><b>Leader:</b> ${data.assignedLeader || "Unassigned"}</p>
+          </div>
+          <div class="campaign-actions">
+            <button class="btn btn-edit" onclick="editCampaign('${data.id}')">Edit</button>
+            <button class="btn btn-danger" onclick="deleteCampaign('${data.id}')">Delete</button>
+            <button class="btn btn-assign" onclick="openAssignModal('${data.id}','${data.name}')">Assign Leader</button>
+          </div>
+        </div>
+      `;
+    });
+    if (list) list.innerHTML = html;
+    if (adminList) adminList.innerHTML = html;
+    updateAnalytics(dataArr);
+  } catch (err) {
+    if (list) list.innerHTML = '<div style="color:red">Error loading campaigns: ' + (err.message || err) + '</div>';
+    console.error('Error loading campaigns:', err);
   }
-
-  let html = "";
-  const dataArr = [];
-
-  snapshot.forEach(c => {
-    const data = c.data();
-    dataArr.push(data);
-
-    // Format dates
-    const startDate = data.start_date ? new Date(data.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A';
-    const endDate = data.end_date ? new Date(data.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A';
-    const budget = data.budget ? `$${data.budget.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 'N/A';
-
-    html += `
-      <div class="campaign-card">
-
-        <div class="campaign-header">
-          <h4>${data.name}</h4>
-          <span class="campaign-status">${data.status || "upcoming"}</span>
-        </div>
-
-        <div class="campaign-info">
-          <p><b>Dates:</b> ${startDate} to ${endDate}</p>
-          <p><b>Time:</b> ${data.startTime || 'N/A'} - ${data.endTime || 'N/A'}</p>
-          <p><b>Location:</b> ${data.location}</p>
-          <p><b>Budget:</b> ${budget}</p>
-          <p><b>Leader:</b> ${data.assignedLeader || "Unassigned"}</p>
-        </div>
-
-        <div class="campaign-actions">
-          <button class="btn btn-edit"
-            onclick="editCampaign('${c.id}')">Edit</button>
-
-          <button class="btn btn-danger"
-            onclick="deleteCampaign('${c.id}')">Delete</button>
-
-          <button class="btn btn-assign"
-            onclick="openAssignModal('${c.id}','${data.name}')">
-            Assign Leader
-          </button>
-        </div>
-
-      </div>
-    `;
-  });
-
-  list.innerHTML = html;
-  updateAnalytics(dataArr);
 }
+
+// Sort button logic
+document.addEventListener('DOMContentLoaded', function() {
+  const sortBtn = document.getElementById('sortCampaignsBtn');
+  if (sortBtn) {
+    window.__sortCampaignsByDateDesc = false;
+    sortBtn.addEventListener('click', function() {
+      window.__sortCampaignsByDateDesc = !window.__sortCampaignsByDateDesc;
+      loadCampaigns();
+      sortBtn.innerHTML = window.__sortCampaignsByDateDesc ? '<i class="fa-solid fa-sort-up"></i> Sort by Event Day' : '<i class="fa-solid fa-sort-down"></i> Sort by Event Day';
+    });
+  }
+});
+
 
 
 // ===============================
@@ -150,19 +210,22 @@ async function handleAddCampaign(e) {
     description: "",
     createdAt: new Date().toISOString()
   };
+  console.log('Adding campaign to Firestore:', campaign);
 
-  const docRef = await addDoc(collection(db, "campaigns"), campaign);
-
-  // Save the document ID to Firestore
-  await updateDoc(doc(db, "campaigns", docRef.id), {
-    id: docRef.id
-  });
-  
-  alert("Campaign Added ✔");
-
-  e.target.reset();
-  closeModal(); // closes default modal
-  loadCampaigns();
+  try {
+    const docRef = await addDoc(collection(db, "campaigns"), campaign);
+    // Save the document ID to Firestore
+    await updateDoc(doc(db, "campaigns", docRef.id), {
+      id: docRef.id
+    });
+    alert("Campaign Added ✔");
+    e.target.reset();
+    closeModal(); // closes default modal
+    await loadCampaigns(); // ensure campaigns are refreshed after add
+  } catch (err) {
+    console.error('Error adding campaign:', err);
+    alert('Error adding campaign: ' + (err.message || err));
+  }
 }
 
 // ===============================
@@ -290,6 +353,10 @@ function showLocationOnMap(lat, lng, label){
   map.setView([lat, lng], 15);
 }
 
+// Ensure global for Enter key search
+window.showLocationOnMap = showLocationOnMap;
+}
+
 // Debounce helper
 let __ams_debounce_timer = null;
 function debounceSearch(q){
@@ -298,7 +365,7 @@ function debounceSearch(q){
 }
     suggestions.innerHTML = '<div style="padding:8px;color:#6b7280;">Search failed</div>';
   }
-}
+
 
 function escapeHtml(s){ return String(s).replace(/[&<>\"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
@@ -391,18 +458,20 @@ window.confirmLeaderAssign = async () => {
 // ===============================
 function updateAnalytics(campaigns) {
 
-  analyticsTotalCampaigns.textContent = campaigns.length;
+  if (typeof analyticsTotalCampaigns !== 'undefined' && analyticsTotalCampaigns)
+    analyticsTotalCampaigns.textContent = campaigns.length;
 
   const week = campaigns.filter(c => {
     const d = new Date(c.createdAt);
     return (new Date() - d) < 604800000;
   });
 
-  analyticsThisWeek.textContent = week.length;
-  analyticsStaffDeployed.textContent =
-    campaigns.filter(c => c.assignedLeader).length;
-
-  analyticsAvgAttendance.textContent = "N/A";
+  if (typeof analyticsThisWeek !== 'undefined' && analyticsThisWeek)
+    analyticsThisWeek.textContent = week.length;
+  if (typeof analyticsStaffDeployed !== 'undefined' && analyticsStaffDeployed)
+    analyticsStaffDeployed.textContent = campaigns.filter(c => c.assignedLeader).length;
+  if (typeof analyticsAvgAttendance !== 'undefined' && analyticsAvgAttendance)
+    analyticsAvgAttendance.textContent = "N/A";
 }
 
 

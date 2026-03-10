@@ -12,19 +12,7 @@ import bcrypt from "https://cdn.jsdelivr.net/npm/bcryptjs@2.4.3/+esm";
 // =======================
 // AUTH GUARD (admin pages)
 // =======================
-(function(){
-    function _loginRedirect(){
-        const p = location.pathname || '';
-        const loginPath = p.includes('/admin/') ? '../login.html' : 'login.html';
-        location.replace(loginPath);
-    }
-    let cu = null;
-    try { cu = JSON.parse(sessionStorage.getItem('user')); } catch(e) { cu = null; }
-    if (!cu || cu.role !== 'admin') {
-        try { sessionStorage.clear(); } catch(e){}
-        _loginRedirect();
-    }
-})();
+// Remove standalone page redirect logic for dashboard integration
 
 let users = [];
 let editingUserId = null;
@@ -251,13 +239,3 @@ window.confirmRoleChange = async ()=>{
     loadUsers();
 };
 
-/* =============================
-   LOGOUT
-============================= */
-window.handleLogout = ()=>{
-    if(confirm("Logout?")){
-        sessionStorage.clear();
-        // Replace history entry so Back can't return
-        location.replace('login.html');
-    }
-};

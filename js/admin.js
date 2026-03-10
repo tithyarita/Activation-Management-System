@@ -9,15 +9,18 @@ async function hashPassword(password) {
 	return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
+
 // Modal Control
 window.openModal = function() {
-    const modal = document.getElementById("campaignModal");
-    if (modal) {
-        modal.style.display = "flex";
-        // Clear form
-        document.getElementById('campaignForm').reset();
-    }
+	const modal = document.getElementById("campaignModal");
+	if (modal) {
+		modal.style.display = "flex";
+		// Clear form
+		document.getElementById('campaignForm').reset();
+	}
 };
+// Alias for dashboard button
+window.openCampaignModal = window.openModal;
 
 window.closeModal = function() {
     const modal = document.getElementById("campaignModal");
@@ -142,63 +145,88 @@ window.leaders = [];
 async function loadCampaigns() {
 	try {
 		const campaignsList = document.getElementById('campaignsList');
-		if (!campaignsList) {
-			console.warn('campaignsList element not found');
-			return;
-		}
-
-		console.log('Loading campaigns from Firestore...');
+		const adminCampaignsList = document.getElementById('adminCampaignsList');
 		const querySnapshot = await getDocs(collection(db, 'campaigns'));
-		console.log('Campaigns loaded:', querySnapshot.size);
-		
-		campaignsList.innerHTML = '';
+		const render = (container) => {
+			if (!container) return;
+			container.innerHTML = '';
+			if (querySnapshot.empty) {
+				container.innerHTML = '<p class="loading-text">No campaigns found. Click "Add Campaign" to get started!</p>';
+				return;
+			}
+			querySnapshot.forEach((docSnap) => {
+				const campaign = docSnap.data();
+				const leaderName = campaign.leaderName || 'Unassigned';
+				const campaignEl = document.createElement('div');
+				campaignEl.className = 'campaign-card';
 
-		if (querySnapshot.empty) {
-			campaignsList.innerHTML = '<p class="loading-text">No campaigns found. Click "Add Campaign" to get started!</p>';
-			return;
-		}
+				// Helper to check if location is coordinates
+				function isLatLng(str) {
+					if (!str) return false;
+					return /^-?\d{1,3}\.\d+\s*,\s*-?\d{1,3}\.\d+$/.test(str.trim());
+				}
 
-		querySnapshot.forEach((docSnap) => {
-			const campaign = docSnap.data();
-			const leaderName = campaign.leaderName || 'Unassigned';
-			const campaignEl = document.createElement('div');
-			campaignEl.className = 'campaign-card';
-			campaignEl.innerHTML = `
-				<div class="campaign-card-header">
-					<h4>${campaign.name}</h4>
-					<button class="btn-remove" onclick="removeCampaign('${docSnap.id}')" title="Delete campaign">
-						<i class="fa-solid fa-trash"></i>
-					</button>
-				</div>
-				<div class="campaign-card-body">
-					<div class="campaign-detail">
-						<span class="detail-label"><i class="fa-solid fa-user"></i> Leader:</span>
-						<span class="detail-value">${leaderName}</span>
-						<button class="btn" style="padding:4px 10px;font-size:12px;margin-left:10px;" onclick="openLeaderAssignModal('${docSnap.id}')">Change</button>
+				let locationDisplay = campaign.location || 'N/A';
+				if (isLatLng(locationDisplay)) {
+					// If location is coordinates, try to reverse geocode (async)
+					locationDisplay = 'Loading address...';
+					const lat = campaign.lat || campaign.location.split(',')[0];
+					const lng = campaign.lng || campaign.location.split(',')[1];
+					fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`)
+						.then(r=>r.json())
+						.then(data=>{
+							const address = data.display_name || `${lat},${lng}`;
+							const el = campaignEl.querySelector('.detail-value[data-location]');
+							if (el) el.textContent = address;
+						});
+				}
+
+				campaignEl.innerHTML = `
+					<div class="campaign-card-header">
+						<h4>${campaign.name}</h4>
+						<button class="btn-remove" onclick="removeCampaign('${docSnap.id}')" title="Delete campaign">
+							<i class="fa-solid fa-trash"></i>
+						</button>
 					</div>
-					<div class="campaign-detail">
-						<span class="detail-label"><i class="fa-solid fa-calendar"></i> Date:</span>
-						<span class="detail-value">${campaign.date || 'N/A'}</span>
+					<div class="campaign-card-body">
+						<div class="campaign-detail">
+							<span class="detail-label"><i class="fa-solid fa-user"></i> Leader:</span>
+							<span class="detail-value">${leaderName}</span>
+							<button class="btn" style="padding:4px 10px;font-size:12px;margin-left:10px;" onclick="openLeaderAssignModal('${docSnap.id}')">Change</button>
+						</div>
+						<div class="campaign-detail">
+							<span class="detail-label"><i class="fa-solid fa-calendar"></i> Start Date:</span>
+							<span class="detail-value">${campaign.startDate || 'N/A'}</span>
+						</div>
+						<div class="campaign-detail">
+							<span class="detail-label"><i class="fa-solid fa-calendar"></i> End Date:</span>
+							<span class="detail-value">${campaign.endDate || 'N/A'}</span>
+						</div>
+						<div class="campaign-detail">
+							<span class="detail-label"><i class="fa-solid fa-clock"></i> Start Time:</span>
+							<span class="detail-value">${campaign.startTime || 'N/A'}</span>
+						</div>
+						<div class="campaign-detail">
+							<span class="detail-label"><i class="fa-solid fa-clock"></i> End Time:</span>
+							<span class="detail-value">${campaign.endTime || 'N/A'}</span>
+						</div>
+						<div class="campaign-detail">
+							<span class="detail-label"><i class="fa-solid fa-map-pin"></i> Location:</span>
+							<span class="detail-value" data-location="true">${locationDisplay}</span>
+						</div>
+						<div class="campaign-detail">
+							<span class="detail-label"><i class="fa-solid fa-dollar-sign"></i> Budget:</span>
+							<span class="detail-value">${campaign.budget || 0}</span>
+						</div>
 					</div>
-					<div class="campaign-detail">
-						<span class="detail-label"><i class="fa-solid fa-clock"></i> Start Time:</span>
-						<span class="detail-value">${campaign.startTime || 'N/A'}</span>
-					</div>
-                    <div class="campaign-detail">
-                        <span class="detail-label"><i class="fa-solid fa-clock"></i> End Time:</span>
-                        <span class="detail-value">${campaign.endTime || 'N/A'}</span>
-                    </div>
-					<div class="campaign-detail">
-						<span class="detail-label"><i class="fa-solid fa-map-pin"></i> Location:</span>
-						<span class="detail-value">${campaign.location || 'N/A'}</span>
-					</div>
-				</div>
-			`;
-			campaignsList.appendChild(campaignEl);
-		});
-		
+				`;
+				container.appendChild(campaignEl);
+			});
+		};
+		render(campaignsList);
+		render(adminCampaignsList);
 		// Load leader performance after campaigns
-		loadLeaderPerformance();
+		if (typeof loadLeaderPerformance === 'function') loadLeaderPerformance();
 	} catch (err) {
 		console.error('Error loading campaigns:', err);
 		document.getElementById('campaignsList').innerHTML = '<p class="loading-text" style="color:red">Error: ' + err.message + '</p>';
@@ -210,45 +238,57 @@ window.loadCampaigns = loadCampaigns;
 // Add campaign to Firestore
 window.addCampaign = async function() {
 	const nameInput = document.getElementById('campaignName');
-	const dateInput = document.getElementById('campaignDate');
+	const startDateInput = document.getElementById('campaignStartDate');
+	const endDateInput = document.getElementById('campaignEndDate');
 	const startTimeInput = document.getElementById('campaignStartTime');
 	const endTimeInput = document.getElementById('campaignEndTime');
 	const locationInput = document.getElementById('campaignLocation');
+	const budgetInput = document.getElementById('campaignBudget');
+	const latInput = document.getElementById('campaignLat');
+	const lngInput = document.getElementById('campaignLng');
 
-	if (!nameInput || !dateInput || !startTimeInput || !endTimeInput || !locationInput) {
+	if (!nameInput || !startDateInput || !endDateInput || !startTimeInput || !endTimeInput || !locationInput || !budgetInput) {
 		console.error('Form elements not found');
 		return;
 	}
 
 	const name = nameInput.value.trim();
-	const date = dateInput.value;
+	const startDate = startDateInput.value;
+	const endDate = endDateInput.value;
 	const startTime = startTimeInput.value;
 	const endTime = endTimeInput.value;
 	const location = locationInput.value.trim();
+	const budget = parseFloat(budgetInput.value) || 0;
+	const lat = latInput ? latInput.value : '';
+	const lng = lngInput ? lngInput.value : '';
 
-	if (!name || !date || !startTime || !endTime || !location) {
+	if (!name || !startDate || !endDate || !startTime || !endTime || !location) {
 		alert('Please fill in all required fields');
 		return;
 	}
 
 	try {
-		console.log('Adding campaign:', { name, date, startTime, endTime, location });
 		const docRef = await addDoc(collection(db, 'campaigns'), {
 			name,
-			date,
+			startDate,
+			endDate,
 			startTime,
 			endTime,
 			location,
+			budget,
+			lat,
+			lng,
 			createdAt: new Date().toISOString(),
 		});
-		console.log('Campaign added with ID:', docRef.id);
-		
 		nameInput.value = '';
-		dateInput.value = '';
+		startDateInput.value = '';
+		endDateInput.value = '';
 		startTimeInput.value = '';
 		endTimeInput.value = '';
 		locationInput.value = '';
-		
+		budgetInput.value = '';
+		if(latInput) latInput.value = '';
+		if(lngInput) lngInput.value = '';
 		closeModal();
 		loadCampaigns();
 		alert('Campaign added successfully!');

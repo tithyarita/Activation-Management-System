@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AMS Admin Dashboard</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="../../css/style.css">
+<link rel="stylesheet" href="../../css/admin.css">
+<link rel="stylesheet" href="../../css/admin-layout.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bcryptjs@2.4.3/dist/bcrypt.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+<style>
+    /* Add Campaign Modal Redesign */
+    #campaignModal .modal-content {
+      padding: 0;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 6px 32px rgba(35,41,70,0.16);
+      width: 440px;
+      max-width: 98vw;
+      max-height: 92vh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    #campaignModal .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 24px 12px 24px;
+      border-bottom: 1px solid #e5e7eb;
+      background: #f6f7fb;
+      border-radius: 16px 16px 0 0;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+    #campaignModal .modal-header h2 {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #232946;
+    }
+    #campaignModal .close-btn {
+      font-size: 2rem;
+      color: #6b7280;
+      background: none;
+      border: none;
+      cursor: pointer;
+      transition: color 0.18s;
+      margin-left: 12px;
+    }
+    #campaignModal .close-btn:hover {
+      color: #ef4444;
+    }
+    #campaignModal form {
+      padding: 20px 24px 12px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    #campaignModal .form-group label {
+      font-weight: 500;
+      margin-bottom: 4px;
+      color: #232946;
+    }
+    #campaignModal .form-group input,
+    #campaignModal .form-group select {
+      font-size: 1.05rem;
+      background: #f9fafb;
+      border-radius: 7px;
+      border: 1px solid #d1d5db;
+      padding: 8px 12px;
+      margin-bottom: 2px;
+      transition: border 0.18s;
+    }
+    #campaignModal .form-group input:focus,
+    #campaignModal .form-group select:focus {
+      border: 1.5px solid #3b82f6;
+      background: #fff;
+    }
+    #campaignModal .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      padding: 16px 24px 20px 24px;
+      border-top: 1px solid #e5e7eb;
+      background: #f6f7fb;
+      border-radius: 0 0 16px 16px;
+      position: sticky;
+      bottom: 0;
+      z-index: 2;
+    }
+    #campaignModal .btn-cancel {
+      background: #fff;
+      color: #ef4444;
+      border: 1.5px solid #ef4444;
+      font-weight: 500;
+      transition: background 0.18s, color 0.18s;
+    }
+    #campaignModal .btn-cancel:hover {
+      background: #fee2e2;
+      color: #b91c1c;
+      border-color: #b91c1c;
+    }
+    #campaignModal .btn-save {
+      background: #3b82f6;
+      color: #fff;
+      font-weight: 500;
+      border: none;
+      transition: background 0.18s;
+    }
+    #campaignModal .btn-save:hover {
+      background: #2563eb;
+    }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    margin: 0;
+    background: #f3f4f6;
+    color: #222;
+  }
+  .admin-wrapper {
+    display: flex;
+    min-height: 100vh;
+    background: #f3f4f6;
+  }
+  .sidebar {
+    width: 240px;
+    background: #232946;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 2px 0 12px rgba(35,41,70,0.08);
+    z-index: 10;
+  }
+  .sidebar-header {
+    padding: 28px 20px 18px 20px;
+    font-size: 1.3rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    letter-spacing: 1px;
+  }
+  .sidebar-nav {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .sidebar-nav a {
+    color: #e0e6f7;
+    text-decoration: none;
+    padding: 15px 28px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 1.08rem;
+    border-left: 4px solid transparent;
+    transition: background 0.18s, color 0.18s, border-color 0.18s;
+  }
+  .sidebar-nav a:hover, .sidebar-nav a.active {
+    background: #353a5a;
+    color: #fff;
+    border-left: 4px solid #3b82f6;
+  }
+  .main-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 32px 28px 28px 28px;
+    min-width: 0;
+    background: #f3f4f6;
+  }
+  .tab-content {
+    display: none;
+    animation: fadeIn 0.3s;
+  }
+  .tab-content.active {
+    display: block;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  .summary-section, .stats-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    margin-top: 18px;
+  }
+  .summary-card, .stat-card {
+    flex: 1 1 220px;
+    background: #fff;
+    padding: 24px 22px;
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    box-shadow: 0 2px 10px rgba(35,41,70,0.07);
+    min-width: 200px;
+  }
+  .card-icon {
+    font-size: 2.2rem;
+    color: #3b82f6;
+  }
+  .card-content h3 {
+    margin: 0;
+    font-size: 1.08rem;
+    color: #232946;
+    font-weight: 600;
+  }
+  .card-content p {
+    margin: 6px 0 0;
+    font-size: 1.6rem;
+    font-weight: bold;
+    color: #232946;
+  }
+  .card-content span {
+    font-size: 0.92rem;
+    color: #6b7280;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 14px;
+    overflow: hidden;
+    margin-top: 18px;
+    box-shadow: 0 2px 10px rgba(35,41,70,0.06);
+  }
+  th, td {
+    padding: 13px 16px;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+    font-size: 1.04rem;
+  }
+  th {
+    background: #f6f7fb;
+    color: #232946;
+    font-weight: 600;
+  }
+  tr:hover {
+    background: #f3f6fa;
+  }
+  .btn {
+    padding: 9px 18px;
+    border: none;
+    border-radius: 7px;
+    cursor: pointer;
+    font-size: 1.04rem;
+    font-weight: 500;
+    transition: background 0.18s, color 0.18s;
+  }
+  .btn-primary {
+    background: #3b82f6;
+    color: #fff;
+  }
+  .btn-primary:hover {
+    background: #2563eb;
+  }
+  .btn-success {
+    background: #10b981;
+    color: #fff;
+  }
+  .btn-success:hover {
+    background: #059669;
+  }
+  .btn-secondary {
+    background: #6b7280;
+    color: #fff;
+  }
+  .btn-secondary:hover {
+    background: #4b5563;
+  }
+  .chart-card {
+    background: #fff;
+    padding: 22px 20px;
+    border-radius: 14px;
+    box-shadow: 0 2px 10px rgba(35,41,70,0.07);
+    margin-bottom: 24px;
+  }
+  .activity-card, .modal {
+    background: #fff;
+    border-radius: 14px;
+  }
+  .activity-card {
+    padding: 22px 20px;
+    margin-top: 22px;
+    box-shadow: 0 2px 10px rgba(35,41,70,0.07);
+  }
+  .performance-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+  }
+  .loading-text {
+    color: #6b7280;
+    font-style: italic;
+    font-size: 1.08rem;
+  }
+  .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.32);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+  }
+  .modal-content {
+    background: #fff;
+    padding: 20px;
+    border-radius: 14px;
+    width: 440px;
+    max-width: 98vw;
+    max-height: 92vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 24px rgba(35,41,70,0.18);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .close-btn {
+    float: right;
+    cursor: pointer;
+    color: #6b7280;
+    background: none;
+    border: none;
+    font-size: 1.7rem;
+    transition: color 0.18s;
+  }
+  .close-btn:hover {
+    color: #3b82f6;
+  }
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    position: sticky;
+    top: 0;
+    background: #fff;
+    z-index: 2;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 8px;
+  }
+  .form-group {
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .form-group input, .form-group select {
+    padding: 7px 11px;
+    border: 1px solid #d1d5db;
+    border-radius: 7px;
+    font-size: 1.04rem;
+    background: #f9fafb;
+    transition: border 0.18s;
+  }
+  .form-group input:focus, .form-group select:focus {
+    border: 1.5px solid #3b82f6;
+    outline: none;
+    background: #fff;
+  }
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 10px;
+    position: sticky;
+    bottom: 0;
+    background: #fff;
+    z-index: 2;
+    border-top: 1px solid #e5e7eb;
+    padding-top: 8px;
+  }
+  #locationMap {
+    height: 300px;
+    margin-top: 8px;
+    display: block;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 2px solid #3b82f6;
+    box-shadow: 0 2px 8px rgba(59,130,246,0.15);
+    background: #e5e7eb;
+    cursor: crosshair;
+  }
+</style>
+</head>
+
+<body>
+<div class="admin-wrapper">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <i class="fa-solid fa-chart-line"></i> AMS Admin
+    </div>
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-item active" data-tab="dashboard"><i class="fa-solid fa-home"></i> Dashboard</a>
+      <a href="#" class="nav-item" data-tab="users"><i class="fa-solid fa-users"></i> Users</a>
+      <a href="#" class="nav-item" data-tab="leaders"><i class="fa-solid fa-star"></i> Leaders</a>
+      <a href="#" class="nav-item" data-tab="campaigns"><i class="fa-solid fa-calendar"></i> Campaigns</a>
+      <a href="#" class="nav-item" data-tab="reports"><i class="fa-solid fa-chart-bar"></i> Reports</a>
+      <a href="#" class="nav-item" onclick="handleLogout()"><i class="fa-solid fa-sign-out-alt"></i> Logout</a>
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+
+    <!-- Dashboard Tab -->
+    <div class="tab-content active" id="dashboard">
+      <section class="summary-section">
+        <div class="summary-card"><div class="card-icon campaigns"><i class="fa-solid fa-calendar"></i></div><div class="card-content"><h3>Total Campaigns</h3><p id="totalCampaigns">0</p></div></div>
+        <div class="summary-card"><div class="card-icon users"><i class="fa-solid fa-users"></i></div><div class="card-content"><h3>Total Users</h3><p id="totalUsers">0</p></div></div>
+        <div class="summary-card"><div class="card-icon leaders"><i class="fa-solid fa-star"></i></div><div class="card-content"><h3>Active Leaders</h3><p id="activeLeaders">0</p></div></div>
+        <div class="summary-card"><div class="card-icon attendance"><i class="fa-solid fa-check-circle"></i></div><div class="card-content"><h3>Today's Attendance</h3><p id="todayAttendance">0</p></div></div>
+      </section>
+      <section class="charts-section">
+        <div class="chart-card"><h3>Attendance Trend (7 Days)</h3><canvas id="attendanceTrendChart"></canvas></div>
+        <div class="chart-card"><h3>Campaign Activity</h3><canvas id="campaignActivityChart"></canvas></div>
+      </section>
+      <section id="adminCampaignSection" class="chart-card">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <h3>All Campaigns</h3>
+          <button class="btn btn-primary" onclick="openCampaignModal()"><i class="fa-solid fa-plus"></i> Add Campaign</button>
+        </div>
+        <div id="adminCampaignsList" style="margin-top:15px;">Loading campaigns...</div>
+      </section>
+    </div>
+
+    <!-- Users Tab -->
+    <div class="tab-content" id="users">
+      <section class="stats-section">
+        <h3>User Statistics</h3>
+        <div class="stats-grid">
+          <div class="stat-card"><h4>Total Users</h4><p id="statTotalUsers" class="stat-number">0</p></div>
+          <div class="stat-card"><h4>Staff Members</h4><p id="statStaffMembers" class="stat-number">0</p></div>
+          <div class="stat-card"><h4>Leaders</h4><p id="statLeaders" class="stat-number">0</p></div>
+          <div class="stat-card"><h4>Admins</h4><p id="statAdmins" class="stat-number">0</p></div>
+        </div>
+      </section>
+      <section class="top-row">
+        <div class="page-title">User Management</div>
+        <button class="btn btn-primary" onclick="openUserModal()"><i class="fa-solid fa-plus"></i> Add User</button>
+      </section>
+      <section class="filters-section">
+        <input type="text" id="searchUser" placeholder="Search by name or email..." class="filter-input">
+        <select id="filterRole" class="filter-input">
+          <option value="">All Roles</option>
+          <option value="ba">Brand Ambassador</option>
+          <option value="leader">Leader</option>
+          <option value="admin">Admin</option>
+        </select>
+      </section>
+      <section class="users-section">
+        <div class="table-responsive">
+          <div id="usersList" class="loading-text">Loading users...</div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Leaders Tab -->
+    <div class="tab-content" id="leaders">
+      <h1>Leaders Management</h1>
+      <div id="leaderPerformance" class="performance-grid"><p class="loading-text">Loading leaders...</p></div>
+      <h3>Leaders Ranking (by attendance rate)</h3>
+      <table class="leaders-table">
+        <thead>
+          <tr><th>Rank</th><th>Leader Name</th><th>Email</th><th>Campaigns</th><th>Staff Managed</th><th>Attendance Rate</th><th>Check-ins</th></tr>
+        </thead>
+        <tbody id="leaderRankingTable"><tr><td colspan="7" class="loading-text">Loading leaders...</td></tr></tbody>
+      </table>
+      <h3>Recent Leader Activity</h3>
+      <div id="leaderActivityTimeline" class="activity-card"><p class="loading-text">Loading activities...</p></div>
+    </div>
+
+    <!-- Campaigns Tab -->
+    <div class="tab-content" id="campaigns">
+      <section class="top-row">
+        <div class="page-title">Campaign Management</div>
+        <button class="btn btn-primary" onclick="openCampaignModal()"><i class="fa-solid fa-plus"></i> Add Campaign</button>
+      </section>
+      <section class="filters-section">
+        <input type="date" id="filterDate" placeholder="Filter by date" class="filter-input">
+        <select id="filterStatus" class="filter-input">
+          <option value="">All Status</option>
+          <option value="upcoming">Upcoming</option>
+          <option value="ongoing">Ongoing</option>
+          <option value="completed">Completed</option>
+        </select>
+      </section>
+      <section>
+        <div id="campaignsList" class="campaigns-grid"><p class="loading-text">Loading campaigns...</p></div>
+      </section>
+    </div>
+
+    <!-- Reports Tab -->
+    <div class="tab-content" id="reports">
+      <h1>Reports & Analytics</h1>
+      <table>
+        <thead><tr><th>User</th><th>Campaign</th><th>Clock In</th><th>Clock Out</th><th>Location</th></tr></thead>
+        <tbody id="reportsList"></tbody>
+      </table>
+    </div>
+
+  </main>
+</div>
+
+<!-- Add User Modal -->
+<div id="userModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Add New User</h2>
+      <button class="close-btn" onclick="closeUserModal()">&times;</button>
+    </div>
+    <form id="userForm">
+      <div class="form-group"><label>User Name *</label><input type="text" id="userName" required></div>
+      <div class="form-group"><label>Email *</label><input type="email" id="userEmail" required></div>
+      <div class="form-group"><label>Password *</label><input type="password" id="userPassword" required></div>
+      <div class="form-group"><label>Confirm Password *</label><input type="password" id="userConfirmPassword" required></div>
+      <div class="form-group"><label>Role *</label>
+        <select id="userRole" required>
+          <option value="ba">Brand Ambassador</option>
+          <option value="leader">Leader</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button type="submit" class="btn btn-success">Save User</button>
+        <button type="button" class="btn btn-secondary" onclick="closeUserModal()">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+</div>
+
+<!-- Add Campaign Modal (single instance) -->
+<div id="campaignModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Add New Campaign</h3>
+      <button class="close-btn" onclick="closeCampaignModal()" aria-label="Close">&times;</button>
+    </div>
+    <form id="campaignForm">
+      <div class="form-group">
+        <label>Campaign Name *</label>
+        <input type="text" id="campaignName" required autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <input type="text" id="campaignDescription" autocomplete="off">
+      </div>
+      <div style="display:flex;gap:10px;">
+        <div class="form-group" style="flex:1;">
+          <label>Start Date *</label>
+          <input type="date" id="campaignStartDate" required>
+        </div>
+        <div class="form-group" style="flex:1;">
+          <label>End Date *</label>
+          <input type="date" id="campaignEndDate" required>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <div class="form-group" style="flex:1;">
+          <label>Start Time *</label>
+          <input type="time" id="campaignStartTime" required>
+        </div>
+        <div class="form-group" style="flex:1;">
+          <label>End Time *</label>
+          <input type="time" id="campaignEndTime" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Budget</label>
+        <input type="number" id="campaignBudget" min="0" step="0.01" placeholder="0.00">
+      </div>
+      <div class="form-group">
+        <label>Status *</label>
+        <select id="campaignStatus" required>
+          <option value="upcoming">Upcoming</option>
+          <option value="ongoing">Ongoing</option>
+          <option value="completed">Completed</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Location &amp; Zone *</label>
+        <div style="margin-bottom:8px; color:#374151; font-size:0.95em;">
+          <b>Click on the map below</b> to set the campaign address. Only the address will be shown below.
+        </div>
+        <div id="locationMap"></div>
+        <input type="text" id="campaignLocation" required readonly placeholder="Selected address will appear here" style="margin-bottom:10px;">
+        <input type="hidden" id="campaignLat">
+        <input type="hidden" id="campaignLng">
+        <div class="form-group" style="margin-bottom:0;">
+          <label for="campaignRadius">Zone Radius (meters)</label>
+          <input type="number" id="campaignRadius" min="10" max="10000" step="1" value="100" style="width:100%;" required>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-cancel" onclick="closeCampaignModal()">Cancel</button>
+        <button type="submit" class="btn btn-save">Save Campaign</button>
+      </div>
+    </form>
+  </div>
+</div>
+</div>
+
+<script type="module" src="../../js/dashboard.js"></script>
+<script type="module" src="../../js/users-new.js"></script>
+<script type="module" src="../../js/leaders-new.js"></script>
+<script type="module" src="../../js/campaigns-new.js"></script>
+<script type="module" src="../../js/reports-new.js"></script>
+<script src="../../js/localStorage.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script>
+// Leaflet map location picker for campaign modal
+function setupCampaignMap() {
+  const mapDiv = document.getElementById('locationMap');
+  if (!mapDiv) return;
+  mapDiv.style.display = '';
+  // Remove any previous map instance
+  if (mapDiv._leaflet_id) {
+    mapDiv._leaflet_id = null;
+    mapDiv.innerHTML = '';
+  }
+  const defaultLat = 13.7563, defaultLng = 100.5018; // Bangkok center
+  const map = L.map('locationMap').setView([defaultLat, defaultLng], 12);
+  window.campaignMap = map;
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+  let marker;
+  let circle;
+  function setMarkerAndCircle(lat, lng, radius) {
+    if (marker) map.removeLayer(marker);
+    if (circle) map.removeLayer(circle);
+    marker = L.marker([lat, lng]).addTo(map);
+    circle = L.circle([lat, lng], {
+      color: '#3b82f6',
+      fillColor: '#3b82f6',
+      fillOpacity: 0.15,
+      radius: radius
+    }).addTo(map);
+    document.getElementById('campaignLat').value = lat;
+    document.getElementById('campaignLng').value = lng;
+    // Reverse geocode for address and show popup
+    fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`)
+      .then(r=>r.json()).then(data=>{
+        const address = data.display_name || `${lat},${lng}`;
+        document.getElementById('campaignLocation').value = address;
+        marker.bindPopup(`<b>Selected location</b><br>${address}`).openPopup();
+      }).catch(()=>{
+        const address = `${lat},${lng}`;
+        document.getElementById('campaignLocation').value = address;
+        marker.bindPopup(`<b>Selected location</b><br>${address}`).openPopup();
+      });
+  }
+  // Helper to get radius from input
+  function getRadius() {
+    const radiusInput = document.getElementById('campaignRadius');
+    let radius = 100;
+    if (radiusInput && radiusInput.value) {
+      radius = parseInt(radiusInput.value, 10) || 100;
+    }
+    return radius;
+  }
+  map.on('click', function(e) {
+    setMarkerAndCircle(e.latlng.lat, e.latlng.lng, getRadius());
+  });
+  // Listen for radius changes
+  const radiusInput = document.getElementById('campaignRadius');
+  if (radiusInput) {
+    radiusInput.addEventListener('input', function() {
+      if (marker) {
+        setMarkerAndCircle(marker.getLatLng().lat, marker.getLatLng().lng, getRadius());
+      }
+    });
+  }
+  // If browser supports geolocation, center map
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function(pos) {
+      map.setView([pos.coords.latitude, pos.coords.longitude], 14);
+    });
+  }
+}
+// Show map when modal opens
+document.addEventListener('DOMContentLoaded', function() {
+  // Always re-initialize map when modal is shown
+  const modal = document.getElementById('campaignModal');
+  if (modal) {
+    const observer = new MutationObserver(() => {
+      if (modal.style.display !== 'none') setTimeout(setupCampaignMap, 100);
+    });
+    observer.observe(modal, { attributes: true, attributeFilter: ['style'] });
+  }
+});
+</script>
+
+<script>
+const user = JSON.parse(sessionStorage.getItem('user') || 'null');
+if (!user) window.location.href='login.html';
+
+// Tab switching
+const tabs = document.querySelectorAll('.nav-item[data-tab]');
+const tabContents = document.querySelectorAll('.tab-content');
+tabs.forEach(tab => {
+  tab.addEventListener('click', e => {
+    e.preventDefault();
+    tabs.forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const target = tab.dataset.tab;
+    tabContents.forEach(c => c.classList.remove('active'));
+    document.getElementById(target).classList.add('active');
+  });
+});
+
+function handleLogout() {
+  if(confirm('Logout?')){
+    sessionStorage.clear();
+    localStorage.clear();
+    window.location.href='login.html';
+  }
+}
+</script>
+</body>
+</html>

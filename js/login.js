@@ -78,6 +78,11 @@ async function handleLogin(event) {
             role: userData.role,
             name: userData.name
         }));
+        // Set userRole for dashboard (both session and local storage)
+        sessionStorage.setItem("userRole", userData.role);
+        localStorage.setItem("userRole", userData.role);
+        // Debug: Show detected role
+        alert("Detected role: " + userData.role);
         
 
         // ✅ Save user to localStorage cache
@@ -104,19 +109,19 @@ async function handleLogin(event) {
             try { localStorage.setItem('leaderProfile', JSON.stringify(profile)); } catch (e) { }
         }
 
-        // Redirect by role
+        // Redirect by role (always use absolute path for admin dashboard)
         switch (userData.role) {
             case "staff":
-                window.location.href = "ba.html";
+                window.location.href = "/html/ba-clockin.html";
                 break;
             case "leader":
-                window.location.href = "leader.html";
+                window.location.href = "/html/leader.html";
                 break;
             case "admin":
-                window.location.href = "admin.html";
+                window.location.href = "/html/admin/admin-dashboard.html";
                 break;
             default:
-                window.location.href = "ba.html";
+                window.location.href = "/html/ba-clockin.html";
         }
 
     } catch (error) {
