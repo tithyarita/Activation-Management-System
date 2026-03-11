@@ -31,17 +31,57 @@ async function init(){
    LOAD USERS
 ============================= */
 async function loadUsers(){
+    // Try to load from localStorage first
+    let localUsers = [];
+    let loadedFromLocal = false;
+    try {
+        const cached = localStorage.getItem('users');
+        if (cached) {
+            localUsers = JSON.parse(cached);
+            users = localUsers;
+            updateStats();
+            renderUsers(users);
+            loadedFromLocal = true;
+            console.log('[loadUsers] Loaded from localStorage:', users);
+        } else {
+            console.log('[loadUsers] No users in localStorage');
+        }
+    } catch(e) {
+        console.warn('[loadUsers] localStorage users parse error', e);
+    }
 
-    const snap = await getDocs(collection(db,"users"));
-    users = [];
-
-    snap.forEach(d=>{
-        users.push({ id:d.id, ...d.data() });
-    });
-
-    updateStats();
-    renderUsers(users);
+    // Always fetch from Firestore to get latest
+    try {
+        const snap = await getDocs(collection(db,"users"));
+        users = [];
+        snap.forEach(d=>{
+            users.push({ id:d.id, ...d.data() });
+        });
+        // Store users in localStorage
+        localStorage.setItem('users', JSON.stringify(users));
+        updateStats();
+        renderUsers(users);
+        if (!users.length) {
+            console.warn('[loadUsers] No users found in Firestore');
+            const container = document.getElementById('usersList');
+            if (container) container.innerHTML = '<p class="loading-text">No users found in Firestore.</p>';
+        } else {
+            console.log('[loadUsers] Loaded from Firestore:', users);
+        }
+    } catch (err) {
+        console.error('[loadUsers] Error loading users from Firestore:', err);
+        const container = document.getElementById('usersList');
+        if (container) container.innerHTML = '<p class="loading-text">Failed to load users from Firestore.<br>' + err.message + '</p>';
+    }
+    // If both sources are empty, show a message
+    if (!users.length) {
+        const container = document.getElementById('usersList');
+        if (container) container.innerHTML = '<p class="loading-text">No users found. Please add a user.</p>';
+        console.warn('[loadUsers] No users found in localStorage or Firestore.');
+    }
 }
+// Expose for dashboard tab switching
+window.loadUsers = loadUsers;
 
 /* =============================
    STATS
@@ -68,14 +108,15 @@ function setText(id,val){
    RENDER USERS
 ============================= */
 function renderUsers(list){
-
     const container = document.getElementById("usersList");
-
+    if(!container) {
+        console.warn('usersList element not found in DOM');
+        return;
+    }
     if(!list.length){
         container.innerHTML="No users found";
         return;
     }
-
     container.innerHTML = `
         <table class="admin-table">
             <thead>
@@ -97,7 +138,6 @@ function renderUsers(list){
                                 onclick="openEditRole('${u.id}')">
                                 Role
                             </button>
-
                             <button class="btn btn-sm btn-danger"
                                 onclick="deleteUser('${u.id}')">
                                 Delete
@@ -237,5 +277,9 @@ window.confirmRoleChange = async ()=>{
 
     closeEditRoleModal();
     loadUsers();
+    // Also update leader list if function exists (for dashboard integration)
+    if (typeof window.loadLeaders === 'function') {
+        window.loadLeaders();
+    }
 };
 

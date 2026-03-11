@@ -25,6 +25,21 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   const form = document.getElementById("campaignForm");
   if (form) form.addEventListener("submit", handleAddCampaign);
+  // Assign Leader button in campaign modal
+  const assignBtn = document.getElementById('openAssignLeaderBtn');
+  if (assignBtn) {
+    assignBtn.addEventListener('click', async function(e) {
+      e.preventDefault();
+      // Get campaign name and id from modal fields
+      const campaignId = document.getElementById('campaignId').value;
+      const campaignName = document.getElementById('campaignName').value || '(New Campaign)';
+      // Prefill modal fields
+      document.getElementById('leaderAssignCampaignId').value = campaignId;
+      document.getElementById('leaderAssignCampaignName').textContent = campaignName;
+      await loadLeaders();
+      window.openModal('leaderAssignModal');
+    });
+  }
   // Attach geolocation button
   const useLocBtn = document.getElementById('useLocationBtn');
   if (useLocBtn) useLocBtn.addEventListener('click', handleUseLocation);
@@ -125,6 +140,8 @@ async function loadCampaigns() {
     let dataArr = [];
     snapshot.forEach(c => {
       const data = c.data();
+      // Ensure data.id is set to the Firestore doc id if missing
+      if (!data.id) data.id = c.id;
       dataArr.push(data);
     });
     // Sort if requested
@@ -190,6 +207,7 @@ document.addEventListener('DOMContentLoaded', function() {
 async function handleAddCampaign(e) {
   e.preventDefault();
 
+  const campaignId = document.getElementById('campaignId').value;
   const campaign = {
     name: document.getElementById('campaignName').value,
     start_date: document.getElementById('campaignStartDate').value,
@@ -203,28 +221,31 @@ async function handleAddCampaign(e) {
       return (lat && lng) ? { lat, lng } : null;
     })(),
     budget: parseFloat(document.getElementById('campaignBudget').value) || 0,
-    status: "upcoming",
+    status: document.getElementById('campaignStatus').value || "upcoming",
     progress: 0,
-    assignedLeader: "",
-    assigned_leaders: [],
-    description: "",
-    createdAt: new Date().toISOString()
+    assignedLeader: document.getElementById('campaignLeader')?.selectedOptions?.[0]?.textContent || "",
+    assigned_leaders: document.getElementById('campaignLeader')?.value ? [document.getElementById('campaignLeader').value] : [],
+    description: document.getElementById('campaignDescription').value || "",
+    createdAt: campaignId ? undefined : new Date().toISOString()
   };
-  console.log('Adding campaign to Firestore:', campaign);
-
   try {
-    const docRef = await addDoc(collection(db, "campaigns"), campaign);
-    // Save the document ID to Firestore
-    await updateDoc(doc(db, "campaigns", docRef.id), {
-      id: docRef.id
-    });
-    alert("Campaign Added ✔");
+    if (campaignId) {
+      // Edit/update
+      await updateDoc(doc(db, "campaigns", campaignId), campaign);
+      alert("Campaign Updated ✔");
+    } else {
+      // Add new
+      const docRef = await addDoc(collection(db, "campaigns"), campaign);
+      await updateDoc(doc(db, "campaigns", docRef.id), { id: docRef.id });
+      alert("Campaign Added ✔");
+    }
     e.target.reset();
-    closeModal(); // closes default modal
-    await loadCampaigns(); // ensure campaigns are refreshed after add
+    document.getElementById('campaignId').value = '';
+    closeModal();
+    await loadCampaigns();
   } catch (err) {
-    console.error('Error adding campaign:', err);
-    alert('Error adding campaign: ' + (err.message || err));
+    console.error('Error saving campaign:', err);
+    alert('Error saving campaign: ' + (err.message || err));
   }
 }
 
@@ -374,16 +395,49 @@ function escapeHtml(s){ return String(s).replace(/[&<>\"]/g, c => ({'&':'&amp;',
 // EDIT CAMPAIGN
 // ===============================
 window.editCampaign = async id => {
-
-  const newName = prompt("Edit campaign name:");
-  if (!newName) return;
-
-  await updateDoc(doc(db, "campaigns", id), {
-    name: newName
+  // Load campaign data from Firestore
+  const snap = await getDocs(collection(db, "campaigns"));
+  let campaign = null;
+  snap.forEach(docSnap => {
+    if (docSnap.id === id) campaign = { ...docSnap.data(), id: docSnap.id };
   });
+  if (!campaign) return alert("Campaign not found");
 
-  loadCampaigns();
-};
+  // Fill modal fields
+  document.getElementById('campaignId').value = campaign.id;
+  document.getElementById('campaignName').value = campaign.name || '';
+  document.getElementById('campaignDescription').value = campaign.description || '';
+  document.getElementById('campaignStartDate').value = campaign.start_date || '';
+  document.getElementById('campaignEndDate').value = campaign.end_date || '';
+  document.getElementById('campaignStartTime').value = campaign.startTime || '';
+  document.getElementById('campaignEndTime').value = campaign.endTime || '';
+  document.getElementById('campaignBudget').value = campaign.budget || '';
+  document.getElementById('campaignStatus').value = campaign.status || 'upcoming';
+  document.getElementById('campaignLocation').value = campaign.location || '';
+  document.getElementById('campaignLat').value = campaign.locationCoords?.lat || '';
+  document.getElementById('campaignLng').value = campaign.locationCoords?.lng || '';
+  document.getElementById('campaignRadius').value = campaign.radius || 100;
+  // Set leader dropdown if present
+  const leaderDropdown = document.getElementById('campaignLeader');
+  if (leaderDropdown && campaign.assignedLeader) {
+    let found = false;
+    for (let i = 0; i < leaderDropdown.options.length; i++) {
+      if (leaderDropdown.options[i].textContent === campaign.assignedLeader) {
+        leaderDropdown.selectedIndex = i;
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      const opt = document.createElement('option');
+      opt.value = campaign.assigned_leaders?.[0] || '';
+      opt.textContent = campaign.assignedLeader;
+      leaderDropdown.appendChild(opt);
+      leaderDropdown.value = campaign.assigned_leaders?.[0] || '';
+    }
+  }
+  window.openModal('campaignModal');
+}
 
 
 // ===============================
@@ -429,26 +483,45 @@ async function loadLeaders() {
 // ASSIGN LEADER
 // ===============================
 window.confirmLeaderAssign = async () => {
-
-  const campaignId = leaderAssignCampaignId.value;
-
-  const leaderId = leaderSelect.value;
+  const campaignId = document.getElementById('leaderAssignCampaignId').value;
+  const leaderId = document.getElementById('leaderSelect').value;
   if (!leaderId) {
     alert("Select leader first");
     return;
   }
-
   // get display name from selected option
-  const opt = leaderSelect.querySelector(`option[value="${leaderId}"]`);
+  const opt = document.getElementById('leaderSelect').querySelector(`option[value="${leaderId}"]`);
   const leaderName = opt ? opt.getAttribute('data-name') || opt.textContent : leaderId;
-
-  // Update campaign with both a human-readable assignedLeader and an array of leader IDs
   await updateDoc(doc(db, "campaigns", campaignId), {
     assignedLeader: leaderName,
     assigned_leaders: [leaderId]
   });
-
   closeModal("leaderAssignModal");
+  // Update the campaign modal dropdown if open and matches this campaign
+  const campaignIdInput = document.getElementById('campaignId');
+  if (campaignIdInput && campaignIdInput.value === campaignId) {
+    const leaderDropdown = document.getElementById('campaignLeader');
+    if (leaderDropdown) {
+      // Set the dropdown to the new leader
+      // Try to find the option with the same name as leaderName
+      let found = false;
+      for (let i = 0; i < leaderDropdown.options.length; i++) {
+        if (leaderDropdown.options[i].textContent === leaderName) {
+          leaderDropdown.selectedIndex = i;
+          found = true;
+          break;
+        }
+      }
+      // If not found, add it
+      if (!found) {
+        const opt = document.createElement('option');
+        opt.value = leaderId;
+        opt.textContent = leaderName;
+        leaderDropdown.appendChild(opt);
+        leaderDropdown.value = leaderId;
+      }
+    }
+  }
   loadCampaigns();
 };
 
@@ -488,8 +561,12 @@ window.closeModal = (id = "campaignModal") => {
   if (modal) modal.style.display = "none";
 };
 
-window.openAssignModal = (id, name) => {
-  leaderAssignCampaignId.value = id;
-  leaderAssignCampaignName.textContent = name;
+window.openAssignModal = async (id, name) => {
+  const idInput = document.getElementById('leaderAssignCampaignId');
+  const nameSpan = document.getElementById('leaderAssignCampaignName');
+  if (idInput) idInput.value = id;
+  if (nameSpan) nameSpan.textContent = name;
+  // Always reload leaders when opening modal
+  await loadLeaders();
   openModal("leaderAssignModal");
 };

@@ -454,7 +454,7 @@
         <button class="btn btn-primary" onclick="openUserModal()"><i class="fa-solid fa-plus"></i> Add User</button>
       </section>
       <section class="filters-section">
-        <input type="text" id="searchUser" placeholder="Search by name or email..." class="filter-input">
+        <input type="text" i+d="searchUser" placeholder="Search by name or email..." class="filter-input">
         <select id="filterRole" class="filter-input">
           <option value="">All Roles</option>
           <option value="ba">Brand Ambassador</option>
@@ -465,7 +465,7 @@
       <section class="users-section">
         <div class="table-responsive">
           <div id="usersList" class="loading-text">Loading users...</div>
-        </div>
+        </div> 
       </section>
     </div>
 
@@ -516,6 +516,58 @@
   </main>
 </div>
 
+<!-- Assign Leader Modal -->
+<div id="leaderAssignModal" class="modal">
+  <div class="modal-content" style="max-width:340px; z-index: 9999;">
+    <div class="modal-header">
+      <h2>Assign Leader</h2>
+      <button class="close-btn" onclick="closeModal('leaderAssignModal')">&times;</button>
+    </div>
+    <div style="padding:18px 0 0 0;">
+      <div style="margin-bottom:12px;">
+        <b>Campaign:</b> <span id="leaderAssignCampaignName"></span>
+      </div>
+      <input type="hidden" id="leaderAssignCampaignId">
+      <div class="form-group">
+        <label for="leaderSelect">Select Leader</label>
+        <select id="leaderSelect">
+          <option value="">-- Select Leader --</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-cancel" onclick="closeModal('leaderAssignModal')">Cancel</button>
+        <button class="btn btn-save" id="assignLeaderBtn" onclick="confirmLeaderAssign()" type="button">Assign</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Edit Role Modal -->
+<div id="editRoleModal" class="modal">
+  <div class="modal-content" style="max-width:340px;">
+    <div class="modal-header">
+      <h2>Edit User Role</h2>
+      <button class="close-btn" onclick="closeEditRoleModal()">&times;</button>
+    </div>
+    <div style="padding:18px 0 0 0;">
+      <div style="margin-bottom:12px;">
+        <b>User:</b> <span id="editRoleUserName"></span>
+      </div>
+      <div class="form-group">
+        <label for="editRoleSelect">Role</label>
+        <select id="editRoleSelect">
+          <option value="ba">Brand Ambassador</option>
+          <option value="leader">Leader</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-cancel" onclick="closeEditRoleModal()">Cancel</button>
+        <button class="btn btn-save" onclick="confirmRoleChange()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Add User Modal -->
 <div id="userModal" class="modal">
   <div class="modal-content">
@@ -553,6 +605,13 @@
       <button class="close-btn" onclick="closeCampaignModal()" aria-label="Close">&times;</button>
     </div>
     <form id="campaignForm">
+              <div class="form-group">
+                <label for="campaignLeader">Assign Leader *</label>
+                <select id="campaignLeader" required>
+                  <option value="">Select Leader</option>
+                </select>
+              </div>
+        <input type="hidden" id="campaignId">
       <div class="form-group">
         <label>Campaign Name *</label>
         <input type="text" id="campaignName" required autocomplete="off">

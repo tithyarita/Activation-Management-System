@@ -5,6 +5,8 @@
   <title>BA Dashboard</title>
   <link rel="stylesheet" href="ba-clockin.css"> 
   <link rel="stylesheet" href="style.css">
+  <!-- Load Firebase and your firebase.js module -->
+  <script type="module" src="../js/firebase.js"></script>
 </head>
 <body>
 
@@ -71,30 +73,43 @@
   window.saveClockInPhoto = async function() {
     const canvas = document.getElementById('photo-canvas');
     const user = getCurrentUser();
-    if (!user) {
-      alert('User session expired. Please login again.');
+    if (!user || !user.id || !user.name) {
+      alert('User session expired or missing info. Please login again.');
       window.location.href = 'login.html';
       return;
     }
     let campaignId = sessionStorage.getItem('currentCampaignId') || '';
     let campaignName = sessionStorage.getItem('currentCampaignName') || '';
-    const photoBase64 = canvas.toDataURL('image/jpeg', 0.92);
+
+    // Resize the image to 320x240 for smaller base64
+    const tmpCanvas = document.createElement('canvas');
+    const tmpCtx = tmpCanvas.getContext('2d');
+    tmpCanvas.width = 320;
+    tmpCanvas.height = 240;
+    tmpCtx.drawImage(canvas, 0, 0, 320, 240);
+    const photoBase64 = tmpCanvas.toDataURL('image/jpeg', 0.7); // lower quality for smaller size
+
     try {
-      await window.addDoc(window.collection(window.db, 'ba_clockins'), {
-        userId: user.id,
-        userName: user.name,
-        campaignId,
-        campaignName,
-        photo: photoBase64,
-        timestamp: Date.now(),
-        type: 'clockin'
-      });
+      // Use modular API from firebase.js
+      await window.addDoc(
+        window.collection(window.db, 'ba_clockins'),
+        {
+          baId: user.id,
+          baName: user.name,
+          campaignId,
+          campaignName,
+          photo: photoBase64,
+          timestamp: Date.now(),
+          type: 'clockin'
+        }
+      );
       showPage('permission-success');
     } catch (e) {
       alert('Failed to save clock-in photo. Please try again.');
       console.error(e);
     }
   }
+  // IMPORTANT: Make sure your Firestore security rules allow writes to ba_clockins for authenticated users!
   </script>
   </div>
 </div>
@@ -121,7 +136,7 @@ function ensureBAAuth() {
   if (!user || (user.role !== 'staff' && user.role !== 'ba' && user.role !== 'brand_ambassador')) {
     sessionStorage.clear();
     localStorage.clear();
-    window.location.replace('login.html');
+    window.location.replace('../html/admin/login.html');
     return;
   }
   // Save BA info to localStorage for later use

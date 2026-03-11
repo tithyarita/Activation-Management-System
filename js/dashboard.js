@@ -240,24 +240,9 @@ import { db, collection, getDocs } from "./firebase.js";
           };
 
           // Admin-only: Users, Leaders, Reports
-          if (userRole === 'admin') {
-            window.loadUsers = async function() {
-              let users = await fetchUsers();
-              document.getElementById('usersList').textContent = '';
-              // ...render users...
-              document.getElementById('totalUsers').textContent = users.length;
-            };
-            window.loadLeaders = async function() {
-              let leaders = await fetchLeaders();
-              document.getElementById('leaderPerformance').textContent = '';
-              // ...render leaders...
-            };
-            window.loadReports = async function() {
-              let reports = await fetchReports();
-              document.getElementById('reportsList').textContent = '';
-              // ...render reports...
-            };
-          }
+                    // Admin-only: Users, Leaders, Reports
+                    // These are now loaded by their respective scripts (users-new.js, leaders-new.js, reports-new.js)
+                    // Remove broken fetch* references. The correct load functions are exposed by those modules.
 
           // Initial load
           window.loadCampaigns();
