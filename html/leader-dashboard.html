@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AMS Leader Dashboard</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/leader-dashboard.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    .sidebar-header { color: #fbbf24; }
+    .sidebar-nav a.active { border-left: 4px solid #fbbf24; }
+    .main-content h1, .main-content h3 { color: #f59e42; }
+  </style>
+</head>
+<body>
+<div class="admin-wrapper">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <i class="fa-solid fa-star"></i> AMS Leader
+    </div>
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-item active" data-tab="dashboard"><i class="fa-solid fa-home"></i> Dashboard</a>
+      <a href="#" class="nav-item" data-tab="my-campaigns"><i class="fa-solid fa-calendar"></i> My Campaigns</a>
+      <a href="#" class="nav-item" data-tab="attendance"><i class="fa-solid fa-check-circle"></i> Attendance</a>
+      <a href="#" class="nav-item" onclick="handleLogout()"><i class="fa-solid fa-sign-out-alt"></i> Logout</a>
+    </nav>
+  </aside>
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Dashboard Tab -->
+    <div class="tab-content active" id="dashboard">
+      <section class="summary-section">
+        <div class="summary-card"><div class="card-icon campaigns"><i class="fa-solid fa-calendar"></i></div><div class="card-content"><h3>My Campaigns</h3><p id="leaderTotalCampaigns">0</p></div></div>
+        <div class="summary-card"><div class="card-icon users"><i class="fa-solid fa-users"></i></div><div class="card-content"><h3>My Staff</h3><p id="leaderTotalStaff">0</p></div></div>
+        <div class="summary-card"><div class="card-icon attendance"><i class="fa-solid fa-check-circle"></i></div><div class="card-content"><h3>Today's Attendance</h3><p id="leaderTodayAttendance">0</p></div></div>
+      </section>
+      <section class="charts-section">
+        <div class="chart-card"><h3>Attendance Trend (7 Days)</h3><canvas id="leaderAttendanceTrendChart"></canvas></div>
+        <div class="chart-card"><h3>My Campaign Activity</h3><canvas id="leaderCampaignActivityChart"></canvas></div>
+      </section>
+      <section class="chart-card">
+        <h3>Recent Activity</h3>
+        <div id="leaderActivityTimeline"><p class="loading-text">Loading activities...</p></div>
+      </section>
+    </div>
+    <!-- My Campaigns Tab -->
+    <div class="tab-content" id="my-campaigns">
+      <h1>My Campaigns</h1>
+      <div id="leaderCampaignsList" class="campaigns-grid"><p class="loading-text">Loading campaigns...</p></div>
+    </div>
+    <!-- Attendance Tab -->
+    <div class="tab-content" id="attendance">
+      <h1>Attendance</h1>
+      <div id="leaderAttendanceList"><p class="loading-text">Loading attendance...</p></div>
+    </div>
+
+    <!-- Modals and notification for leader.js compatibility -->
+    <div id="assignStaffModal" class="modal"><div class="modal-content"><span class="close">&times;</span><h2>Assign Staff to Campaign</h2><div class="modal-form"><label>Select Campaign:</label><select id="campaignSelect"><option value="">-- Choose Campaign --</option></select><label>Search & Select Users/BA:</label><input type="text" id="userSearch" placeholder="Search by name..." /><div id="userList" class="user-selection-list"></div><button id="confirmAssign" class="btn-primary">Assign Selected Users</button></div></div></div>
+    <div id="assignBAModal" class="modal"><div class="modal-content"><span class="close">&times;</span><h2 id="assignBATitle">Assign BA to Campaign</h2><input type="hidden" id="assignBACampaignId"><div class="modal-form"><label>Select Brand Ambassadors:</label><div id="baSelectionList" class="ba-selection-list" style="max-height: 300px; overflow-y: auto; padding: 10px; border: 1px solid #e5e7eb; border-radius: 6px; background: #f9fafb;"></div><button id="confirmAssignBA" class="btn-primary" style="margin-top: 15px;" onclick="handleConfirmAssignBA()">Confirm Assignment</button></div></div></div>
+    <div id="clockDetailModal" class="modal"><div class="modal-content"><span class="close">&times;</span><h2>Clock-In Details</h2><div class="detail-content"><img id="clockDetailPhoto" src="" alt="Staff Photo" style="max-width:300px;border-radius:8px;"><p><strong>Staff:</strong> <span id="clockDetailName"></span></p><p><strong>Time:</strong> <span id="clockDetailTime"></span></p><p><strong>Location:</strong> <span id="clockDetailLocation"></span></p><p><strong>GPS Verified:</strong> <span id="clockDetailGPS"></span></p><p><strong>Notes:</strong> <span id="clockDetailNotes"></span></p></div></div></div>
+    <div id="staffDetailModal" class="modal"><div class="modal-content"><span class="close">&times;</span><h2>Staff Details</h2><div class="staff-detail-content"><img id="staffDetailPhoto" src="" alt="Staff Photo" style="max-width:200px;border-radius:8px;"><p><strong>Name:</strong> <span id="staffDetailName"></span></p><p><strong>Role:</strong> <span id="staffDetailRole"></span></p><p><strong>Campaign:</strong> <span id="staffDetailCampaign"></span></p><p><strong>Contact:</strong> <span id="staffDetailContact"></span></p><p><strong>Status:</strong> <span id="staffDetailStatus"></span></p><p><strong>Total Hours Today:</strong> <span id="staffDetailHours"></span></p><button id="reassignStaffBtn" class="btn-secondary">Reassign to Campaign</button></div></div></div>
+    <div id="campaignDetailModal" class="modal"><div class="modal-content" style="width: 700px; max-width: 96%; max-height: 90vh; overflow-y: auto;"><span class="close">&times;</span><h2>Campaign Details</h2><div id="campaignDetailContent" style="display: flex; flex-direction: column; gap: 16px;"></div></div></div>
+    <div id="notification" class="notification" style="background:none;"></div>
+  </main>
+</div>
+<script type="module" src="../js/leader.js"></script>
+<script>
+// Tab switching
+const tabs = document.querySelectorAll('.nav-item[data-tab]');
+const tabContents = document.querySelectorAll('.tab-content');
+tabs.forEach(tab => {
+  tab.addEventListener('click', e => {
+    e.preventDefault();
+    tabs.forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const target = tab.dataset.tab;
+    tabContents.forEach(c => c.classList.remove('active'));
+    document.getElementById(target).classList.add('active');
+  });
+});
+function handleLogout() {
+  if(confirm('Logout?')){
+    sessionStorage.clear();
+    localStorage.clear();
+    window.location.href='login.html';
+  }
+}
+</script>
+</body>
+</html>

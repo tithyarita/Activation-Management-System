@@ -197,6 +197,7 @@ main {
 .btn-secondary:hover {
     background: var(--secondary-hover);
 }
+.btn-danger {
     border-radius: 6px;
     cursor: pointer;
     transition: all 0.3s ease;

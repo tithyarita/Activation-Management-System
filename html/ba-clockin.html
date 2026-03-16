@@ -70,28 +70,32 @@
   function getCurrentUser() {
     try { return JSON.parse(sessionStorage.getItem('user')); } catch (e) { return null; }
   }
-  window.saveClockInPhoto = async function() {
+  window.saveClockInPhoto = async function(type = 'clockin') {
     const canvas = document.getElementById('photo-canvas');
     const user = getCurrentUser();
-    if (!user || !user.id || !user.name) {
+    if (!user || !user.id || !user.name || !['staff', 'ba', 'brand_ambassador'].includes((user.role || '').toLowerCase())) {
       alert('User session expired or missing info. Please login again.');
-      window.location.href = 'login.html';
+      window.location.href = '../html/admin/login.html';
       return;
     }
     let campaignId = sessionStorage.getItem('currentCampaignId') || '';
     let campaignName = sessionStorage.getItem('currentCampaignName') || '';
-
-    // Resize the image to 320x240 for smaller base64
     const tmpCanvas = document.createElement('canvas');
     const tmpCtx = tmpCanvas.getContext('2d');
     tmpCanvas.width = 320;
     tmpCanvas.height = 240;
     tmpCtx.drawImage(canvas, 0, 0, 320, 240);
-    const photoBase64 = tmpCanvas.toDataURL('image/jpeg', 0.7); // lower quality for smaller size
-
+    const photoBase64 = tmpCanvas.toDataURL('image/jpeg', 0.7);
+    const nowLocal = new Date().toLocaleString();
+    let click_in = '';
+    let click = '';
+    if (type === 'clockin') {
+      click_in = nowLocal;
+    } else if (type === 'clockout') {
+      click = nowLocal;
+    }
     try {
-      // Use modular API from firebase.js
-      await window.addDoc(
+      const docRef = await window.addDoc(
         window.collection(window.db, 'ba_clockins'),
         {
           baId: user.id,
@@ -100,9 +104,13 @@
           campaignName,
           photo: photoBase64,
           timestamp: Date.now(),
-          type: 'clockin'
+          type: type ,// 'clockin' or 'clockout'
+          click_in: click_in,
+          click: click
         }
       );
+      console.log('Clock-in record saved with ID:', docRef.id);
+      alert('Clock-in information and photo saved successfully!');
       showPage('permission-success');
     } catch (e) {
       alert('Failed to save clock-in photo. Please try again.');

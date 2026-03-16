@@ -770,19 +770,34 @@ document.addEventListener('DOMContentLoaded', function() {
 const user = JSON.parse(sessionStorage.getItem('user') || 'null');
 if (!user) window.location.href='login.html';
 
-// Tab switching
-const tabs = document.querySelectorAll('.nav-item[data-tab]');
-const tabContents = document.querySelectorAll('.tab-content');
-tabs.forEach(tab => {
-  tab.addEventListener('click', e => {
-    e.preventDefault();
-    tabs.forEach(t => t.classList.remove('active'));
-    tab.classList.add('active');
-    const target = tab.dataset.tab;
-    tabContents.forEach(c => c.classList.remove('active'));
-    document.getElementById(target).classList.add('active');
+// Role-based dashboard switching
+const adminWrapper = document.querySelector('.admin-wrapper');
+const leaderWrapper = document.getElementById('leaderDashboardWrapper');
+if (user.role === 'leader') {
+  if (adminWrapper) adminWrapper.style.display = 'none';
+  if (leaderWrapper) leaderWrapper.style.display = 'flex';
+} else {
+  if (adminWrapper) adminWrapper.style.display = 'flex';
+  if (leaderWrapper) leaderWrapper.style.display = 'none';
+}
+
+// Tab switching for both dashboards
+function setupTabs(wrapper) {
+  const tabs = wrapper.querySelectorAll('.nav-item[data-tab]');
+  const tabContents = wrapper.querySelectorAll('.tab-content');
+  tabs.forEach(tab => {
+    tab.addEventListener('click', e => {
+      e.preventDefault();
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const target = tab.dataset.tab;
+      tabContents.forEach(c => c.classList.remove('active'));
+      wrapper.querySelector(`#${target}`).classList.add('active');
+    });
   });
-});
+}
+if (adminWrapper) setupTabs(adminWrapper);
+if (leaderWrapper) setupTabs(leaderWrapper);
 
 function handleLogout() {
   if(confirm('Logout?')){
