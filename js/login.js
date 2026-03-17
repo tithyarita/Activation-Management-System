@@ -1,138 +1,107 @@
-import { db, collection, getDocs, query, where } from "../js/firebase.js";
-import { saveUserToCache, cacheAllData, clearAllCache } from "../js/localStorage.js";
+// ===============================
+// Firebase Setup
+// ===============================
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+import {
+    getFirestore,
+    collection,
+    getDocs,
+    query,
+    where
+} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
+// ===============================
+// Config
+// ===============================
+const firebaseConfig = {
+    apiKey: "AIzaSyC0qkGPAbbGQuaFCeGl1QzmqfSo8u1RceE",
+    authDomain: "activation-management-system.firebaseapp.com",
+    projectId: "activation-management-system",
+};
 
-// Hash helper
-async function hashPassword(password) {
+// ===============================
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-    const enc = new TextEncoder();
-   
+// ===============================
+// LOGIN
+// ===============================
+document.addEventListener("DOMContentLoaded", () => {
 
-    const data = enc.encode(password);
-    
+    const form = document.getElementById("loginForm");
 
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault(); // 🚫 stop refresh
 
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-   
+        const email = document.getElementById("email").value.trim().toLowerCase();
+        const password = document.getElementById("password").value;
 
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-
-// Login handler
-async function handleLogin(event) {
-
-    event.preventDefault();
-
-    const email = document.getElementById('email').value.trim().toLowerCase();
-    const password = document.getElementById('password').value;
-
-    if (!email || !password) {
-        alert("Please enter email and password");
-        return;
-    }
-
-    try {
-
-        const enteredHash = await hashPassword(password);
-        
-
-        // 🔥 Query ONLY matching email
-        const q = query(
-            collection(db, "users"),
-            where("email", "==", email)
-        );
-
-        console.log("q:", q);
-
-        const snapshot = await getDocs(q);
-        
-
-        if (snapshot.empty) {
-            alert("Invalid email or password");
+        if (!email || !password) {
+            alert("Please enter email and password");
             return;
         }
 
-        const userDoc = snapshot.docs[0];
-        
+        try {
+            // 🔍 find user
+            const q = query(
+                collection(db, "users"),
+                where("email", "==", email)
+            );
 
-        const userData = userDoc.data();
-        
+            const snapshot = await getDocs(q);
 
-        const passwordMatches =
-            (userData.passwordHash === enteredHash) ||
-            (userData.password === password);
-        
-       
+            if (snapshot.empty) {
+                alert("Invalid email or password");
+                return;
+            }
 
-        if (!passwordMatches) {
-            alert("Invalid email or password");
-            return;
-        }
+            const userDoc = snapshot.docs[0];
+            const userData = userDoc.data();
 
-        // ✅ Save session
-        sessionStorage.setItem("user", JSON.stringify({
-            id: userDoc.id,
-            role: userData.role,
-            name: userData.name
-        }));
-        // Set userRole for dashboard (both session and local storage)
-        sessionStorage.setItem("userRole", userData.role);
-        localStorage.setItem("userRole", userData.role);
-        // Debug: Show detected role
-        alert("Detected role: " + userData.role);
-        
+            if (!userData.passwordHash) {
+                alert("No password hash found for this user");
+                return;
+            }
 
-        // ✅ Save user to localStorage cache
-        saveUserToCache({
-            id: userDoc.id,
-            role: userData.role,
-            name: userData.name,
-            email: userData.email,
-            photo: userData.photo || '../asset/e8509f8003b9dc24c37ba8d92a9a069b.jpg'
-        });
 
-        // ✅ Cache all Firebase data
-        console.log('Caching all data for offline use...');
-        await cacheAllData(db, collection, getDocs);
+            // 🔐 hash entered password with SHA-256
+            const encoder = new TextEncoder();
+            const data = encoder.encode(password);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const enteredHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
-        // If leader, persist a leaderProfile for dashboard header
-        if (userData.role === 'leader') {
-            const profile = {
+            if (enteredHash !== userData.passwordHash) {
+                alert("Invalid email or password");
+                return;
+            }
+
+            // ✅ LOGIN SUCCESS
+            alert("Login successful!");
+
+            // save session
+            const sessionUser = {
                 id: userDoc.id,
                 name: userData.name,
-                role: 'Leader',
-                photo: userData.photo || '../asset/e8509f8003b9dc24c37ba8d92a9a069b.jpg'
+                role: userData.role
             };
-            try { localStorage.setItem('leaderProfile', JSON.stringify(profile)); } catch (e) { }
-        }
 
-        // Redirect by role (always use absolute path for admin dashboard)
-        switch (userData.role) {
-            case "staff":
-                window.location.href = "/html/ba-clockin.html";
-                break;
-            case "leader":
-                window.location.href = "/html/leader.html";
-                break;
-            case "admin":
+            sessionStorage.setItem("user", JSON.stringify(sessionUser));
+            localStorage.setItem("userRole", userData.role);
+
+            // 🔁 redirect
+            if (userData.role === "admin") {
                 window.location.href = "/html/admin/admin-dashboard.html";
-                break;
-            default:
+            } else if (userData.role === "leader") {
+                window.location.href = "/html/leader.html";
+            } else {
                 window.location.href = "/html/ba-clockin.html";
+            }
+
+        } catch (error) {
+            console.error("Login error:", error);
+            alert("Something went wrong");
         }
+    });
 
-    } catch (error) {
-        console.error(error);
-        alert("Login error. Please try again.");
-    }
-}
-
-
-// Attach event
-const loginForm = document.getElementById('loginForm');
-if (loginForm) {
-    loginForm.addEventListener('submit', handleLogin);
-}
+});

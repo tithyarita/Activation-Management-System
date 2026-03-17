@@ -1,28 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Page</title>
-    <link rel="stylesheet" href="../../css/style.css"> 
-    <link rel="stylesheet" href="../../css/ba.css"> 
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+
+  <link rel="stylesheet" href="../../css/style.css">
+  <link rel="stylesheet" href="../../css/ba.css">
 </head>
+
 <body>
-  <div class="container-1">
-    <div class="login-box">
-      <h2>Login</h2>
 
-      <form id="loginForm">
-        <input id="email" type="email" placeholder="Email" required>
-        <input id="password" type="password" placeholder="Password" required>
+<div class="container-1">
+  <div class="login-box">
+    <h2>Login</h2>
 
-        <button type="submit">Login</button>
-      </form>
-      
-    </div>
+    <form id="loginForm">
+      <input id="email" type="email" placeholder="Email" required>
+      <input id="password" type="password" placeholder="Password" required>
+      <button type="submit">Login</button>
+    </form>
   </div>
+</div>
+
+
+<!-- ✅ your login script -->
+<script type="module" src="../../js/login.js"></script>
+<!-- Load firebase.js first -->
+<script src="../../js/firebase.js"></script>
+
+<!-- Load login.js last -->
+<script src="../../js/login.js"></script>
 
 </body>
-<script type="module" src="../../js/login.js"></script>
 </html>
-

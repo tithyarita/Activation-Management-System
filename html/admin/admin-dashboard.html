@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>
+  // Simple admin login check
+  const user = JSON.parse(sessionStorage.getItem('user'));
+  const role = localStorage.getItem('userRole');
+  if (!user || role !== 'admin') {
+    window.location.href = 'login.html';
+  }
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AMS Admin Dashboard</title>
@@ -398,7 +406,6 @@
 
 <body>
 <div class="admin-wrapper">
-
   <!-- Sidebar -->
   <aside class="sidebar">
     <div class="sidebar-header">
@@ -465,7 +472,14 @@
       <section class="users-section">
         <div class="table-responsive">
           <div id="usersList" class="loading-text">Loading users...</div>
-        </div> 
+        </div>
+        <h3 style="margin-top:32px;">Admins &amp; Managers</h3>
+        <table>
+          <thead>
+            <tr><th>Name</th><th>Email</th><th>Role</th></tr>
+          </thead>
+          <tbody id="adminManagerTable"><tr><td colspan="3">Loading...</td></tr></tbody>
+        </table>
       </section>
     </div>
 
@@ -676,6 +690,23 @@
 </div>
 
 <script type="module" src="../../js/dashboard.js"></script>
+<script type="module">
+import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+const db = getFirestore();
+async function loadAdminManagerTable() {
+  const q = query(collection(db, 'users'), where('role', 'in', ['admin', 'leader']));
+  const snap = await getDocs(q);
+  const tbody = document.getElementById('adminManagerTable');
+  if (!tbody) return;
+  let html = '';
+  snap.forEach(doc => {
+    const d = doc.data();
+    html += `<tr><td>${d.name || ''}</td><td>${d.email || ''}</td><td>${d.role}</td></tr>`;
+  });
+  tbody.innerHTML = html || '<tr><td colspan="3">No admins or managers found.</td></tr>';
+}
+document.addEventListener('DOMContentLoaded', loadAdminManagerTable);
+</script>
 <script type="module" src="../../js/users-new.js"></script>
 <script type="module" src="../../js/leaders-new.js"></script>
 <script type="module" src="../../js/campaigns-new.js"></script>
@@ -767,21 +798,8 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <script>
-const user = JSON.parse(sessionStorage.getItem('user') || 'null');
-if (!user) window.location.href='login.html';
-
-// Role-based dashboard switching
+// Tab switching for admin dashboard
 const adminWrapper = document.querySelector('.admin-wrapper');
-const leaderWrapper = document.getElementById('leaderDashboardWrapper');
-if (user.role === 'leader') {
-  if (adminWrapper) adminWrapper.style.display = 'none';
-  if (leaderWrapper) leaderWrapper.style.display = 'flex';
-} else {
-  if (adminWrapper) adminWrapper.style.display = 'flex';
-  if (leaderWrapper) leaderWrapper.style.display = 'none';
-}
-
-// Tab switching for both dashboards
 function setupTabs(wrapper) {
   const tabs = wrapper.querySelectorAll('.nav-item[data-tab]');
   const tabContents = wrapper.querySelectorAll('.tab-content');
@@ -797,7 +815,6 @@ function setupTabs(wrapper) {
   });
 }
 if (adminWrapper) setupTabs(adminWrapper);
-if (leaderWrapper) setupTabs(leaderWrapper);
 
 function handleLogout() {
   if(confirm('Logout?')){
