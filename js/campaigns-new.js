@@ -119,7 +119,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 
 
 // ===============================
-// LOAD CAMPAIGNS FROM FIRESTORE
+// LOAD CAMPAIGNS FROM FIRESTORE (ALWAYS LIVE)
 // ===============================
 async function loadCampaigns() {
 
@@ -129,7 +129,18 @@ async function loadCampaigns() {
   if (adminList) adminList.innerHTML = "Loading campaigns...";
 
   try {
-    const snapshot = await getDocs(collection(db, "campaigns"));
+    // Get current user from sessionStorage
+    let user = null;
+    try { user = JSON.parse(sessionStorage.getItem('user')); } catch (e) {}
+    let snapshot;
+    if (user && user.role === "leader") {
+      // Only show campaigns assigned to this leader
+      const q = query(collection(db, "campaigns"), where("assigned_leaders", "array-contains", user.id));
+      snapshot = await getDocs(q);
+    } else {
+      // Admin or others see all campaigns
+      snapshot = await getDocs(collection(db, "campaigns"));
+    }
     if (snapshot.empty) {
       if (list) list.innerHTML = "No campaigns found";
       if (adminList) adminList.innerHTML = "No campaigns found";
@@ -140,8 +151,8 @@ async function loadCampaigns() {
     let dataArr = [];
     snapshot.forEach(c => {
       const data = c.data();
-      // Ensure data.id is set to the Firestore doc id if missing
-      if (!data.id) data.id = c.id;
+      // Always use Firestore data, never local cache
+      data.id = c.id;
       dataArr.push(data);
     });
     // Sort if requested
@@ -458,22 +469,19 @@ window.deleteCampaign = async id => {
 async function loadLeaders() {
 
   const select = document.getElementById("leaderSelect");
-  if (!select) return;
-
-  select.innerHTML = `<option value="">-- Select Leader --</option>`;
+  const campaignDropdown = document.getElementById("campaignLeader");
+  // Only handle leader dropdowns
+  if (select) select.innerHTML = `<option value="">-- Select Leader --</option>`;
+  if (campaignDropdown) campaignDropdown.innerHTML = `<option value="">-- Select Leader --</option>`;
 
   const snapshot = await getDocs(collection(db, "users"));
 
   snapshot.forEach(u => {
     const user = u.data();
-
     if (user.role === "leader") {
-      // store user ID as value so we can assign by ID
-      select.innerHTML += `
-        <option value="${u.id}" data-name="${user.name}">
-          ${user.name}
-        </option>
-      `;
+      const optionHtml = `<option value="${u.id}" data-name="${user.name}">${user.name}</option>`;
+      if (select) select.innerHTML += optionHtml;
+      if (campaignDropdown) campaignDropdown.innerHTML += optionHtml;
     }
   });
 }
@@ -496,14 +504,16 @@ window.confirmLeaderAssign = async () => {
     assignedLeader: leaderName,
     assigned_leaders: [leaderId]
   });
+
+  // Only assign leader, no BA assignment
   closeModal("leaderAssignModal");
+
   // Update the campaign modal dropdown if open and matches this campaign
   const campaignIdInput = document.getElementById('campaignId');
   if (campaignIdInput && campaignIdInput.value === campaignId) {
     const leaderDropdown = document.getElementById('campaignLeader');
     if (leaderDropdown) {
       // Set the dropdown to the new leader
-      // Try to find the option with the same name as leaderName
       let found = false;
       for (let i = 0; i < leaderDropdown.options.length; i++) {
         if (leaderDropdown.options[i].textContent === leaderName) {
@@ -522,7 +532,8 @@ window.confirmLeaderAssign = async () => {
       }
     }
   }
-  loadCampaigns();
+  await loadLeaders(); // Refresh dropdowns after assignment
+  await loadCampaigns(); // Await to ensure UI updates before user interacts again
 };
 
 

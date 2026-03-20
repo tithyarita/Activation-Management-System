@@ -1,12 +1,4 @@
-import {
-  db,
-  collection,
-  getDocs,
-  query,
-  where,
-  updateDoc,
-  doc
-} from "./firebase.js";
+import {db,collection,getDocs,query,where,updateDoc,doc,addDoc} from "./firebase.js";
 
 
 // ===============================
@@ -232,20 +224,23 @@ async function loadBrandAmbassadors() {
       return;
     }
     table.innerHTML = "";
-    bas.forEach(ba => {
-      const campaignsStr = baCampaigns[ba._id] ? baCampaigns[ba._id].join(", ") : "-";
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td>${ba.name}</td>
-        <td>${ba.role}</td>
-        <td>${campaignsStr}</td>
-        <td>Active</td>
-        <td>
-          <button class="btn btn-assign" onclick="viewUser('${ba._id || ba.email || ''}')">View</button>
-        </td>
-      `;
-      table.appendChild(row);
-    });
+          bas.forEach(ba => {
+            const campaignsArr = baCampaigns[ba._id] || [];
+            const campaignNames = campaignsArr.length > 0 ? campaignsArr.join(", ") : "-";
+            const campaignCount = campaignsArr.length;
+
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td>${ba.name || ba.email || ba.id || '-'}</td>
+              <td>${ba.role}</td>
+              <td>${campaignCount}</td>
+              <td>active</td>
+              <td>
+                <button class="btn btn-assign" onclick="viewUser('${ba._id || ba.email || ''}')">View</button>
+              </td>
+            `;
+            table.appendChild(row);
+          });
   } catch (err) {
     console.error(err);
   }
@@ -278,6 +273,7 @@ window.viewUser = async function (userIdOrEmail) {
 
   // Find campaigns this BA is assigned to
   let campaignNames = '-';
+  let campaignCount = 0;
   if (userData._id) {
     const campSnap = await getDocs(collection(db, "campaigns"));
     const assigned = [];
@@ -287,7 +283,10 @@ window.viewUser = async function (userIdOrEmail) {
         assigned.push(c.name || doc.id);
       }
     });
-    if (assigned.length > 0) campaignNames = assigned.join(', ');
+    if (assigned.length > 0) {
+      campaignNames = assigned.join(', ');
+      campaignCount = assigned.length;
+    }
   }
 
   // Load BA clock-ins from Firebase
@@ -314,7 +313,7 @@ window.viewUser = async function (userIdOrEmail) {
     <p><b>Status:</b> ${userData.status || 'Active'}</p>
     <p><b>Role:</b> ${userData.role || '-'}</p>
     <p><b>Address:</b> ${userData.address || '-'}</p>
-    <p><b>Campaigns:</b> ${campaignNames}</p>
+    <p><b>Campaigns:</b> ${campaignNames} <span style="color:#888;font-size:0.95em;">(${campaignCount})</span></p>
     <h3 style="margin-top:18px;">Clock-ins</h3>
     ${clockinsHtml}
   `;
@@ -428,11 +427,37 @@ window.openAssignBAModal = async function (campaignId) {
   // Save handler
   document.getElementById('saveAssignBA').onclick = async function () {
     const checked = Array.from(document.querySelectorAll('.ba-checkbox:checked')).map(cb => cb.value);
-    // Update Firestore
+    // Update Firestore campaign doc
     const campaignDocRef = doc(db, 'campaigns', campaignId);
     await updateDoc(campaignDocRef, { assignedba: checked });
+
+    // Add assignment records for each BA
+    for (const baId of checked) {
+      const ba = bas.find(b => b.id === baId);
+      await addDoc(collection(db, "campaign_ba_assignments"), {
+        baId,
+        baName: ba?.name || "",
+        campaignId: campaign.id,
+        campaignName: campaign.name,
+        leaderId: leaderId,
+        leaderName: leaderName,
+        createdAt: new Date(),
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    // Remove campaign_ba_assignments for BAs that were unselected
+    const usersSnap = await getDocs(query(collection(db, 'campaign_ba_assignments'), where('campaignId', '==', campaign.id)));
+    usersSnap.forEach(async (docSnap) => {
+      const data = docSnap.data();
+      if (!checked.includes(data.baId)) {
+        await deleteDoc(doc(db, 'campaign_ba_assignments', docSnap.id));
+      }
+    });
+
     modal.style.display = 'none';
     alert('Assigned BAs updated!');
-    // Optionally, refresh campaign view
+    // Refresh BA table
+    await loadBrandAmbassadors();
   };
 };
