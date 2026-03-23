@@ -1,4 +1,4 @@
-    import { db, collection, getDocs } from "./firebase.js";
+import { db, collection, getDocs } from "./firebase.js";
 
     async function loadDashboardData() {
         try {
@@ -8,7 +8,7 @@
             const clockRecordsSnap = await getDocs(collection(db, 'clock_records'));
             
             // Count users by role
-            let activeLeaders = 0, staffCount = 0, leaderCount = 0;
+                let activeLeaders = 0, staffCount = 0, leaderCount = 0, userRole = localStorage.getItem('userRole'), user = JSON.parse(sessionStorage.getItem('user')) || {};
             usersSnap.forEach(doc => {
                 const user = doc.data();
                 if (user.role === 'leader') { 
@@ -190,4 +190,71 @@
         }
     }
 
+        // Role-based dashboard logic
+        document.addEventListener('DOMContentLoaded', () => {
+          const userRole = localStorage.getItem('userRole');
+          const user = JSON.parse(sessionStorage.getItem('user')) || {};
+          document.getElementById('userName').textContent = user.name || 'User';
+
+          // Hide admin-only cards for leaders
+          if (userRole !== 'admin') {
+            document.getElementById('adminOnly').style.display = 'none';
+            document.querySelectorAll('[data-role="admin"]').forEach(el => el.style.display = 'none');
+          }
+
+          // Campaigns
+          window.loadCampaigns = async function() {
+            // Fetch campaigns
+            let campaigns = await fetchCampaigns();
+            if (userRole === 'leader') {
+              campaigns = campaigns.filter(c => c.assigned_leaders && c.assigned_leaders.includes(user.id));
+            }
+            document.getElementById('campaignsList').textContent = '';
+            campaigns.forEach(c => {
+              // Render campaign cards
+              // ...render logic...
+            });
+            document.getElementById('totalCampaigns').textContent = campaigns.length;
+          };
+
+          // Attendance
+          window.loadAttendance = async function() {
+            let attendance = await fetchAttendance();
+            if (userRole === 'leader') {
+              attendance = attendance.filter(a => a.leaderId === user.id);
+            }
+            document.getElementById('attendanceList').textContent = '';
+            // ...render attendance...
+            document.getElementById('todayAttendance').textContent = attendance.length;
+          };
+
+          // Brand Ambassadors
+          window.loadBAs = async function() {
+            let bas = await fetchBAs();
+            if (userRole === 'leader') {
+              bas = bas.filter(ba => ba.leaderId === user.id);
+            }
+            document.getElementById('baList').textContent = '';
+            // ...render BA cards...
+            document.getElementById('totalBAs').textContent = bas.length;
+          };
+
+          // Admin-only: Users, Leaders, Reports
+                    // Admin-only: Users, Leaders, Reports
+                    // These are now loaded by their respective scripts (users-new.js, leaders-new.js, reports-new.js)
+                    // Remove broken fetch* references. The correct load functions are exposed by those modules.
+
+          // Initial load
+          window.loadCampaigns();
+          window.loadAttendance();
+          window.loadBAs();
+          if (userRole === 'admin') {
+            window.loadUsers();
+            window.loadLeaders();
+            window.loadReports();
+          }
+        });
     loadDashboardData();
+
+    // At the end of dashboard.js, after all dashboard cards are updated:
+    if (window.loadCampaigns) window.loadCampaigns();

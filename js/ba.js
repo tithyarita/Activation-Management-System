@@ -15,9 +15,7 @@ import { clearAllCache } from "./localStorage.js";
 // AUTH SESSION CHECK
 // =======================
 function _loginRedirect() {
-    const p = location.pathname || '';
-    const loginPath = p.includes('/admin/') ? '../login.html' : 'login.html';
-    location.replace(loginPath);
+    location.replace('/html/login.html');
 }
 
 const user = (() => {
@@ -231,7 +229,7 @@ window.logout = function(){
     clearAllCache();
     sessionStorage.clear();
     // Replace history so Back doesn't return to protected page
-    window.location.replace('login.html');
+    window.location.replace('../html/login.html');
 }
 
 

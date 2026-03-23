@@ -1,13 +1,75 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <style>
+      #ba-reminder-modal {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; width: 100vw; height: 100vh;
+        background: rgba(0,0,0,0.45);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+        transition: opacity 0.2s;
+      }
+      #ba-reminder-modal .ba-reminder-content {
+        background: #fff;
+        padding: 32px 28px 24px 28px;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+        max-width: 340px;
+        width: 90vw;
+        text-align: center;
+        position: relative;
+        animation: baPopIn 0.25s cubic-bezier(.4,1.4,.6,1) 1;
+      }
+      #ba-reminder-message {
+        font-size: 1.15rem;
+        color: #222;
+        margin-bottom: 18px;
+      }
+      #ba-reminder-actions button {
+        margin: 0 6px;
+        min-width: 110px;
+        font-size: 1rem;
+        padding: 8px 0;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        background: #2563eb;
+        color: #fff;
+        transition: background 0.18s;
+      }
+      #ba-reminder-actions button.btn-green {
+        background: #22c55e;
+      }
+      #ba-reminder-actions button.btn-blue {
+        background: #2563eb;
+      }
+      #ba-reminder-actions button:hover {
+        filter: brightness(0.93);
+      }
+      @keyframes baPopIn {
+        0% { transform: scale(0.85); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
+      }
+    </style>
   <meta charset="UTF-8">
   <title>BA Dashboard</title>
   <link rel="stylesheet" href="ba-clockin.css"> 
   <link rel="stylesheet" href="style.css">
+  <!-- Load Firebase and your firebase.js module -->
+  <script type="module" src="../js/firebase.js"></script>
 </head>
 <body>
-
+<button id="clockOutBtn" class="btn btn-red" style="display:none;position:fixed;top:20px;right:20px;z-index:1001;" onclick="saveClockInPhoto('clockout')">Clock Out</button>
+<!-- Custom Popup Modal -->
+<div id="ba-reminder-modal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.45);z-index:2000;align-items:center;justify-content:center;">
+  <div class="ba-reminder-content">
+    <div id="ba-reminder-message"></div>
+    <div id="ba-reminder-actions"></div>
+  </div>
+</div>
 <div class="container">
 
   <div class="header" style="background-color: var(--header-bg);">
@@ -63,7 +125,171 @@
   </div>
   <div class="button-group">
     <button class="btn btn-red" onclick="retakePhoto()">Retake</button>
-    <button class="btn btn-green" onclick="showPage('permission-success')">Confirm</button>
+    <button class="btn btn-green" onclick="saveClockInPhoto()">Confirm</button>
+  <script>
+  // --- CLOCK OUT BUTTON LOGIC ---
+  document.addEventListener('DOMContentLoaded', async function() {
+    const user = getCurrentUser();
+    if (!user || !user.id) return;
+    try {
+      // Dynamically import Firestore functions if not already available
+      let db = window.db, collection = window.collection, query = window.query, where = window.where, getDocs = window.getDocs;
+      if (!db || !collection || !query || !where || !getDocs) {
+        const mod = await import('../js/firebase.js');
+        db = mod.db; collection = mod.collection; query = mod.query; where = mod.where; getDocs = mod.getDocs;
+      }
+      const q = query(collection(db, 'ba_clockins'), where('baId', '==', user.id));
+      const snap = await getDocs(q);
+      let last = null;
+      snap.forEach(doc => {
+        const d = doc.data();
+        if (!last || (d.timestamp > last.timestamp)) last = d;
+      });
+      if (last && last.type === 'clockin') {
+        document.getElementById('clockOutBtn').style.display = 'block';
+      }
+    } catch (e) {
+      // fail silently
+    }
+  });
+  function getCurrentUser() {
+    try { return JSON.parse(sessionStorage.getItem('user')); } catch (e) { return null; }
+  }
+  window.saveClockInPhoto = async function(type = 'clockin') {
+    const canvas = document.getElementById('photo-canvas');
+    const user = getCurrentUser();
+    if (!user || !user.id || !user.name || !['staff', 'ba', 'brand_ambassador'].includes((user.role || '').toLowerCase())) {
+      alert('User session expired or missing info. Please login again.');
+      window.location.href = '../html/admin/login.html';
+      return;
+    }
+    let campaignId = sessionStorage.getItem('currentCampaignId') || '';
+    let campaignName = sessionStorage.getItem('currentCampaignName') || '';
+    let campaignLat = parseFloat(sessionStorage.getItem('currentCampaignLat'));
+    let campaignLng = parseFloat(sessionStorage.getItem('currentCampaignLng'));
+    let campaignStart = sessionStorage.getItem('currentCampaignStart');
+    let campaignEnd = sessionStorage.getItem('currentCampaignEnd');
+
+    // 1. Enforce campaign hours and single clock-in/out per campaign
+    function isWithinCampaignHours(start, end) {
+      if (!start || !end) return false;
+      const now = new Date();
+      // Only match the date (YYYY-MM-DD)
+      const nowDate = now.toISOString().slice(0, 10);
+      const startDate = new Date(start).toISOString().slice(0, 10);
+      const endDate = new Date(end).toISOString().slice(0, 10);
+      return nowDate >= startDate && nowDate <= endDate;
+    }
+    if (!isWithinCampaignHours(campaignStart, campaignEnd)) {
+      alert('You can only clock in/out during campaign dates.');
+      return;
+    }
+
+    // Check if already clocked out for this campaign
+    let db = window.db, collection = window.collection, query = window.query, where = window.where, getDocs = window.getDocs;
+    if (!db || !collection || !query || !where || !getDocs) {
+      const mod = await import('../js/firebase.js');
+      db = mod.db; collection = mod.collection; query = mod.query; where = mod.where; getDocs = mod.getDocs;
+    }
+    const q = query(collection(db, 'ba_clockins'), where('baId', '==', user.id), where('campaignId', '==', campaignId));
+    const snap = await getDocs(q);
+    let hasClockIn = false, hasClockOut = false;
+    snap.forEach(doc => {
+      const d = doc.data();
+      if (d.type === 'clockin') hasClockIn = true;
+      if (d.type === 'clockout') hasClockOut = true;
+    });
+    if (type === 'clockin' && hasClockIn) {
+      alert('You have already clocked in for this campaign.');
+      return;
+    }
+    if (type === 'clockout' && (!hasClockIn || hasClockOut)) {
+      alert('You cannot clock out. Either you have not clocked in or already clocked out for this campaign.');
+      return;
+    }
+
+    // 2. Get GPS location
+    function getCurrentPositionPromise() {
+      return new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 5000 });
+      });
+    }
+    let position;
+    try {
+      position = await getCurrentPositionPromise();
+    } catch (e) {
+      alert('Could not get your location. Please enable GPS and try again.');
+      return;
+    }
+    const lat = position.coords.latitude;
+    const lng = position.coords.longitude;
+
+    // 3. Geofence check (100m)
+    function getDistanceFromLatLonInMeters(lat1, lon1, lat2, lon2) {
+      function toRad(x) { return x * Math.PI / 180; }
+      const R = 6371000; // meters
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return R * c;
+    }
+    if (isFinite(campaignLat) && isFinite(campaignLng)) {
+      const dist = getDistanceFromLatLonInMeters(lat, lng, campaignLat, campaignLng);
+      if (dist > 100) {
+        alert('You are not within the allowed zone for this campaign (100m radius).');
+        return;
+      }
+    }
+
+    // 4. Prepare photo
+    const tmpCanvas = document.createElement('canvas');
+    const tmpCtx = tmpCanvas.getContext('2d');
+    tmpCanvas.width = 320;
+    tmpCanvas.height = 240;
+    tmpCtx.drawImage(canvas, 0, 0, 320, 240);
+    const photoBase64 = tmpCanvas.toDataURL('image/jpeg', 0.7);
+    const nowISO = new Date().toISOString();
+    let clock_in_time = '';
+    let clock_out_time = '';
+    if (type === 'clockin') {
+      clock_in_time = nowISO;
+    } else if (type === 'clockout') {
+      clock_out_time = nowISO;
+    }
+
+    // 5. Save to Firestore
+    try {
+      const docRef = await window.addDoc(
+        window.collection(window.db, 'ba_clockins'),
+        {
+          baId: user.id,
+          baName: user.name,
+          campaignId,
+          campaignName,
+          photo: photoBase64,
+          timestamp: Date.now(),
+          type: type, // 'clockin' or 'clockout'
+          clock_in_time: clock_in_time,
+          clock_out_time: clock_out_time,
+          lat,
+          lng,
+          campaignLat,
+          campaignLng
+        }
+      );
+      console.log('Clock-in record saved with ID:', docRef.id);
+      alert('Clock-in information and photo saved successfully!');
+      showPage('permission-success');
+    } catch (e) {
+      alert('Failed to save clock-in photo. Please try again.');
+      console.error(e);
+    }
+  }
+  // IMPORTANT: Make sure your Firestore security rules allow writes to ba_clockins for authenticated users!
+  </script>
   </div>
 </div>
 
@@ -82,6 +308,125 @@
 </div>
 
 <script>
+// --- AUTH GUARD & CAMPAIGN ASSIGNMENT FETCH ---
+async function ensureBAAuthAndCampaign() {
+    // After campaign info is set, check BA clock-in/out status for this campaign
+    let campaignId = sessionStorage.getItem('currentCampaignId') || '';
+    if (campaignId) {
+      let db = window.db, collection = window.collection, query = window.query, where = window.where, getDocs = window.getDocs;
+      if (!db || !collection || !query || !where || !getDocs) {
+        const mod = await import('../js/firebase.js');
+        db = mod.db; collection = mod.collection; query = mod.query; where = mod.where; getDocs = mod.getDocs;
+      }
+      const q = query(collection(db, 'ba_clockins'), where('baId', '==', user.id), where('campaignId', '==', campaignId));
+      const snap = await getDocs(q);
+      let hasClockIn = false, hasClockOut = false;
+      snap.forEach(doc => {
+        const d = doc.data();
+        if (d.type === 'clockin') hasClockIn = true;
+        if (d.type === 'clockout') hasClockOut = true;
+      });
+      const container = document.querySelector('.container');
+      const showReminderModal = (msg, actionsHtml = '', onClose = null) => {
+        const modal = document.getElementById('ba-reminder-modal');
+        const msgDiv = document.getElementById('ba-reminder-message');
+        const actionsDiv = document.getElementById('ba-reminder-actions');
+        msgDiv.innerHTML = msg;
+        actionsDiv.innerHTML = actionsHtml;
+        modal.style.display = 'flex';
+        // Remove previous listeners
+        actionsDiv.onclick = null;
+        if (onClose) {
+          modal.dataset.onClose = '1';
+          modal.onclick = (e) => {
+            if (e.target === modal) { modal.style.display = 'none'; onClose(); }
+          };
+        } else {
+          modal.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
+        }
+      };
+      if (hasClockIn && hasClockOut) {
+        if (container) container.style.display = 'none';
+        setTimeout(() => {
+          showReminderModal('You have already completed this campaign.<br>No further action is needed.', '<button class="btn btn-blue" onclick="document.getElementById(\'ba-reminder-modal\').style.display=\'none\'">OK</button>');
+        }, 300);
+      } else if (hasClockIn && !hasClockOut) {
+        if (container) container.style.display = 'none';
+        setTimeout(() => {
+          showReminderModal('You have already clocked in for this campaign.<br>Please clock out to complete.',
+            '<button class="btn btn-green" id="ba-reminder-clockout-btn">Proceed to Clock Out</button>',
+            null);
+          setTimeout(() => {
+            const btn = document.getElementById('ba-reminder-clockout-btn');
+            if (btn) btn.onclick = () => {
+              document.getElementById('ba-reminder-modal').style.display = 'none';
+              showPage('permission-camera');
+            };
+          }, 50);
+        }, 300);
+      } else {
+        // Always show a default popup if nothing else is triggered
+        if (container) container.style.display = 'none';
+        setTimeout(() => {
+          showReminderModal('No campaign action required or no assignment found for today.', '<button class="btn btn-blue" onclick="document.getElementById(\'ba-reminder-modal\').style.display=\'none\'">OK</button>');
+        }, 300);
+      }
+      // If not clocked in, do nothing (proceed as normal)
+    }
+  let user = null;
+  try { user = JSON.parse(sessionStorage.getItem('user')); } catch (e) {}
+  if (!user || (user.role !== 'staff' && user.role !== 'ba' && user.role !== 'brand_ambassador')) {
+    sessionStorage.clear();
+    localStorage.clear();
+    window.location.replace('../html/admin/login.html');
+    return;
+  }
+  // Save BA info to localStorage for later use
+  localStorage.setItem('currentBA', JSON.stringify(user));
+
+  // Fetch campaign assignment for this BA from Firestore
+  let db = window.db, collection = window.collection, query = window.query, where = window.where, getDocs = window.getDocs;
+  if (!db || !collection || !query || !where || !getDocs) {
+    const mod = await import('../js/firebase.js');
+    db = mod.db; collection = mod.collection; query = mod.query; where = mod.where; getDocs = mod.getDocs;
+  }
+  // Query campaign_ba_assignments for this BA
+  const q = query(collection(db, 'campaign_ba_assignments'), where('baId', '==', user.id));
+  const snap = await getDocs(q);
+  let found = null;
+  snap.forEach(doc => {
+    const d = doc.data();
+    // Optionally, filter by date here if multiple assignments
+    found = d;
+  });
+  if (!found) {
+    alert('No campaign assigned for you today.');
+    window.location.replace('../html/admin/login.html');
+    return;
+  }
+  // Set campaign info in sessionStorage for later use
+  sessionStorage.setItem('currentCampaignId', found.campaignId || '');
+  sessionStorage.setItem('currentCampaignName', found.campaignName || '');
+  // For demo, set campaignStart and campaignEnd to today (or use actual campaign info if available)
+  // If you have campaign start/end in assignment, use them. Otherwise, fetch from campaigns collection.
+  // Here, we fetch from campaigns collection:
+  let campaignStart = '', campaignEnd = '', campaignLat = '', campaignLng = '';
+  if (found.campaignId) {
+    const campSnap = await getDocs(query(collection(db, 'campaigns'), where('id', '==', found.campaignId)));
+    campSnap.forEach(c => {
+      const cdata = c.data();
+      campaignStart = cdata.start_date ? cdata.start_date + 'T' + (cdata.startTime || '00:00') : '';
+      campaignEnd = cdata.end_date ? cdata.end_date + 'T' + (cdata.endTime || '23:59') : '';
+      campaignLat = cdata.locationCoords?.lat || '';
+      campaignLng = cdata.locationCoords?.lng || '';
+    });
+  }
+  sessionStorage.setItem('currentCampaignStart', campaignStart);
+  sessionStorage.setItem('currentCampaignEnd', campaignEnd);
+  sessionStorage.setItem('currentCampaignLat', campaignLat);
+  sessionStorage.setItem('currentCampaignLng', campaignLng);
+}
+ensureBAAuthAndCampaign();
 // --- PAGE NAVIGATION ---
 function showPage(pageId) {
   const pages = document.querySelectorAll(".page");
@@ -116,7 +461,53 @@ function resetModal() {
 }
 
 // Main processing logic
-function processLocation() {
+window.processLocation = async function processLocation() {
+  // 0. Check campaign time before proceeding
+  let campaignStart = sessionStorage.getItem('currentCampaignStart');
+  let campaignEnd = sessionStorage.getItem('currentCampaignEnd');
+  function isWithinCampaignHours(start, end) {
+    if (!start || !end) return false;
+    const now = new Date();
+    // Only match the date (YYYY-MM-DD)
+    const nowDate = now.toISOString().slice(0, 10);
+    const startDate = new Date(start).toISOString().slice(0, 10);
+    const endDate = new Date(end).toISOString().slice(0, 10);
+    return nowDate >= startDate && nowDate <= endDate;
+  }
+  if (!isWithinCampaignHours(campaignStart, campaignEnd)) {
+    alert('You cannot clock in yet. It is not the time for your campaign.');
+    return;
+  }
+
+  // Check clock-in/clock-out status for this campaign
+  let user = null;
+  try { user = JSON.parse(sessionStorage.getItem('user')); } catch (e) {}
+  let campaignId = sessionStorage.getItem('currentCampaignId') || '';
+  let db = window.db, collection = window.collection, query = window.query, where = window.where, getDocs = window.getDocs;
+  if (!db || !collection || !query || !where || !getDocs) {
+    // eslint-disable-next-line no-undef
+    const mod = await import('../js/firebase.js');
+    db = mod.db; collection = mod.collection; query = mod.query; where = mod.where; getDocs = mod.getDocs;
+  }
+  const q = query(collection(db, 'ba_clockins'), where('baId', '==', user.id), where('campaignId', '==', campaignId));
+  const snap = await getDocs(q);
+  let hasClockIn = false, hasClockOut = false;
+  snap.forEach(doc => {
+    const d = doc.data();
+    if (d.type === 'clockin') hasClockIn = true;
+    if (d.type === 'clockout') hasClockOut = true;
+  });
+  if (hasClockIn && hasClockOut) {
+    alert('You have already completed this campaign. No further action is needed.');
+    return;
+  }
+  if (hasClockIn && !hasClockOut) {
+    if (confirm('You have already clocked in for this campaign. Please clock out to complete. Proceed to clock out?')) {
+      showPage('permission-camera');
+    }
+    return;
+  }
+
   // 1. Browser Pop-up Confirmation
   const userAgreed = confirm("Do you agree to share your current location for clock-in verification?");
 

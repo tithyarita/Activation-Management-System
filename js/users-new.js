@@ -7,24 +7,11 @@ import {
     doc,
     updateDoc
 } from "../js/firebase.js";
-import bcrypt from "https://cdn.jsdelivr.net/npm/bcryptjs@2.4.3/+esm";
 
 // =======================
 // AUTH GUARD (admin pages)
 // =======================
-(function(){
-    function _loginRedirect(){
-        const p = location.pathname || '';
-        const loginPath = p.includes('/admin/') ? '../login.html' : 'login.html';
-        location.replace(loginPath);
-    }
-    let cu = null;
-    try { cu = JSON.parse(sessionStorage.getItem('user')); } catch(e) { cu = null; }
-    if (!cu || cu.role !== 'admin') {
-        try { sessionStorage.clear(); } catch(e){}
-        _loginRedirect();
-    }
-})();
+// Remove standalone page redirect logic for dashboard integration
 
 let users = [];
 let editingUserId = null;
@@ -43,17 +30,57 @@ async function init(){
    LOAD USERS
 ============================= */
 async function loadUsers(){
+    // Try to load from localStorage first
+    let localUsers = [];
+    let loadedFromLocal = false;
+    try {
+        const cached = localStorage.getItem('users');
+        if (cached) {
+            localUsers = JSON.parse(cached);
+            users = localUsers;
+            updateStats();
+            renderUsers(users);
+            loadedFromLocal = true;
+            console.log('[loadUsers] Loaded from localStorage:', users);
+        } else {
+            console.log('[loadUsers] No users in localStorage');
+        }
+    } catch(e) {
+        console.warn('[loadUsers] localStorage users parse error', e);
+    }
 
-    const snap = await getDocs(collection(db,"users"));
-    users = [];
-
-    snap.forEach(d=>{
-        users.push({ id:d.id, ...d.data() });
-    });
-
-    updateStats();
-    renderUsers(users);
+    // Always fetch from Firestore to get latest
+    try {
+        const snap = await getDocs(collection(db,"users"));
+        users = [];
+        snap.forEach(d=>{
+            users.push({ id:d.id, ...d.data() });
+        });
+        // Store users in localStorage
+        localStorage.setItem('users', JSON.stringify(users));
+        updateStats();
+        renderUsers(users);
+        if (!users.length) {
+            console.warn('[loadUsers] No users found in Firestore');
+            const container = document.getElementById('usersList');
+            if (container) container.innerHTML = '<p class="loading-text">No users found in Firestore.</p>';
+        } else {
+            console.log('[loadUsers] Loaded from Firestore:', users);
+        }
+    } catch (err) {
+        console.error('[loadUsers] Error loading users from Firestore:', err);
+        const container = document.getElementById('usersList');
+        if (container) container.innerHTML = '<p class="loading-text">Failed to load users from Firestore.<br>' + err.message + '</p>';
+    }
+    // If both sources are empty, show a message
+    if (!users.length) {
+        const container = document.getElementById('usersList');
+        if (container) container.innerHTML = '<p class="loading-text">No users found. Please add a user.</p>';
+        console.warn('[loadUsers] No users found in localStorage or Firestore.');
+    }
 }
+// Expose for dashboard tab switching
+window.loadUsers = loadUsers;
 
 /* =============================
    STATS
@@ -80,14 +107,15 @@ function setText(id,val){
    RENDER USERS
 ============================= */
 function renderUsers(list){
-
     const container = document.getElementById("usersList");
-
+    if(!container) {
+        console.warn('usersList element not found in DOM');
+        return;
+    }
     if(!list.length){
         container.innerHTML="No users found";
         return;
     }
-
     container.innerHTML = `
         <table class="admin-table">
             <thead>
@@ -109,7 +137,6 @@ function renderUsers(list){
                                 onclick="openEditRole('${u.id}')">
                                 Role
                             </button>
-
                             <button class="btn btn-sm btn-danger"
                                 onclick="deleteUser('${u.id}')">
                                 Delete
@@ -185,14 +212,17 @@ document.getElementById("userForm")
         alert("Passwords do not match");
         return;
     }
-     // 🔐 Hash the password
-        const salt = bcrypt.genSaltSync(10);
-        const hashedPass = bcrypt.hashSync(pass, salt);
+        // 🔐 Hash the password with SHA-256
+        const encoder = new TextEncoder();
+        const data = encoder.encode(pass);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const passwordHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
     const docRef = await addDoc(collection(db,"users"),{
         name,
         email,
-        password: hashedPass,   // hashed password
+            passwordHash,   // SHA-256 hashed password
         role,
         createdAt: new Date()
     });
@@ -249,15 +279,9 @@ window.confirmRoleChange = async ()=>{
 
     closeEditRoleModal();
     loadUsers();
-};
-
-/* =============================
-   LOGOUT
-============================= */
-window.handleLogout = ()=>{
-    if(confirm("Logout?")){
-        sessionStorage.clear();
-        // Replace history entry so Back can't return
-        location.replace('login.html');
+    // Also update leader list if function exists (for dashboard integration)
+    if (typeof window.loadLeaders === 'function') {
+        window.loadLeaders();
     }
 };
+

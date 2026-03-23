@@ -1,5 +1,6 @@
- import { db, collection, getDocs } from "./firebase.js";
+import { db, collection, getDocs } from "../js/firebase.js";
 
+    window.loadLeaders = loadLeaders;
     async function loadLeaders() {
         try {
             // Load all required collections

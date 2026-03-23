@@ -33,19 +33,20 @@ function parseTime(t){
 ========================= */
 async function loadAllData(){
 
-    const [att,camp,users] = await Promise.all([
-        getDocs(collection(db,"attendance")),
-        getDocs(collection(db,"campaigns")),
-        getDocs(collection(db,"users"))
+    // Load BA clock-ins instead of attendance
+    const [clockinsSnap, camp, users] = await Promise.all([
+        getDocs(collection(db, "ba_clockins")),
+        getDocs(collection(db, "campaigns")),
+        getDocs(collection(db, "users"))
     ]);
 
-    allAttendanceRecords=[];
-    allCampaigns=[];
-    allUsers=[];
+    allAttendanceRecords = [];
+    allCampaigns = [];
+    allUsers = [];
 
-    att.forEach(d=>allAttendanceRecords.push({id:d.id,...d.data()}));
-    camp.forEach(d=>allCampaigns.push({id:d.id,...d.data()}));
-    users.forEach(d=>allUsers.push({id:d.id,...d.data()}));
+    clockinsSnap.forEach(d => allAttendanceRecords.push({ id: d.id, ...d.data() }));
+    camp.forEach(d => allCampaigns.push({ id: d.id, ...d.data() }));
+    users.forEach(d => allUsers.push({ id: d.id, ...d.data() }));
 
     populateFilters();
 }
@@ -91,21 +92,20 @@ function renderTable(records){
     }
 
     list.innerHTML = records.slice(0,50).map(r=>{
-        const camp=allCampaigns.find(c=>c.id===r.campaignId);
-
+        const camp = allCampaigns.find(c=>c.id===r.campaignId);
         return `
         <tr>
             <td>${r.userName||"Unknown"}</td>
             <td>${camp?.name||"N/A"}</td>
-            <td>${r.type!=="checkout"?parseTime(r.timestamp):"N/A"}</td>
-            <td>${r.type==="checkout"?parseTime(r.timestamp):"N/A"}</td>
+            <td>${parseTime(r.timestamp)}</td>
+            <td>N/A</td>
             <td>${r.location||"N/A"}</td>
-            <td>${r.photo?"✓":"✕"}</td>
+            <td>${r.photo ? `<img src='${r.photo}' alt='Clock-in photo' style='width:48px;height:48px;border-radius:6px;object-fit:cover;'/>` : "✕"}</td>
         </tr>`;
     }).join("");
-}
-
+    
 /* =========================
+
    FILTER MODAL
 ========================= */
 function populateFilters(){
@@ -218,22 +218,20 @@ window.closeReportModal=()=>{
 /* =========================
    LOGOUT
 ========================= */
-window.handleLogout=()=>{
-    if(confirm("Logout?")){
-        sessionStorage.clear();
-        // Replace history entry so Back can't return to protected pages
-        location.replace('login.html');
-    }
-};
+// window.handleLogout=()=>{
+//     if(confirm("Logout?")){
+//         sessionStorage.clear();
+//         // Replace history entry so Back can't return to protected pages
+//         location.replace('login.html');
+//     }
+// };
 
 // =======================
 // AUTH GUARD (protected pages)
 // =======================
 (function(){
     function _loginRedirect(){
-        const p = location.pathname || '';
-        const loginPath = p.includes('/admin/') ? '../login.html' : 'login.html';
-        location.replace(loginPath);
+        location.replace('/html/login.html');
     }
     let cu = null;
     try { cu = JSON.parse(sessionStorage.getItem('user')); } catch(e) { cu = null; }
