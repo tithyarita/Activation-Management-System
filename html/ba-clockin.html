@@ -368,7 +368,17 @@ async function ensureBAAuthAndCampaign() {
         // Always show a default popup if nothing else is triggered
         if (container) container.style.display = 'none';
         setTimeout(() => {
-          showReminderModal('No campaign action required or no assignment found for today.', '<button class="btn btn-blue" onclick="document.getElementById(\'ba-reminder-modal\').style.display=\'none\'">OK</button>');
+          showReminderModal(
+            'No campaign action required or no assignment found for today.',
+            '<button class="btn btn-blue" id="ba-reminder-ok-btn">OK</button>'
+          );
+          setTimeout(() => {
+            const okBtn = document.getElementById('ba-reminder-ok-btn');
+            if (okBtn) okBtn.onclick = () => {
+              document.getElementById('ba-reminder-modal').style.display = 'none';
+              window.location.replace('../html/admin/login.html');
+            };
+          }, 50);
         }, 300);
       }
       // If not clocked in, do nothing (proceed as normal)
@@ -476,6 +486,7 @@ window.processLocation = async function processLocation() {
   }
   if (!isWithinCampaignHours(campaignStart, campaignEnd)) {
     alert('You cannot clock in yet. It is not the time for your campaign.');
+    window.location.replace('../html/admin/login.html');
     return;
   }
 

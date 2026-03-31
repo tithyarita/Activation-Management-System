@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CA Clock-In</title>
+  <link rel="stylesheet" href="ba-clockin.css">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body { background: #f7fafc; }
+    .container { max-width: 420px; margin: 40px auto; background: #fff; border-radius: 14px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); padding: 32px 24px; }
+    .header { font-size: 1.5rem; font-weight: bold; margin-bottom: 18px; color: #2563eb; text-align: center; }
+    .section { margin-bottom: 24px; }
+    .btn { display: inline-block; padding: 10px 24px; border-radius: 6px; border: none; background: #2563eb; color: #fff; font-size: 1rem; cursor: pointer; margin: 8px 0; transition: background 0.18s; }
+    .btn:hover { filter: brightness(0.93); }
+    .photo-box { width: 100%; height: 220px; background: #eee; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; overflow: hidden; }
+    #webcam, #photo-canvas { width: 100%; height: 220px; object-fit: cover; }
+    .success { color: #22c55e; font-size: 1.2rem; text-align: center; margin-top: 18px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">CA Clock-In</div>
+    <div id="step-location" class="section">
+      <div>1. Confirm your location to clock in:</div>
+      <button class="btn" onclick="getLocation()">Confirm Location</button>
+      <div id="location-status"></div>
+    </div>
+    <div id="step-photo" class="section" style="display:none;">
+      <div>2. Take a photo for verification:</div>
+      <div class="photo-box"><video id="webcam" autoplay playsinline></video></div>
+      <button class="btn" onclick="takeSnapshot()">📷 Take Photo</button>
+    </div>
+    <div id="step-confirm" class="section" style="display:none;">
+      <div>3. Confirm your photo:</div>
+      <div class="photo-box"><canvas id="photo-canvas"></canvas></div>
+      <button class="btn" onclick="retakePhoto()">Retake</button>
+      <button class="btn" onclick="submitClockIn()">Confirm & Clock In</button>
+    </div>
+    <div id="step-success" class="section" style="display:none;">
+      <div class="success">✅ Clock-in successful!<br>Thank you.</div>
+    </div>
+  </div>
+  <script>
+    let stream = null;
+    let photoData = null;
+    function getLocation() {
+      const status = document.getElementById('location-status');
+      status.textContent = 'Getting your location...';
+      if (!navigator.geolocation) {
+        status.textContent = 'Geolocation is not supported by your browser.';
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          status.textContent = 'Location confirmed!';
+          document.getElementById('step-location').style.display = 'none';
+          document.getElementById('step-photo').style.display = '';
+          startCamera();
+        },
+        (err) => {
+          status.textContent = 'Unable to get location. Please allow location access.';
+        }
+      );
+    }
+    function startCamera() {
+      const video = document.getElementById('webcam');
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ video: true })
+          .then(function(s) {
+            stream = s;
+            video.srcObject = stream;
+            video.play();
+          })
+          .catch(function() {
+            alert('Unable to access camera.');
+          });
+      }
+    }
+    function takeSnapshot() {
+      const video = document.getElementById('webcam');
+      const canvas = document.getElementById('photo-canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+      photoData = canvas.toDataURL('image/png');
+      document.getElementById('step-photo').style.display = 'none';
+      document.getElementById('step-confirm').style.display = '';
+      video.pause();
+      if (stream) stream.getTracks().forEach(track => track.stop());
+    }
+    function retakePhoto() {
+      document.getElementById('step-confirm').style.display = 'none';
+      document.getElementById('step-photo').style.display = '';
+      startCamera();
+    }
+    function submitClockIn() {
+      // Here you would send photoData and location to your backend
+      document.getElementById('step-confirm').style.display = 'none';
+      document.getElementById('step-success').style.display = '';
+    }
+  </script>
+</body>
+</html>
