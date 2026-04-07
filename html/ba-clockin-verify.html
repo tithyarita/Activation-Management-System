@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Verify Location & Clock In</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    body { background: #f6f8fa; font-family: 'Segoe UI', Arial, sans-serif; }
+    .container { max-width: 420px; margin: 40px auto; background: #fff; border-radius: 14px; box-shadow: 0 4px 32px rgba(0,0,0,0.08); padding: 32px 28px; }
+    .step { margin-bottom: 28px; }
+    .step h3 { margin-bottom: 10px; }
+    .btn { margin-top: 18px; }
+    #photo-preview { width: 100%; max-width: 320px; border-radius: 10px; margin-top: 12px; }
+  </style>
+  <script type="module" src="../js/firebase.js"></script>
+</head>
+<body>
+<div class="container">
+  <h2>Verify Location & Clock In</h2>
+  <div class="step" id="location-step">
+    <h3>Step 1: Location Verification</h3>
+    <div id="location-status">Checking location...</div>
+    <div id="location-map" style="height:180px;width:100%;margin-top:10px;display:none;"></div>
+    <button id="retryLocBtn" class="btn btn-blue" style="display:none;" onclick="window.getLocation()">Retry Location</button>
+  </div>
+  <div class="step" id="camera-step" style="display:none;">
+    <h3>Step 2: Take a Photo</h3>
+    <video id="webcam" autoplay playsinline width="100%" style="max-width:320px;border-radius:10px;"></video>
+    <br>
+    <button class="btn btn-blue" onclick="window.takeSnapshot()">📷 Take Photo</button>
+    <img id="photo-preview" style="display:none;"/>
+    <button id="confirmBtn" class="btn btn-green" style="display:none;" onclick="window.saveClockIn()">Confirm & Clock In</button>
+  </div>
+</div>
+<script type="module">
+function getCurrentUser() {
+  try { return JSON.parse(sessionStorage.getItem('user')); } catch (e) { return null; }
+}
+const campaignId = sessionStorage.getItem('currentCampaignId');
+const campaignName = sessionStorage.getItem('currentCampaignName');
+const campaignLat = parseFloat(sessionStorage.getItem('currentCampaignLat'));
+const campaignLng = parseFloat(sessionStorage.getItem('currentCampaignLng'));
+const user = getCurrentUser();
+let userLat = null, userLng = null;
+
+window.getLocation = async function() {
+  document.getElementById('location-status').textContent = 'Checking location...';
+  document.getElementById('retryLocBtn').style.display = 'none';
+  if (!navigator.geolocation) {
+    document.getElementById('location-status').textContent = 'Geolocation not supported.';
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(function(pos) {
+    userLat = pos.coords.latitude;
+    userLng = pos.coords.longitude;
+    // Geofence check (100m)
+    function getDistance(lat1, lon1, lat2, lon2) {
+      function toRad(x) { return x * Math.PI / 180; }
+      const R = 6371000;
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon/2) * Math.sin(dLon/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return R * c;
+    }
+    let dist = Infinity;
+    if (!isNaN(campaignLat) && !isNaN(campaignLng)) {
+      dist = getDistance(userLat, userLng, campaignLat, campaignLng);
+    }
+    if (dist <= 100) {
+      document.getElementById('location-status').textContent = 'Location verified!';
+      document.getElementById('camera-step').style.display = '';
+      document.getElementById('location-step').style.display = 'none';
+      window.startCamera();
+    } else {
+      document.getElementById('location-status').textContent = 'You are not within the allowed zone (100m).';
+      document.getElementById('retryLocBtn').style.display = '';
+    }
+  }, function() {
+    document.getElementById('location-status').textContent = 'Could not get location.';
+    document.getElementById('retryLocBtn').style.display = '';
+  }, { enableHighAccuracy: true, timeout: 5000 });
+};
+window.startCamera = async function() {
+  const video = document.getElementById('webcam');
+  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    video.srcObject = stream;
+    window._stream = stream;
+  }
+};
+window.takeSnapshot = function() {
+  const video = document.getElementById('webcam');
+  const canvas = document.createElement('canvas');
+  canvas.width = 320;
+  canvas.height = 240;
+  canvas.getContext('2d').drawImage(video, 0, 0, 320, 240);
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+  document.getElementById('photo-preview').src = dataUrl;
+  document.getElementById('photo-preview').style.display = '';
+  document.getElementById('confirmBtn').style.display = '';
+  video.style.display = 'none';
+  if (window._stream) window._stream.getTracks().forEach(t => t.stop());
+  window._photoData = dataUrl;
+};
+window.saveClockIn = async function() {
+  import('../js/firebase.js').then(async mod => {
+    const { storage, storageRef, uploadString, getDownloadURL, db, collection, addDoc } = mod;
+    // Upload photo
+    const fileName = `ba_photos/${user.id}_${campaignId}_clockin_${Date.now()}.jpg`;
+    const ref = storageRef(storage, fileName);
+    await uploadString(ref, window._photoData, 'data_url');
+    const photoURL = await getDownloadURL(ref);
+    // Save to Firestore
+    await addDoc(collection(db, 'ba_clockins'), {
+      baId: user.id,
+      baName: user.name,
+      campaignId,
+      campaignName,
+      photo: photoURL,
+      timestamp: Date.now(),
+      type: 'clockin',
+      clock_in_time: new Date().toISOString(),
+      lat: userLat,
+      lng: userLng,
+      campaignLat,
+      campaignLng
+    });
+    alert('Clock-in successful!');
+    window.location.href = 'ba-clockin.html';
+  });
+};
+window.getLocation();
+</script>
+</body>
+</html>

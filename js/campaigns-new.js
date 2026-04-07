@@ -175,7 +175,6 @@ async function loadCampaigns() {
           </div>
           <div class="campaign-info">
             <p><b>Dates:</b> ${startDate} to ${endDate}</p>
-            <p><b>Time:</b> ${data.startTime || 'N/A'} - ${data.endTime || 'N/A'}</p>
             <p><b>Location:</b> ${data.location}</p>
             <p><b>Budget:</b> ${budget}</p>
             <p><b>Leader:</b> ${data.assignedLeader || "Unassigned"}</p>
@@ -223,8 +222,6 @@ async function handleAddCampaign(e) {
     name: document.getElementById('campaignName').value,
     start_date: document.getElementById('campaignStartDate').value,
     end_date: document.getElementById('campaignEndDate').value,
-    startTime: document.getElementById('campaignStartTime').value,
-    endTime: document.getElementById('campaignEndTime').value,
     location: document.getElementById('campaignLocation').value,
     locationCoords: (function(){
       const lat = parseFloat(document.getElementById('campaignLat').value || '') || null;
@@ -420,8 +417,6 @@ window.editCampaign = async id => {
   document.getElementById('campaignDescription').value = campaign.description || '';
   document.getElementById('campaignStartDate').value = campaign.start_date || '';
   document.getElementById('campaignEndDate').value = campaign.end_date || '';
-  document.getElementById('campaignStartTime').value = campaign.startTime || '';
-  document.getElementById('campaignEndTime').value = campaign.endTime || '';
   document.getElementById('campaignBudget').value = campaign.budget || '';
   document.getElementById('campaignStatus').value = campaign.status || 'upcoming';
   document.getElementById('campaignLocation').value = campaign.location || '';

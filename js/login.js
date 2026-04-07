@@ -94,6 +94,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 window.location.href = "/html/admin/admin-dashboard.html";
             } else if (userData.role === "leader") {
                 window.location.href = "/html/leader.html";
+            } else if (["ba", "brand_ambassador", "staff"].includes((userData.role || "").toLowerCase())) {
+                window.location.href = "/html/ba-clockin.html";
             } else {
                 window.location.href = "/html/ba-clockin.html";
             }
